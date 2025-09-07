@@ -9,6 +9,7 @@ const Upload = () => {
   const navigate = useNavigate();
   const [uploadStep, setUploadStep] = useState<'select' | 'uploading' | 'processing' | 'complete'>('select');
   const [progress, setProgress] = useState(0);
+  const [processingMessage, setProcessingMessage] = useState("Encontrando melhores oportunidades...");
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -23,12 +24,29 @@ const Upload = () => {
             setUploadStep('processing');
             
             // Simulate processing
+            // Enhanced processing with dynamic messages
+            const messages = [
+              "Encontrando melhores oportunidades...",
+              "Analisando sua performance em campo...",
+              "Comparando seu estilo com clubes interessados...",
+              "Finalizando seu relatório personalizado..."
+            ];
+            
+            let messageIndex = 0;
+            setProcessingMessage(messages[0]);
+            
+            const messageInterval = setInterval(() => {
+              messageIndex = (messageIndex + 1) % messages.length;
+              setProcessingMessage(messages[messageIndex]);
+            }, 1500);
+            
             setTimeout(() => {
+              clearInterval(messageInterval);
               setUploadStep('complete');
               setTimeout(() => {
                 navigate('/analysis');
               }, 2000);
-            }, 3000);
+            }, 6000); // Longer processing time
             
             return 100;
           }
@@ -117,8 +135,8 @@ const Upload = () => {
               <div className="flex justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-              <p className="text-muted-foreground">
-                Nossos especialistas estão avaliando sua performance
+              <p className="text-muted-foreground font-medium">
+                {processingMessage}
               </p>
             </div>
           )}

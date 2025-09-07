@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, User, MapPin, Trophy } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, User, MapPin, Trophy, Camera, Flag } from "lucide-react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Onboarding = () => {
@@ -13,10 +13,14 @@ const Onboarding = () => {
   const [playerData, setPlayerData] = useState({
     name: "",
     age: "",
+    nationality: "",
     position: "",
     city: "",
-    experience: ""
+    experience: "",
+    photo: ""
   });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const positions = [
     "Goleiro",
@@ -38,11 +42,31 @@ const Onboarding = () => {
     "Profissional (10+ anos)"
   ];
 
+  const countries = [
+    "Brasil", "Argentina", "Uruguai", "Chile", "Peru", "Colômbia", "Equador", "Venezuela",
+    "Portugal", "Espanha", "Itália", "França", "Inglaterra", "Alemanha", "Holanda", "Bélgica",
+    "Estados Unidos", "México", "Canadá", "Japão", "Coreia do Sul", "China", "Austrália",
+    "África do Sul", "Egito", "Marrocos", "Nigéria", "Gana", "Costa do Marfim", "Senegal"
+  ];
+
   const handleNext = () => {
-    if (step < 3) {
+    if (step < 4) {
       setStep(step + 1);
     } else {
+      // Save player data to localStorage
+      localStorage.setItem('playerData', JSON.stringify(playerData));
       navigate("/upload");
+    }
+  };
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPlayerData({ ...playerData, photo: e.target?.result as string });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -51,8 +75,10 @@ const Onboarding = () => {
       case 1:
         return playerData.name && playerData.age;
       case 2:
-        return playerData.position;
+        return playerData.nationality;
       case 3:
+        return playerData.position;
+      case 4:
         return playerData.city && playerData.experience;
       default:
         return false;
@@ -73,7 +99,7 @@ const Onboarding = () => {
             <ArrowLeft className="w-6 h-6" />
           </Button>
           <div className="text-white font-medium">
-            {step} de 3
+            {step} de 4
           </div>
         </div>
 
@@ -81,7 +107,7 @@ const Onboarding = () => {
         <div className="mb-8 bg-white/20 rounded-full h-2">
           <div 
             className="bg-white rounded-full h-2 transition-all duration-500"
-            style={{ width: `${(step / 3) * 100}%` }}
+            style={{ width: `${(step / 4) * 100}%` }}
           />
         </div>
 
@@ -94,10 +120,41 @@ const Onboarding = () => {
                   <User className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold">Vamos te conhecer</h2>
-                <p className="text-muted-foreground">Conte-nos sobre você</p>
+                <p className="text-muted-foreground">Conte-nos sobre você e adicione sua foto</p>
               </div>
               
               <div className="space-y-4">
+                {/* Photo Upload */}
+                <div className="text-center">
+                  <Label>Sua foto (opcional)</Label>
+                  <div className="mt-2 flex justify-center">
+                    <div 
+                      className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {playerData.photo ? (
+                        <img 
+                          src={playerData.photo} 
+                          alt="Foto do jogador" 
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <Camera className="w-8 h-8 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Clique para adicionar sua foto
+                  </p>
+                </div>
+
                 <div>
                   <Label htmlFor="name">Nome completo</Label>
                   <Input
@@ -128,6 +185,37 @@ const Onboarding = () => {
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-gradient-accent rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Flag className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold">Sua nacionalidade</h2>
+                <p className="text-muted-foreground">Qual é o seu país de origem?</p>
+              </div>
+              
+              <div>
+                <Label>Nacionalidade</Label>
+                <Select 
+                  value={playerData.nationality} 
+                  onValueChange={(value) => setPlayerData({...playerData, nationality: value})}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione seu país" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-gradient-accent rounded-full flex items-center justify-center mx-auto mb-4">
                   <Trophy className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold">Sua posição</h2>
@@ -155,7 +243,7 @@ const Onboarding = () => {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
@@ -204,7 +292,7 @@ const Onboarding = () => {
             onClick={handleNext}
             disabled={!canProceed()}
           >
-            {step === 3 ? "Finalizar" : "Continuar"}
+            {step === 4 ? "Finalizar" : "Continuar"}
           </Button>
         </Card>
       </div>

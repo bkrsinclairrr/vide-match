@@ -3,9 +3,19 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Trophy, Target, Zap, Heart, Brain, Shield, Users, Lightbulb } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import PlayerProfile from "@/components/PlayerProfile";
 
 const Analysis = () => {
   const navigate = useNavigate();
+  const [playerData, setPlayerData] = useState<any>(null);
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('playerData');
+    if (savedData) {
+      setPlayerData(JSON.parse(savedData));
+    }
+  }, []);
 
   const analysisData = [
     {
@@ -97,6 +107,11 @@ const Analysis = () => {
             Relatório de Performance
           </div>
         </div>
+
+        {/* Player Profile */}
+        {playerData && (
+          <PlayerProfile playerData={playerData} className="mb-6" />
+        )}
 
         {/* Overall Score */}
         <Card className="p-6 bg-white shadow-strong border-0 mb-6 animate-fade-in">
