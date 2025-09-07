@@ -1,0 +1,55 @@
+{
+  "name": "ScoutMatch - Análise Futebolística",
+  "short_name": "ScoutMatch",
+  "description": "Análise de performance futebolística com match automático de clubes",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#22c55e",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["sports", "utilities"],
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nova Análise",
+      "short_name": "Análise",
+      "url": "/upload",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Histórico",
+      "short_name": "Histórico", 
+      "url": "/history",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
