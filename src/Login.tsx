@@ -10,7 +10,7 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
       localStorage.setItem("autenticado", "true")
       onLogin()
     } else {
-      alert("Senha incorreta!")
+      alert("Senha incorreta")
     }
   }
 
@@ -24,12 +24,11 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
             placeholder="Digite a senha"
-            className="w-full p-2 mb-4 border rounded-lg"
-            required
+            className="w-full p-2 mb-4 border rounded"
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
           >
             Entrar
           </button>
