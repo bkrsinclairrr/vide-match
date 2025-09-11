@@ -15,7 +15,7 @@ const Landing = () => {
             <div className="w-10 h-10 bg-gradient-golden rounded-full flex items-center justify-center">
               <Trophy className="w-6 h-6 text-black" />
             </div>
-            <span className="text-xl font-bold text-white">ScoutMatch</span>
+            <span className="text-xl font-bold text-white">Zyron</span>
           </div>
           <div className="hidden md:flex space-x-6 text-white/80">
             <a href="#como-funciona" className="hover:text-accent transition-colors">Como funciona</a>
@@ -155,7 +155,7 @@ const Landing = () => {
             </div>
             <p className="text-muted-foreground italic mb-4">
               "Em 2 semanas recebi uma proposta de R$ 5.200/mês do Atlético Mineiro B. 
-              O ScoutMatch mudou minha vida completamente!"
+              O Zyron mudou minha vida completamente!"
             </p>
             <div className="flex text-accent">
               <Star className="w-4 h-4 fill-current" />
@@ -246,7 +246,7 @@ const Landing = () => {
             <ArrowRight className="ml-3 w-6 h-6" />
           </Button>
           <div className="mt-8 text-sm text-muted-foreground">
-            ScoutMatch © 2024 • Transformando sonhos em oportunidades reais
+            Zyron © 2024 • Transformando sonhos em oportunidades reais
           </div>
         </div>
       </footer>

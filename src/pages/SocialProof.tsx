@@ -10,7 +10,7 @@ const SocialProof = () => {
       position: "Atacante",
       club: "América-MG",
       photo: "👨",
-      quote: "Através do ScoutMatch consegui uma oportunidade no América-MG. Em 3 meses já estava treinando com o time principal!",
+      quote: "Através do Zyron consegui uma oportunidade no América-MG. Em 3 meses já estava treinando com o time principal!",
       rating: 5
     },
     {

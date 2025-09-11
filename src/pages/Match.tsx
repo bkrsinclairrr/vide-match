@@ -55,7 +55,7 @@ const Match = () => {
     if (!matchedClub) return;
     
     const playerData = JSON.parse(localStorage.getItem('playerData') || '{}');
-    const message = `Olá! Sou ${playerData.name || 'um jogador'} e recebi um match de ${compatibility}% de compatibilidade com o ${matchedClub.name} através do ScoutMatch. Sou ${playerData.position || 'jogador'} de ${playerData.age || 'N/A'} anos do ${playerData.country || 'Brasil'} e gostaria de saber mais sobre oportunidades no clube.`;
+    const message = `Olá! Sou ${playerData.name || 'um jogador'} e recebi um match de ${compatibility}% de compatibilidade com o ${matchedClub.name} através do Zyron. Sou ${playerData.position || 'jogador'} de ${playerData.age || 'N/A'} anos do ${playerData.country || 'Brasil'} e gostaria de saber mais sobre oportunidades no clube.`;
     
     // Extract phone number for WhatsApp (remove formatting)
     const phone = matchedClub.contact.phone.replace(/[^\d]/g, '');
