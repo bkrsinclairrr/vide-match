@@ -46,7 +46,7 @@ const Upload = () => {
               setTimeout(() => {
                 navigate('/analysis');
               }, 2000);
-            }, 6000); // Longer processing time
+            }, 12000); // Much longer processing time for realistic feel
             
             return 100;
           }

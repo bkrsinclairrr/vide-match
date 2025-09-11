@@ -17,59 +17,62 @@ const Analysis = () => {
     }
   }, []);
 
+  // Generate random good scores (75-95 range)
+  const generateRandomScore = () => Math.floor(Math.random() * 21) + 75; // 75-95
+  
   const analysisData = [
     {
       category: "Técnica",
-      score: 85,
+      score: generateRandomScore(),
       icon: Target,
       description: "Excelente domínio de bola e precisão nos passes",
       color: "text-success"
     },
     {
       category: "Físico", 
-      score: 78,
+      score: generateRandomScore(),
       icon: Zap,
       description: "Boa velocidade e resistência durante a partida",
       color: "text-warning"
     },
     {
       category: "Mental",
-      score: 92,
+      score: generateRandomScore(),
       icon: Brain,
       description: "Leitura de jogo excepcional e tomada de decisão rápida",
       color: "text-success"
     },
     {
       category: "Defesa",
-      score: 72,
+      score: generateRandomScore(),
       icon: Shield,
-      description: "Posicionamento defensivo pode ser aprimorado",
+      description: "Bom posicionamento defensivo com potencial de crescimento",
       color: "text-warning"
     },
     {
       category: "Ataque",
-      score: 88,
+      score: generateRandomScore(),
       icon: Trophy,
       description: "Excelente finalização e movimentação na área",
       color: "text-success"
     },
     {
       category: "Trabalho em Equipe",
-      score: 90,
+      score: generateRandomScore(),
       icon: Users,
       description: "Ótima comunicação e entrosamento com companheiros",
       color: "text-success"
     },
     {
       category: "Resistência",
-      score: 75,
+      score: generateRandomScore(),
       icon: Heart,
       description: "Mantém bom ritmo durante toda a partida",
       color: "text-warning"
     },
     {
       category: "Criatividade",
-      score: 94,
+      score: generateRandomScore(),
       icon: Lightbulb,
       description: "Demonstra jogadas inovadoras e visão de jogo única",
       color: "text-success"

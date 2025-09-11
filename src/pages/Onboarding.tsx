@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { ArrowLeft, User, MapPin, Trophy, Camera, Flag } from "lucide-react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -253,17 +254,13 @@ const Onboarding = () => {
                 <p className="text-muted-foreground">Últimas informações</p>
               </div>
               
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="city">Cidade</Label>
-                  <Input
-                    id="city"
-                    value={playerData.city}
-                    onChange={(e) => setPlayerData({...playerData, city: e.target.value})}
-                    placeholder="Sua cidade"
-                    className="mt-1"
-                  />
-                </div>
+               <div className="space-y-4">
+                 <CityAutocomplete
+                   value={playerData.city}
+                   onChange={(value) => setPlayerData({...playerData, city: value})}
+                   placeholder="Digite sua cidade..."
+                   label="Cidade"
+                 />
                 
                 <div>
                   <Label>Experiência</Label>
