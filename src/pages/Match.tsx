@@ -21,8 +21,8 @@ const Match = () => {
       const club = getRandomClub(usedClubIds);
       setMatchedClub(club);
       
-      // Generate compatibility score (75-95%)
-      const compatibilityScore = 75 + Math.floor(Math.random() * 21);
+      // Generate compatibility score (93-95%)
+      const compatibilityScore = 93 + Math.floor(Math.random() * 3);
       setCompatibility(compatibilityScore);
       
       // Save this club as used
@@ -55,11 +55,21 @@ const Match = () => {
     if (!matchedClub) return;
     
     const playerData = JSON.parse(localStorage.getItem('playerData') || '{}');
-    const message = `Olá! Sou ${playerData.name || 'um jogador'} e recebi um match de ${compatibility}% de compatibilidade com o ${matchedClub.name} através do Zyron. Sou ${playerData.position || 'jogador'} de ${playerData.age || 'N/A'} anos do ${playerData.country || 'Brasil'} e gostaria de saber mais sobre oportunidades no clube.`;
+    const message = `🔥 Olá! Meu nome é ${playerData.name || 'um jogador'} e acabei de receber uma indicação incrível através do Zyron! 
+
+⚽ Sou ${playerData.position || 'jogador'} e nossa plataforma identificou uma compatibilidade de ${compatibility}% entre meu perfil e o ${matchedClub.name}!
+
+📊 Minhas informações:
+• Nome: ${playerData.name || 'N/A'}
+• Posição: ${playerData.position || 'N/A'}
+• Idade: ${playerData.age || 'N/A'} anos
+• Nacionalidade: ${playerData.country || 'Brasil'}
+
+🎯 O Zyron me recomendou especificamente para o ${matchedClub.name} com ${compatibility}% de compatibilidade. Gostaria muito de conhecer mais sobre as oportunidades disponíveis no clube!
+
+Quando podemos conversar? 🚀`;
     
-    // Extract phone number for WhatsApp (remove formatting)
-    const phone = matchedClub.contact.phone.replace(/[^\d]/g, '');
-    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/5561996232814?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -99,12 +109,16 @@ const Match = () => {
           <>
             {/* Match Success */}
             <Card className="p-6 bg-white shadow-strong border-0 mb-6 animate-fade-in text-center">
-              <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-8 h-8 text-white" />
+              <div className="w-20 h-20 bg-gradient-accent rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
+                {matchedClub?.logo}
               </div>
               <h2 className="text-2xl font-bold mb-2">Encontramos seu clube!</h2>
-              <p className="text-muted-foreground">
-                Com base na sua análise, identificamos o clube ideal para você
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <CheckCircle2 className="w-4 h-4 text-success" />
+                <Clock className="w-4 h-4 text-primary" />
+              </div>
+              <p className="text-muted-foreground font-medium">
+                Esse time está esperando por você! 👇
               </p>
             </Card>
 
