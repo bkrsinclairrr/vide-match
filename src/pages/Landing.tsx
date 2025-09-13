@@ -32,42 +32,42 @@ const Landing = () => {
             <Play className="w-12 h-12 text-black" />
           </div>
           
-          <h1 className="text-4xl md:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in">
+          <h1 className="text-2xl sm:text-4xl md:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in">
             Mostre Seu Talento.
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-golden animate-glow">
               Encontre Sua Oportunidade
             </span>
             <br />
-            <span className="text-white text-3xl md:text-5xl">no Futebol Profissional.</span>
+            <span className="text-white text-xl sm:text-3xl md:text-5xl">no Futebol Profissional.</span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in">
+          <p className="text-base sm:text-xl md:text-2xl text-white/90 mb-8 max-w-4xl mx-auto leading-relaxed animate-fade-in px-4">
             Upload de vídeo + Relatório de performance + Match com clubes que precisam de você.
             <br />
             <span className="text-accent font-semibold">Sua carreira profissional começa aqui.</span>
           </p>
           
           <Button 
-            className="bg-gradient-golden text-black font-bold text-lg hover:scale-105 transition-all duration-300 animate-bounce-slow shadow-strong px-12 py-6 h-auto"
+            className="bg-gradient-golden text-black font-bold text-sm sm:text-lg hover:scale-105 transition-all duration-300 animate-bounce-slow shadow-strong px-6 sm:px-12 py-4 sm:py-6 h-auto"
             onClick={() => navigate("/onboarding")}
           >
             Comece Agora - É Grátis
-            <ArrowRight className="ml-2 w-6 h-6" />
+            <ArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
 
-          <div className="mt-8 flex items-center justify-center space-x-8 text-white/70">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-8 text-white/70">
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-5 h-5 text-accent" />
-              <span>Análise profissional gratuita</span>
+              <span className="text-sm sm:text-base">Análise profissional gratuita</span>
             </div>
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-5 h-5 text-accent" />
-              <span>Match com clubes reais</span>
+              <span className="text-sm sm:text-base">Match com clubes reais</span>
             </div>
             <div className="flex items-center space-x-2">
               <CheckCircle className="w-5 h-5 text-accent" />
-              <span>Oportunidades exclusivas</span>
+              <span className="text-sm sm:text-base">Oportunidades exclusivas</span>
             </div>
           </div>
         </div>
@@ -101,35 +101,35 @@ const Landing = () => {
         <h2 className="text-4xl font-bold text-center text-white mb-16">
           Como Funciona o Seu Sucesso
         </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          <Card className="p-8 text-center bg-gradient-card shadow-strong border-0 animate-fade-in hover:scale-105 transition-all duration-300">
-            <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
-              <Upload className="w-10 h-10 text-white" />
+        <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <Card className="p-6 sm:p-8 text-center bg-gradient-card shadow-strong border-0 animate-fade-in hover:scale-105 transition-all duration-300">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 animate-float">
+              <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-foreground">Upload Inteligente</h3>
-            <p className="text-muted-foreground text-lg">
+            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-foreground">Upload Inteligente</h3>
+            <p className="text-muted-foreground text-base sm:text-lg">
               Envie seu vídeo de até 10 minutos. Nossa IA analisa cada movimento, 
               cada jogada, cada detalhe da sua performance.
             </p>
           </Card>
           
-          <Card className="p-8 text-center bg-gradient-card shadow-strong border-0 animate-fade-in hover:scale-105 transition-all duration-300">
-            <div className="w-20 h-20 bg-gradient-accent rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
-              <BarChart3 className="w-10 h-10 text-black" />
+          <Card className="p-6 sm:p-8 text-center bg-gradient-card shadow-strong border-0 animate-fade-in hover:scale-105 transition-all duration-300">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-accent rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 animate-float">
+              <BarChart3 className="w-8 h-8 sm:w-10 sm:h-10 text-black" />
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-foreground">Relatório Profissional</h3>
-            <p className="text-muted-foreground text-lg">
+            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-foreground">Relatório Profissional</h3>
+            <p className="text-muted-foreground text-base sm:text-lg">
               Receba uma análise completa e detalhada que impressiona scouts e 
               diretores esportivos. Dados que realmente importam.
             </p>
           </Card>
           
-          <Card className="p-8 text-center bg-gradient-card shadow-strong border-0 animate-fade-in hover:scale-105 transition-all duration-300">
-            <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-6 animate-float">
-              <Target className="w-10 h-10 text-white" />
+          <Card className="p-6 sm:p-8 text-center bg-gradient-card shadow-strong border-0 animate-fade-in hover:scale-105 transition-all duration-300">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 animate-float">
+              <Target className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-foreground">Match Perfeito</h3>
-            <p className="text-muted-foreground text-lg">
+            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-foreground">Match Perfeito</h3>
+            <p className="text-muted-foreground text-base sm:text-lg">
               Conectamos você ao clube ideal que precisa exatamente do seu perfil. 
               Oportunidades reais, não promessas vazias.
             </p>
@@ -205,22 +205,22 @@ const Landing = () => {
             restantes para novos jogadores este mês. Clubes como Corinthians B, Santos FC e 
             Internacional estão buscando reforços até o fim do mês.
           </p>
-          <div className="flex items-center justify-center space-x-4 mb-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 mb-8">
             <div className="flex items-center text-accent">
               <Users className="w-5 h-5 mr-2" />
-              <span className="font-semibold">847 jogadores na fila</span>
+              <span className="font-semibold text-sm sm:text-base">847 jogadores na fila</span>
             </div>
             <div className="flex items-center text-accent">
               <Trophy className="w-5 h-5 mr-2" />
-              <span className="font-semibold">23 clubes ativos hoje</span>
+              <span className="font-semibold text-sm sm:text-base">23 clubes ativos hoje</span>
             </div>
           </div>
           <Button 
-            className="bg-gradient-golden text-black font-bold text-xl hover:scale-105 transition-all duration-300 shadow-strong px-16 py-8 h-auto animate-pulse-slow"
+            className="bg-gradient-golden text-black font-bold text-lg sm:text-xl hover:scale-105 transition-all duration-300 shadow-strong px-8 sm:px-16 py-6 sm:py-8 h-auto animate-pulse-slow"
             onClick={() => navigate("/onboarding")}
           >
             Garantir Minha Vaga Agora
-            <ArrowRight className="ml-3 w-7 h-7" />
+            <ArrowRight className="ml-3 w-6 h-6 sm:w-7 sm:h-7" />
           </Button>
           <p className="text-white/70 text-sm mt-4">
             ⏰ Análise completa em até 24 horas • ✅ 100% gratuito • 🎯 Match garantido
@@ -239,11 +239,11 @@ const Landing = () => {
             seu potencial e encontraram seus clubes ideais. Você é o próximo.
           </p>
           <Button 
-            className="bg-gradient-primary text-white hover:scale-105 transition-all duration-300 shadow-strong text-lg px-12 py-6 h-auto"
+            className="bg-gradient-primary text-white hover:scale-105 transition-all duration-300 shadow-strong text-sm sm:text-lg px-6 sm:px-12 py-4 sm:py-6 h-auto"
             onClick={() => navigate("/onboarding")}
           >
             Começar Minha Jornada Profissional
-            <ArrowRight className="ml-3 w-6 h-6" />
+            <ArrowRight className="ml-3 w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
           <div className="mt-8 text-sm text-muted-foreground">
             Zyron © 2024 • Transformando sonhos em oportunidades reais
