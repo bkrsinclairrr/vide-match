@@ -28,7 +28,15 @@ const Upload = () => {
             const messages = [
               "Encontrando melhores oportunidades...",
               "Analisando sua performance em campo...",
+              "Avaliando técnicas de passe e finalização...",
+              "Verificando posicionamento tático...",
               "Comparando seu estilo com clubes interessados...",
+              "Analisando velocidade e agilidade...",
+              "Estudando trabalho em equipe...",
+              "Verificando resistência física...",
+              "Avaliando tomada de decisão...",
+              "Analisando criatividade nas jogadas...",
+              "Comparando com perfis de sucesso...",
               "Finalizando seu relatório personalizado..."
             ];
             

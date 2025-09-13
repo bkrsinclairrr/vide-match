@@ -48,13 +48,15 @@ const Landing = () => {
             <span className="text-accent font-semibold">Sua carreira profissional começa aqui.</span>
           </p>
           
-          <Button 
-            className="bg-gradient-golden text-black font-bold text-sm sm:text-lg hover:scale-105 transition-all duration-300 animate-bounce-slow shadow-strong px-6 sm:px-12 py-4 sm:py-6 h-auto"
-            onClick={() => navigate("/onboarding")}
-          >
-            Comece Agora - É Grátis
-            <ArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6" />
-          </Button>
+          <div className="flex justify-center">
+            <Button 
+              className="bg-gradient-golden text-black font-bold text-sm sm:text-lg hover:scale-105 transition-all duration-300 animate-bounce-slow shadow-strong px-6 sm:px-12 py-4 sm:py-6 h-auto max-w-xs sm:max-w-none w-full sm:w-auto"
+              onClick={() => navigate("/onboarding")}
+            >
+              Comece Agora - É Grátis
+              <ArrowRight className="ml-2 w-5 h-5 sm:w-6 sm:h-6" />
+            </Button>
+          </div>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-8 text-white/70">
             <div className="flex items-center space-x-2">
@@ -215,13 +217,15 @@ const Landing = () => {
               <span className="font-semibold text-sm sm:text-base">23 clubes ativos hoje</span>
             </div>
           </div>
-          <Button 
-            className="bg-gradient-golden text-black font-bold text-lg sm:text-xl hover:scale-105 transition-all duration-300 shadow-strong px-8 sm:px-16 py-6 sm:py-8 h-auto animate-pulse-slow"
-            onClick={() => navigate("/onboarding")}
-          >
-            Garantir Minha Vaga Agora
-            <ArrowRight className="ml-3 w-6 h-6 sm:w-7 sm:h-7" />
-          </Button>
+          <div className="flex justify-center">
+            <Button 
+              className="bg-gradient-golden text-black font-bold text-lg sm:text-xl hover:scale-105 transition-all duration-300 shadow-strong px-8 sm:px-16 py-6 sm:py-8 h-auto animate-pulse-slow max-w-xs sm:max-w-none w-full sm:w-auto"
+              onClick={() => navigate("/onboarding")}
+            >
+              Garantir Minha Vaga Agora
+              <ArrowRight className="ml-3 w-6 h-6 sm:w-7 sm:h-7" />
+            </Button>
+          </div>
           <p className="text-white/70 text-sm mt-4">
             ⏰ Análise completa em até 24 horas • ✅ 100% gratuito • 🎯 Match garantido
           </p>
@@ -238,13 +242,15 @@ const Landing = () => {
             Não deixe sua oportunidade passar. Milhares de jogadores já descobriram 
             seu potencial e encontraram seus clubes ideais. Você é o próximo.
           </p>
-          <Button 
-            className="bg-gradient-primary text-white hover:scale-105 transition-all duration-300 shadow-strong text-sm sm:text-lg px-6 sm:px-12 py-4 sm:py-6 h-auto"
-            onClick={() => navigate("/onboarding")}
-          >
-            Começar Minha Jornada Profissional
-            <ArrowRight className="ml-3 w-5 h-5 sm:w-6 sm:h-6" />
-          </Button>
+          <div className="flex justify-center">
+            <Button 
+              className="bg-gradient-primary text-white hover:scale-105 transition-all duration-300 shadow-strong text-sm sm:text-lg px-6 sm:px-12 py-4 sm:py-6 h-auto max-w-xs sm:max-w-none w-full sm:w-auto"
+              onClick={() => navigate("/onboarding")}
+            >
+              Começar Minha Jornada Profissional
+              <ArrowRight className="ml-3 w-5 h-5 sm:w-6 sm:h-6" />
+            </Button>
+          </div>
           <div className="mt-8 text-sm text-muted-foreground">
             Zyron © 2024 • Transformando sonhos em oportunidades reais
           </div>

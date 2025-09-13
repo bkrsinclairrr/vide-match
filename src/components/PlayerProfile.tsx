@@ -5,6 +5,8 @@ import { MapPin, Calendar, Flag, Trophy } from "lucide-react";
 interface PlayerData {
   name: string;
   age: string;
+  height?: string;
+  weight?: string;
   nationality: string;
   position: string;
   city: string;
@@ -57,6 +59,17 @@ const PlayerProfile = ({ playerData, className = "" }: PlayerProfileProps) => {
               <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
               <span className="truncate">{playerData.city}</span>
             </div>
+
+            {(playerData.height || playerData.weight) && (
+              <div className="flex items-center text-muted-foreground">
+                <Trophy className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>
+                  {playerData.height && `${playerData.height}cm`}
+                  {playerData.height && playerData.weight && " • "}
+                  {playerData.weight && `${playerData.weight}kg`}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2 mt-3">

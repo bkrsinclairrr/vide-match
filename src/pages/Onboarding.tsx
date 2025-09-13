@@ -14,6 +14,9 @@ const Onboarding = () => {
   const [playerData, setPlayerData] = useState({
     name: "",
     age: "",
+    height: "",
+    weight: "",
+    preferredFoot: "",
     nationality: "",
     position: "",
     city: "",
@@ -74,7 +77,7 @@ const Onboarding = () => {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return playerData.name && playerData.age;
+        return playerData.name && playerData.age && playerData.height && playerData.weight && playerData.preferredFoot;
       case 2:
         return playerData.nationality;
       case 3:
@@ -177,6 +180,47 @@ const Onboarding = () => {
                     placeholder="Sua idade"
                     className="mt-1"
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="height">Altura (cm)</Label>
+                  <Input
+                    id="height"
+                    type="number"
+                    value={playerData.height}
+                    onChange={(e) => setPlayerData({...playerData, height: e.target.value})}
+                    placeholder="Ex: 175"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="weight">Peso (kg)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    value={playerData.weight}
+                    onChange={(e) => setPlayerData({...playerData, weight: e.target.value})}
+                    placeholder="Ex: 70"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label>Melhor pé</Label>
+                  <Select 
+                    value={playerData.preferredFoot} 
+                    onValueChange={(value) => setPlayerData({...playerData, preferredFoot: value})}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecione seu melhor pé" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="destro">Destro</SelectItem>
+                      <SelectItem value="canhoto">Canhoto</SelectItem>
+                      <SelectItem value="ambidestro">Ambidestro</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
