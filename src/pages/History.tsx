@@ -7,45 +7,19 @@ import { useNavigate } from "react-router-dom";
 const History = () => {
   const navigate = useNavigate();
 
-  // Mock historical data
-  const analysisHistory = [
-    {
-      id: 1,
-      date: "2024-01-15",
-      overallScore: 87,
-      clubMatch: {
-        name: "FC Barcelona Academy Brasil",
-        logo: "🔵",
-        compatibility: 87,
-        location: "São Paulo, SP"
-      },
-      videoTitle: "Partida Regional - Janeiro"
-    },
-    {
-      id: 2,
-      date: "2023-12-10",
-      overallScore: 82,
-      clubMatch: {
-        name: "Santos FC Base",
-        logo: "⚪",
-        compatibility: 79,
-        location: "Santos, SP"
-      },
-      videoTitle: "Amistoso - Dezembro"
-    },
-    {
-      id: 3,
-      date: "2023-11-22",
-      overallScore: 78,
-      clubMatch: {
-        name: "São Paulo FC Academia",
-        logo: "🔴",
-        compatibility: 75,
-        location: "São Paulo, SP"
-      },
-      videoTitle: "Torneio Juvenil - Novembro"
+  // Get user-specific analysis history
+  const getUserHistory = () => {
+    const userHistory = localStorage.getItem('userAnalysisHistory');
+    if (!userHistory) return [];
+    
+    try {
+      return JSON.parse(userHistory);
+    } catch {
+      return [];
     }
-  ];
+  };
+
+  const analysisHistory = getUserHistory();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -92,59 +66,71 @@ const History = () => {
 
         {/* History List */}
         <div className="space-y-4 mb-6">
-          {analysisHistory.map((analysis, index) => (
-            <Card 
-              key={analysis.id} 
-              className="p-4 bg-white shadow-medium border-0 animate-fade-in hover:shadow-strong transition-shadow cursor-pointer"
-              style={{ animationDelay: `${index * 0.1}s` }}
-              onClick={() => navigate(`/analysis/${analysis.id}`)}
-            >
-              <div className="space-y-4">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{analysis.videoTitle}</h3>
-                    <div className="flex items-center text-muted-foreground text-sm">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {formatDate(analysis.date)}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-2xl font-bold ${getScoreColor(analysis.overallScore)}`}>
-                      {analysis.overallScore}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Score</div>
-                  </div>
-                </div>
-
-                {/* Club Match */}
-                <div className="bg-accent/10 rounded-lg p-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">{analysis.clubMatch.logo}</div>
+          {analysisHistory.length > 0 ? (
+            analysisHistory.map((analysis, index) => (
+              <Card 
+                key={analysis.id} 
+                className="p-4 bg-white shadow-medium border-0 animate-fade-in hover:shadow-strong transition-shadow cursor-pointer"
+                style={{ animationDelay: `${index * 0.1}s` }}
+                onClick={() => navigate(`/analysis/${analysis.id}`)}
+              >
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="font-medium text-sm">{analysis.clubMatch.name}</div>
-                      <div className="flex items-center text-muted-foreground text-xs">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {analysis.clubMatch.location}
+                      <h3 className="font-semibold mb-1">{analysis.videoTitle}</h3>
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {formatDate(analysis.date)}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center text-success text-sm font-medium">
-                        <Star className="w-3 h-3 mr-1" />
-                        {analysis.clubMatch.compatibility}%
+                      <div className={`text-2xl font-bold ${getScoreColor(analysis.overallScore)}`}>
+                        {analysis.overallScore}
+                      </div>
+                      <div className="text-xs text-muted-foreground">Score</div>
+                    </div>
+                  </div>
+
+                  {/* Club Match */}
+                  <div className="bg-accent/10 rounded-lg p-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-2xl">{analysis.clubMatch.logo}</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{analysis.clubMatch.name}</div>
+                        <div className="flex items-center text-muted-foreground text-xs">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {analysis.clubMatch.location}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center text-success text-sm font-medium">
+                          <Star className="w-3 h-3 mr-1" />
+                          {analysis.clubMatch.compatibility}%
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* View Button */}
-                <Button variant="outline" size="sm" className="w-full">
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Detalhes
-                </Button>
+                  {/* View Button */}
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ver Detalhes
+                  </Button>
+                </div>
+              </Card>
+            ))
+          ) : (
+            <Card className="p-6 bg-white shadow-medium border-0 animate-fade-in">
+              <div className="text-center space-y-4">
+                <div className="text-muted-foreground">
+                  <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Você ainda não possui análises de vídeo.</p>
+                  <p className="text-sm">Faça sua primeira análise para começar a acompanhar sua evolução!</p>
+                </div>
               </div>
             </Card>
-          ))}
+          )}
         </div>
 
         {/* New Analysis Button */}

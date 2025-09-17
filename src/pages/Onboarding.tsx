@@ -245,7 +245,7 @@ const Onboarding = () => {
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Selecione seu país" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50 bg-background max-h-60 overflow-y-auto">
                     {countries.map((country) => (
                       <SelectItem key={country} value={country}>
                         {country}

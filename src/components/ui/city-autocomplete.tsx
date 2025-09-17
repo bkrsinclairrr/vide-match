@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { filterCities } from "@/data/brazilian-cities";
+import { filterCities } from "@/services/ibgeApi";
 import { MapPin } from "lucide-react";
 
 interface CityAutocompleteProps {
@@ -19,15 +19,19 @@ export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", 
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (value.length >= 2) {
-      const filtered = filterCities(value);
-      setSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-    setSelectedIndex(-1);
+    const loadSuggestions = async () => {
+      if (value.length >= 2) {
+        const cities = await filterCities(value);
+        setSuggestions(cities);
+        setShowSuggestions(cities.length > 0);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+      setSelectedIndex(-1);
+    };
+    
+    loadSuggestions();
   }, [value]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
