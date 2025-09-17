@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      Atletas: {
+        Row: {
+          altura: number | null
+          cidade: string | null
+          created_at: string
+          experiencia: string | null
+          id: number
+          idade: number | null
+          melhor_pe: string | null
+          nacionalidade: string | null
+          nome: string | null
+          peso: number | null
+          posicao: string | null
+        }
+        Insert: {
+          altura?: number | null
+          cidade?: string | null
+          created_at?: string
+          experiencia?: string | null
+          id?: number
+          idade?: number | null
+          melhor_pe?: string | null
+          nacionalidade?: string | null
+          nome?: string | null
+          peso?: number | null
+          posicao?: string | null
+        }
+        Update: {
+          altura?: number | null
+          cidade?: string | null
+          created_at?: string
+          experiencia?: string | null
+          id?: number
+          idade?: number | null
+          melhor_pe?: string | null
+          nacionalidade?: string | null
+          nome?: string | null
+          peso?: number | null
+          posicao?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
