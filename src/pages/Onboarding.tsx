@@ -7,10 +7,14 @@ import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { ArrowLeft, User, MapPin, Trophy, Camera, Flag } from "lucide-react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [playerData, setPlayerData] = useState({
     name: "",
     age: "",
@@ -53,13 +57,55 @@ const Onboarding = () => {
     "África do Sul", "Egito", "Marrocos", "Nigéria", "Gana", "Costa do Marfim", "Senegal"
   ];
 
+  const savePlayerData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Convert string values to appropriate types
+      const dataToSave = {
+        nome: playerData.name,
+        idade: parseInt(playerData.age),
+        altura: parseFloat(playerData.height),
+        peso: parseFloat(playerData.weight),
+        melhor_pe: playerData.preferredFoot,
+        nacionalidade: playerData.nationality,
+        posicao: playerData.position,
+        cidade: playerData.city,
+        experiencia: playerData.experience
+      };
+
+      const { error } = await supabase
+        .from('Atletas')
+        .insert([dataToSave]);
+
+      if (error) throw error;
+
+      // Keep localStorage as backup
+      localStorage.setItem('playerData', JSON.stringify(playerData));
+      
+      toast({
+        title: "Sucesso!",
+        description: "Dados salvos com sucesso!",
+      });
+      
+      navigate("/upload");
+    } catch (error) {
+      console.error('Erro ao salvar dados:', error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar dados. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleNext = () => {
     if (step < 4) {
       setStep(step + 1);
     } else {
-      // Save player data to localStorage
-      localStorage.setItem('playerData', JSON.stringify(playerData));
-      navigate("/upload");
+      savePlayerData();
     }
   };
 
@@ -331,9 +377,9 @@ const Onboarding = () => {
           <Button 
             className="w-full mt-8 bg-gradient-primary hover:opacity-90"
             onClick={handleNext}
-            disabled={!canProceed()}
+            disabled={!canProceed() || isLoading}
           >
-            {step === 4 ? "Finalizar" : "Continuar"}
+            {isLoading ? "Salvando..." : step === 4 ? "Finalizar" : "Continuar"}
           </Button>
         </Card>
       </div>
