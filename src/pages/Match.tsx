@@ -174,7 +174,7 @@ Quando podemos conversar? 🚀`;
                     <div className="text-xs text-muted-foreground">Jogadores</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-success">R$ {matchedClub.monthlyOffer.toLocaleString()}</div>
+                    <div className="text-lg font-bold text-success">{matchedClub.currency} {matchedClub.monthlyOffer.toLocaleString()}</div>
                     <div className="text-xs text-muted-foreground">Oferta/mês</div>
                   </div>
                 </div>
