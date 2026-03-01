@@ -57,21 +57,36 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
 
       // This specific gist just returns an array of objects with {Nome: string, Estado: string}
       brazilianCities = fallbackCitiesData.map((c: any) => `${c.Nome || c.nome}`).sort();
-      citiesLoaded = true;
-      return brazilianCities;
     } catch (secondaryError) {
       console.error('All APIs failed. Using emergency fallback.', secondaryError);
       // Emergency standard fallback just so it doesn't break
-      const emergencyFallback = [
+      brazilianCities = [
         "São Paulo - SP", "Rio de Janeiro - RJ", "Brasília - DF",
         "Salvador - BA", "Fortaleza - CE", "Belo Horizonte - MG",
         "Manaus - AM", "Curitiba - PR", "Recife - PE", "Porto Alegre - RS",
         "Campinas - SP", "Guarulhos - SP", "São Gonçalo - RJ", "Maceió - AL"
       ];
-      brazilianCities = emergencyFallback;
-      return emergencyFallback;
     }
   }
+
+  // Inject Distrito Federal Administrative Regions (RAs) because IBGE doesn't list them as municipalities
+  const dfRegions = [
+    "Plano Piloto - DF", "Asa Sul - DF", "Asa Norte - DF", "Gama - DF", "Taguatinga - DF",
+    "Brazlândia - DF", "Sobradinho - DF", "Planaltina - DF", "Paranoá - DF",
+    "Núcleo Bandeirante - DF", "Ceilândia - DF", "Guará - DF", "Cruzeiro - DF",
+    "Samambaia - DF", "Santa Maria - DF", "São Sebastião - DF", "Recanto das Emas - DF",
+    "Lago Sul - DF", "Riacho Fundo - DF", "Lago Norte - DF", "Candangolândia - DF",
+    "Águas Claras - DF", "Riacho Fundo II - DF", "Sudoeste/Octogonal - DF", "Varjão - DF",
+    "Park Way - DF", "SCIA (Estrutural) - DF", "Sobradinho II - DF", "Jardim Botânico - DF",
+    "Itapoã - DF", "SIA - DF", "Vicente Pires - DF", "Fercal - DF",
+    "Sol Nascente/Pôr do Sol - DF", "Arniqueira - DF", "Arapoanga - DF", "Água Quente - DF"
+  ];
+
+  // Merge, deduplicate, and sort
+  brazilianCities = Array.from(new Set([...brazilianCities, ...dfRegions])).sort();
+  citiesLoaded = true;
+
+  return brazilianCities;
 };
 
 const removeAccents = (str: string) => {
