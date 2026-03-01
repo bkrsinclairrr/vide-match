@@ -104,14 +104,14 @@ export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", 
         {showSuggestions && suggestions.length > 0 && (
           <div
             ref={suggestionsRef}
-            className="absolute z-50 w-full mt-1 bg-white border border-border rounded-md shadow-lg max-h-60 overflow-auto"
+            className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-auto"
           >
             {suggestions.map((city, index) => (
               <div
                 key={city}
                 className={`px-4 py-3 cursor-pointer flex items-center space-x-3 transition-colors ${index === selectedIndex
-                    ? 'bg-accent text-accent-foreground'
-                    : 'hover:bg-accent text-foreground hover:text-accent-foreground'
+                  ? 'bg-accent text-accent-foreground'
+                  : 'hover:bg-accent text-foreground hover:text-accent-foreground'
                   }`}
                 onClick={() => handleSuggestionClick(city)}
               >
