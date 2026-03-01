@@ -7,11 +7,18 @@ import { MapPin } from "lucide-react";
 interface CityAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
+  selectedState?: string;
   placeholder?: string;
   label?: string;
 }
 
-export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", label = "Cidade" }: CityAutocompleteProps) => {
+export const CityAutocomplete = ({
+  value,
+  onChange,
+  selectedState,
+  placeholder = "Sua cidade",
+  label = "Cidade"
+}: CityAutocompleteProps) => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -21,7 +28,7 @@ export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", 
   useEffect(() => {
     const loadSuggestions = async () => {
       if (value.length >= 2) {
-        const cities = await filterCities(value);
+        const cities = await filterCities(value, selectedState);
         setSuggestions(cities);
         setShowSuggestions(cities.length > 0);
       } else {
@@ -32,7 +39,7 @@ export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", 
     };
 
     loadSuggestions();
-  }, [value]);
+  }, [value, selectedState]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);

@@ -273,7 +273,7 @@ const Onboarding = () => {
             <div className="space-y-4">
               <div>
                 <Label className="text-foreground">Estado</Label>
-                <Select value={playerData.state} onValueChange={(v) => setPlayerData({ ...playerData, state: v })}>
+                <Select value={playerData.state} onValueChange={(v) => setPlayerData({ ...playerData, state: v, city: "" })}>
                   <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione seu estado" /></SelectTrigger>
                   <SelectContent className="bg-card border-border max-h-60">
                     {states.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -283,6 +283,7 @@ const Onboarding = () => {
               <CityAutocomplete
                 value={playerData.city}
                 onChange={(v) => setPlayerData({ ...playerData, city: v })}
+                selectedState={playerData.state}
                 placeholder="Digite sua cidade..."
                 label="Cidade"
               />
