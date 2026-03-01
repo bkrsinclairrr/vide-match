@@ -151,13 +151,13 @@ const Onboarding = () => {
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                 <p className="text-xs text-muted-foreground mt-2">Foto (opcional)</p>
               </div>
-              <div><Label className="text-foreground">Nome completo</Label><Input value={playerData.name} onChange={(e) => setPlayerData({...playerData, name: e.target.value})} placeholder="Seu nome" className="mt-1 bg-muted border-border" /></div>
-              <div><Label className="text-foreground">Idade</Label><Input type="number" value={playerData.age} onChange={(e) => setPlayerData({...playerData, age: e.target.value})} placeholder="Sua idade" className="mt-1 bg-muted border-border" /></div>
-              <div><Label className="text-foreground">Altura (cm)</Label><Input type="number" value={playerData.height} onChange={(e) => setPlayerData({...playerData, height: e.target.value})} placeholder="Ex: 175" className="mt-1 bg-muted border-border" /></div>
-              <div><Label className="text-foreground">Peso (kg)</Label><Input type="number" value={playerData.weight} onChange={(e) => setPlayerData({...playerData, weight: e.target.value})} placeholder="Ex: 70" className="mt-1 bg-muted border-border" /></div>
+              <div><Label className="text-foreground">Nome completo</Label><Input value={playerData.name} onChange={(e) => setPlayerData({ ...playerData, name: e.target.value })} placeholder="Seu nome" className="mt-1 bg-muted border-border" /></div>
+              <div><Label className="text-foreground">Idade</Label><Input type="number" value={playerData.age} onChange={(e) => setPlayerData({ ...playerData, age: e.target.value })} placeholder="Sua idade" className="mt-1 bg-muted border-border" /></div>
+              <div><Label className="text-foreground">Altura (cm)</Label><Input type="number" value={playerData.height} onChange={(e) => setPlayerData({ ...playerData, height: e.target.value })} placeholder="Ex: 175" className="mt-1 bg-muted border-border" /></div>
+              <div><Label className="text-foreground">Peso (kg)</Label><Input type="number" value={playerData.weight} onChange={(e) => setPlayerData({ ...playerData, weight: e.target.value })} placeholder="Ex: 70" className="mt-1 bg-muted border-border" /></div>
               <div>
                 <Label className="text-foreground">Melhor pé</Label>
-                <Select value={playerData.preferredFoot} onValueChange={(v) => setPlayerData({...playerData, preferredFoot: v})}>
+                <Select value={playerData.preferredFoot} onValueChange={(v) => setPlayerData({ ...playerData, preferredFoot: v })}>
                   <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     <SelectItem value="destro">Destro</SelectItem>
@@ -173,7 +173,7 @@ const Onboarding = () => {
             <div className="space-y-4">
               <div>
                 <Label className="text-foreground">Nacionalidade</Label>
-                <Select value={playerData.nationality} onValueChange={(v) => setPlayerData({...playerData, nationality: v})}>
+                <Select value={playerData.nationality} onValueChange={(v) => setPlayerData({ ...playerData, nationality: v })}>
                   <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione seu país" /></SelectTrigger>
                   <SelectContent className="bg-card border-border max-h-60">
                     {countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -187,7 +187,7 @@ const Onboarding = () => {
                   Possui dupla cidadania?
                 </Label>
                 <p className="text-xs text-muted-foreground mb-2">Isso pode ampliar suas oportunidades em clubes internacionais.</p>
-                <Select value={playerData.hasDualCitizenship} onValueChange={(v) => setPlayerData({...playerData, hasDualCitizenship: v, dualCitizenshipCountry: v === 'Não' ? '' : playerData.dualCitizenshipCountry})}>
+                <Select value={playerData.hasDualCitizenship} onValueChange={(v) => setPlayerData({ ...playerData, hasDualCitizenship: v, dualCitizenshipCountry: v === 'Não' ? '' : playerData.dualCitizenshipCountry })}>
                   <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     <SelectItem value="Sim">Sim</SelectItem>
@@ -199,7 +199,7 @@ const Onboarding = () => {
               {playerData.hasDualCitizenship === 'Sim' && (
                 <div className="animate-fade-in">
                   <Label className="text-foreground">País da segunda cidadania</Label>
-                  <Select value={playerData.dualCitizenshipCountry} onValueChange={(v) => setPlayerData({...playerData, dualCitizenshipCountry: v})}>
+                  <Select value={playerData.dualCitizenshipCountry} onValueChange={(v) => setPlayerData({ ...playerData, dualCitizenshipCountry: v })}>
                     <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione o país" /></SelectTrigger>
                     <SelectContent className="bg-card border-border max-h-60">
                       {countries.filter(c => c !== playerData.nationality).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -214,7 +214,7 @@ const Onboarding = () => {
           {step === 3 && (
             <div>
               <Label className="text-foreground">Posição principal</Label>
-              <Select value={playerData.position} onValueChange={(v) => setPlayerData({...playerData, position: v})}>
+              <Select value={playerData.position} onValueChange={(v) => setPlayerData({ ...playerData, position: v })}>
                 <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione sua posição" /></SelectTrigger>
                 <SelectContent className="bg-card border-border">
                   {positions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
@@ -227,7 +227,7 @@ const Onboarding = () => {
             <div className="space-y-4">
               <div>
                 <Label className="text-foreground">Categoria</Label>
-                <Select value={playerData.category} onValueChange={(v) => setPlayerData({...playerData, category: v})}>
+                <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
                   <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
                   <SelectContent className="bg-card border-border max-h-60">
                     {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -235,7 +235,7 @@ const Onboarding = () => {
                 </Select>
               </div>
 
-              {playerData.category && (
+              {playerData.category && ["Sub 16", "Sub 17", "Sub 20"].includes(playerData.category) && (
                 <div className={`p-4 rounded-xl border animate-fade-in ${playerData.category === 'Sub 20' ? 'border-accent/30 bg-accent/5' : 'border-border bg-muted/30'}`}>
                   {playerData.category === 'Sub 20' ? (
                     <div className="space-y-2">
@@ -270,13 +270,13 @@ const Onboarding = () => {
             <div className="space-y-4">
               <CityAutocomplete
                 value={playerData.city}
-                onChange={(v) => setPlayerData({...playerData, city: v})}
+                onChange={(v) => setPlayerData({ ...playerData, city: v })}
                 placeholder="Digite sua cidade..."
                 label="Cidade"
               />
               <div>
                 <Label className="text-foreground">Experiência</Label>
-                <Select value={playerData.experience} onValueChange={(v) => setPlayerData({...playerData, experience: v})}>
+                <Select value={playerData.experience} onValueChange={(v) => setPlayerData({ ...playerData, experience: v })}>
                   <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Seu nível de experiência" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     {experiences.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
