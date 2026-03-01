@@ -26,37 +26,51 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
     return brazilianCities;
   }
 
+  // Formatting helper
+  const formatCities = (cityList: any[]) => {
+    // Handle different JSON structures from different sources
+    return cityList.map(city => {
+      if (city.microrregiao) { // IBGE format
+        return `${city.nome} - ${city.microrregiao.mesorregiao.UF.sigla}`;
+      } else if (city.estado) { // Alternative format
+        return `${city.nome} - ${city.estado}`;
+      }
+      return city.nome || city;
+    }).sort();
+  };
+
   try {
-    // Fetch all cities from IBGE API
+    // Primary: Official IBGE API
     const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios');
-    const cities: IBGECity[] = await response.json();
-
-    // Format cities as "City - State"
-    brazilianCities = cities.map(city =>
-      `${city.nome} - ${city.microrregiao.mesorregiao.UF.sigla}`
-    ).sort();
-
+    if (!response.ok) throw new Error("IBGE API unavailable");
+    const cities = await response.json();
+    brazilianCities = formatCities(cities);
     citiesLoaded = true;
     return brazilianCities;
-  } catch (error) {
-    console.error('Error loading cities from IBGE API:', error);
+  } catch (primaryError) {
+    console.warn('IBGE API failed, trying secondary source...', primaryError);
 
-    // Fallback to static cities if API fails
-    const fallbackCities = [
-      "São Paulo - SP",
-      "Rio de Janeiro - RJ",
-      "Brasília - DF",
-      "Salvador - BA",
-      "Fortaleza - CE",
-      "Belo Horizonte - MG",
-      "Manaus - AM",
-      "Curitiba - PR",
-      "Recife - PE",
-      "Porto Alegre - RS"
-    ];
+    try {
+      // Secondary fallback: Reliable GitHub raw list of BR cities
+      const fallbackResponse = await fetch('https://raw.githubusercontent.com/felipefdl/cidades-estados-brasil-json/master/Cidades.json');
+      const fallbackCitiesData = await fallbackResponse.json();
 
-    brazilianCities = fallbackCities;
-    return fallbackCities;
+      // This specific gist just returns an array of objects with {Nome: string, Estado: string}
+      brazilianCities = fallbackCitiesData.map((c: any) => `${c.Nome || c.nome}`).sort();
+      citiesLoaded = true;
+      return brazilianCities;
+    } catch (secondaryError) {
+      console.error('All APIs failed. Using emergency fallback.', secondaryError);
+      // Emergency standard fallback just so it doesn't break
+      const emergencyFallback = [
+        "São Paulo - SP", "Rio de Janeiro - RJ", "Brasília - DF",
+        "Salvador - BA", "Fortaleza - CE", "Belo Horizonte - MG",
+        "Manaus - AM", "Curitiba - PR", "Recife - PE", "Porto Alegre - RS",
+        "Campinas - SP", "Guarulhos - SP", "São Gonçalo - RJ", "Maceió - AL"
+      ];
+      brazilianCities = emergencyFallback;
+      return emergencyFallback;
+    }
   }
 };
 
