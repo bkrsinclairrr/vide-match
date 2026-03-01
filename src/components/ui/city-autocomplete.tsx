@@ -30,7 +30,7 @@ export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", 
       }
       setSelectedIndex(-1);
     };
-    
+
     loadSuggestions();
   }, [value]);
 
@@ -50,7 +50,7 @@ export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(prev => 
+        setSelectedIndex(prev =>
           prev < suggestions.length - 1 ? prev + 1 : prev
         );
         break;
@@ -100,24 +100,23 @@ export const CityAutocomplete = ({ value, onChange, placeholder = "Sua cidade", 
           placeholder={placeholder}
           autoComplete="off"
         />
-        
+
         {showSuggestions && suggestions.length > 0 && (
-          <div 
+          <div
             ref={suggestionsRef}
             className="absolute z-50 w-full mt-1 bg-white border border-border rounded-md shadow-lg max-h-60 overflow-auto"
           >
             {suggestions.map((city, index) => (
               <div
                 key={city}
-                className={`px-4 py-3 cursor-pointer flex items-center space-x-3 transition-colors ${
-                  index === selectedIndex 
-                    ? 'bg-accent text-accent-foreground' 
-                    : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
+                className={`px-4 py-3 cursor-pointer flex items-center space-x-3 transition-colors ${index === selectedIndex
+                    ? 'bg-accent text-accent-foreground'
+                    : 'hover:bg-accent text-foreground hover:text-accent-foreground'
+                  }`}
                 onClick={() => handleSuggestionClick(city)}
               >
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{city}</span>
+                <MapPin className="w-4 h-4 text-foreground/70" />
+                <span className="text-sm font-medium">{city}</span>
               </div>
             ))}
           </div>

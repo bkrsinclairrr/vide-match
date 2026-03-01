@@ -74,5 +74,5 @@ export const filterCities = async (query: string): Promise<string[]> => {
     .filter(city =>
       removeAccents(city.toLowerCase()).includes(normalizedQuery)
     )
-    .slice(0, 8); // Limit to 8 suggestions
+    .slice(0, 50); // Limit to 50 suggestions
 };
