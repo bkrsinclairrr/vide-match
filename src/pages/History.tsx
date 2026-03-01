@@ -1,164 +1,97 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, Star, MapPin, Eye, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const History = () => {
   const navigate = useNavigate();
 
-  // Get user-specific analysis history
   const getUserHistory = () => {
-    const userHistory = localStorage.getItem('userAnalysisHistory');
-    if (!userHistory) return [];
-    
-    try {
-      return JSON.parse(userHistory);
-    } catch {
-      return [];
-    }
+    try { return JSON.parse(localStorage.getItem('userAnalysisHistory') || '[]'); }
+    catch { return []; }
   };
 
   const analysisHistory = getUserHistory();
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
-    });
+    return new Date(dateString).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-success";
-    if (score >= 70) return "text-warning";
+    if (score >= 85) return "text-primary";
+    if (score >= 70) return "text-accent";
     return "text-destructive";
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero p-4">
+    <div className="min-h-screen bg-gradient-elite p-4">
       <div className="container mx-auto max-w-md">
-        {/* Header */}
         <div className="flex items-center justify-between py-6">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-white"
-            onClick={() => navigate("/match")}
-          >
-            <ArrowLeft className="w-6 h-6" />
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={() => navigate("/match")}>
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="text-white font-medium">
-            Histórico
-          </div>
+          <div className="text-sm text-muted-foreground font-medium">Histórico</div>
+          <div className="w-10" />
         </div>
 
-        {/* Page Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Suas Análises
-          </h1>
-          <p className="text-white/80">
-            Acompanhe sua evolução ao longo do tempo
-          </p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Suas Análises</h1>
+          <p className="text-sm text-muted-foreground">Acompanhe sua evolução</p>
         </div>
 
-        {/* History List */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-3 mb-6">
           {analysisHistory.length > 0 ? (
-            analysisHistory.map((analysis, index) => (
-              <Card 
-                key={analysis.id} 
-                className="p-4 bg-white shadow-medium border-0 animate-fade-in hover:shadow-strong transition-shadow cursor-pointer"
-                style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => navigate(`/analysis/${analysis.id}`)}
-              >
-                <div className="space-y-4">
-                  {/* Header */}
+            analysisHistory.map((analysis: any, index: number) => (
+              <Card key={analysis.id} className="p-4 bg-card border-border animate-fade-in" style={{ animationDelay: `${index * 0.08}s` }}>
+                <div className="space-y-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-1">{analysis.videoTitle}</h3>
-                      <div className="flex items-center text-muted-foreground text-sm">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(analysis.date)}
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground">{analysis.videoTitle}</h3>
+                      <div className="flex items-center text-xs text-muted-foreground mt-0.5">
+                        <Calendar className="w-3 h-3 mr-1" />{formatDate(analysis.date)}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={`text-2xl font-bold ${getScoreColor(analysis.overallScore)}`}>
-                        {analysis.overallScore}
-                      </div>
+                      <div className={`text-xl font-bold ${getScoreColor(analysis.overallScore)}`}>{analysis.overallScore}</div>
                       <div className="text-xs text-muted-foreground">Score</div>
                     </div>
                   </div>
-
-                  {/* Club Match */}
-                  <div className="bg-accent/10 rounded-lg p-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">{analysis.clubMatch.logo}</div>
+                  <div className="bg-muted/50 rounded-lg p-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{analysis.clubMatch.logo}</span>
                       <div className="flex-1">
-                        <div className="font-medium text-sm">{analysis.clubMatch.name}</div>
-                        <div className="flex items-center text-muted-foreground text-xs">
-                          <MapPin className="w-3 h-3 mr-1" />
-                          {analysis.clubMatch.location}
-                        </div>
+                        <div className="text-xs font-medium text-foreground">{analysis.clubMatch.name}</div>
+                        <div className="flex items-center text-xs text-muted-foreground"><MapPin className="w-3 h-3 mr-0.5" />{analysis.clubMatch.location}</div>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center text-success text-sm font-medium">
-                          <Star className="w-3 h-3 mr-1" />
-                          {analysis.clubMatch.compatibility}%
-                        </div>
-                      </div>
+                      <div className="flex items-center text-xs text-primary font-medium"><Star className="w-3 h-3 mr-0.5" />{analysis.clubMatch.compatibility}%</div>
                     </div>
                   </div>
-
-                  {/* View Button */}
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Ver Detalhes
-                  </Button>
+                  <Button variant="outline" size="sm" className="w-full text-xs border-border"><Eye className="w-3.5 h-3.5 mr-1.5" />Ver Detalhes</Button>
                 </div>
               </Card>
             ))
           ) : (
-            <Card className="p-6 bg-white shadow-medium border-0 animate-fade-in">
-              <div className="text-center space-y-4">
-                <div className="text-muted-foreground">
-                  <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>Você ainda não possui análises de vídeo.</p>
-                  <p className="text-sm">Faça sua primeira análise para começar a acompanhar sua evolução!</p>
-                </div>
-              </div>
+            <Card className="p-6 bg-card border-border animate-fade-in text-center">
+              <Calendar className="w-10 h-10 mx-auto mb-2 text-muted-foreground opacity-50" />
+              <p className="text-sm text-muted-foreground">Nenhuma análise ainda.</p>
+              <p className="text-xs text-muted-foreground">Faça sua primeira análise!</p>
             </Card>
           )}
         </div>
 
-        {/* New Analysis Button */}
-        <Card className="p-6 bg-white shadow-strong border-0 animate-fade-in">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto">
-              <Plus className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold">Nova Análise</h3>
-            <p className="text-muted-foreground">
-              Faça upload de um novo vídeo para continuar evoluindo
-            </p>
-            <Button 
-              className="w-full bg-gradient-primary hover:opacity-90"
-              onClick={() => navigate("/upload")}
-            >
-              Criar Nova Análise
-            </Button>
+        <Card className="p-6 bg-card border-border text-center">
+          <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <Plus className="w-6 h-6 text-primary" />
           </div>
+          <h3 className="text-lg font-bold text-foreground mb-1">Nova Análise</h3>
+          <p className="text-xs text-muted-foreground mb-4">Upload de novo vídeo para evoluir</p>
+          <Button className="w-full bg-gradient-golden text-background font-semibold rounded-xl" onClick={() => navigate("/upload")}>
+            Criar Nova Análise
+          </Button>
         </Card>
 
-        {/* Back to Home */}
-        <div className="mt-6">
-          <Button 
-            variant="ghost" 
-            className="w-full text-white"
-            onClick={() => navigate("/")}
-          >
+        <div className="mt-4">
+          <Button variant="ghost" className="w-full text-muted-foreground text-sm" onClick={() => navigate("/")}>
             Voltar ao Início
           </Button>
         </div>

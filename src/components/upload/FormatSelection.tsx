@@ -8,92 +8,60 @@ interface FormatSelectionProps {
 
 const FormatSelection = ({ onSelect }: FormatSelectionProps) => {
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       <div className="text-center">
-        <h1 className="text-2xl font-bold mb-2">Envio dos Vídeos de Performance</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-bold text-foreground mb-1">Envio dos Vídeos de Performance</h1>
+        <p className="text-sm text-muted-foreground">
           Envie seus melhores lances — quanto mais claro, mais precisa será a nossa análise.
         </p>
       </div>
 
-      <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground leading-relaxed">
+      <div className="bg-muted/30 rounded-xl p-4 text-xs text-muted-foreground leading-relaxed border border-border">
         Para a IA analisar seu jogo com precisão, seus vídeos precisam ter boa qualidade, mostrar você claramente e conter lances reais. Podem ser gravados em campo, society, rua ou treino. Evite imagens escuras, tremidas ou em que o jogador não seja identificado.
       </div>
 
-      {/* Option A */}
-      <Card
-        className="p-5 border-2 border-border hover:border-primary cursor-pointer transition-all group"
-        onClick={() => onSelect('single')}
-      >
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-            <Film className="w-6 h-6 text-primary" />
+      <Card className="p-4 border-border hover:border-primary/40 cursor-pointer transition-all group"
+        onClick={() => onSelect('single')}>
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+            <Film className="w-5 h-5 text-primary" />
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg">Enviar 1 vídeo compilado</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Recomendada se você já tiver um vídeo de melhores momentos com todos os fundamentos.
-            </p>
+          <div>
+            <h3 className="font-semibold text-foreground text-sm">Enviar 1 vídeo compilado</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Recomendada se você já tiver um vídeo de melhores momentos.</p>
           </div>
         </div>
       </Card>
 
-      {/* Option B */}
-      <Card
-        className="p-5 border-2 border-border hover:border-primary cursor-pointer transition-all group"
-        onClick={() => onSelect('multiple')}
-      >
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center shrink-0 group-hover:bg-accent/30 transition-colors">
-            <Layers className="w-6 h-6 text-accent-foreground" />
+      <Card className="p-4 border-border hover:border-accent/40 cursor-pointer transition-all group"
+        onClick={() => onSelect('multiple')}>
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
+            <Layers className="w-5 h-5 text-accent" />
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg">Enviar vídeos separados por habilidade</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Recomendado para análises detalhadas por fundamento (ideal para quem grava no celular).
-            </p>
+          <div>
+            <h3 className="font-semibold text-foreground text-sm">Enviar vídeos separados por habilidade</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Análises detalhadas por fundamento (ideal para celular).</p>
           </div>
         </div>
       </Card>
 
-      {/* Quick Rules */}
-      <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-        <h4 className="font-semibold text-sm">📋 Regras rápidas</h4>
-        <div className="grid grid-cols-1 gap-2 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Monitor className="w-4 h-4 shrink-0 text-primary" />
-            <span>Formatos aceitos: <strong>MP4, MOV, MKV</strong></span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Maximize className="w-4 h-4 shrink-0 text-primary" />
-            <span>Resolução mínima: <strong>720p</strong></span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Clock className="w-4 h-4 shrink-0 text-primary" />
-            <span>Duração: máx. <strong>3 min</strong> (separados) / <strong>10 min</strong> (compilado)</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <HardDrive className="w-4 h-4 shrink-0 text-primary" />
-            <span>Tamanho máximo: <strong>500 MB</strong> por arquivo</span>
-          </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Maximize className="w-4 h-4 shrink-0 text-primary" />
-            <span>Orientação: <strong>paisagem (landscape)</strong> preferível</span>
-          </div>
+      <div className="bg-muted/20 rounded-xl p-4 space-y-2 border border-border">
+        <h4 className="font-semibold text-xs text-foreground">📋 Regras rápidas</h4>
+        <div className="space-y-1.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2"><Monitor className="w-3.5 h-3.5 text-primary shrink-0" /><span>Formatos: <span className="text-foreground font-medium">MP4, MOV, MKV</span></span></div>
+          <div className="flex items-center gap-2"><Maximize className="w-3.5 h-3.5 text-primary shrink-0" /><span>Resolução mínima: <span className="text-foreground font-medium">720p</span></span></div>
+          <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-primary shrink-0" /><span>Duração: máx. <span className="text-foreground font-medium">3 min</span> (separados) / <span className="text-foreground font-medium">10 min</span> (compilado)</span></div>
+          <div className="flex items-center gap-2"><HardDrive className="w-3.5 h-3.5 text-primary shrink-0" /><span>Tamanho: <span className="text-foreground font-medium">500 MB</span></span></div>
+          <div className="flex items-center gap-2"><Maximize className="w-3.5 h-3.5 text-primary shrink-0" /><span>Orientação: <span className="text-foreground font-medium">paisagem</span> preferível</span></div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Button
-          className="bg-primary hover:bg-primary/90"
-          onClick={() => onSelect('single')}
-        >
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm" onClick={() => onSelect('single')}>
           Vídeo Único
         </Button>
-        <Button
-          className="bg-accent hover:bg-accent/90 text-accent-foreground"
-          onClick={() => onSelect('multiple')}
-        >
+        <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium text-sm" onClick={() => onSelect('multiple')}>
           Vários Vídeos
         </Button>
       </div>

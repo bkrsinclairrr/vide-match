@@ -12,7 +12,7 @@ interface UploadCompleteProps {
 }
 
 const CATEGORIES = [
-  "Corrida Intensa", "Domínio de Bola", "Finalização", "Tomada de Bola",
+  "Tiro de Velocidade", "Domínio de Bola", "Finalização", "Roubada de Bola",
   "Passe e Visão", "Drible 1x1", "Posicionamento", "Trecho de Partida"
 ];
 
@@ -23,35 +23,31 @@ const UploadComplete = ({ format, completedVideos, totalVideos, hasPersonalVideo
     : Math.round(((completedVideos + (hasPersonalVideo ? 1 : 0)) / (totalVideos + 1)) * 100);
 
   return (
-    <div className="space-y-6 animate-fade-in text-center">
-      <div className="w-20 h-20 bg-success rounded-full flex items-center justify-center mx-auto">
-        <CheckCircle2 className="w-10 h-10 text-success-foreground" />
+    <div className="space-y-5 animate-fade-in text-center">
+      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto">
+        <CheckCircle2 className="w-8 h-8 text-primary" />
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold">Upload concluído!</h2>
-        <p className="text-muted-foreground mt-1">Seus vídeos foram recebidos com sucesso.</p>
+        <h2 className="text-xl font-bold text-foreground">Upload concluído!</h2>
+        <p className="text-sm text-muted-foreground mt-1">Seus vídeos foram recebidos.</p>
       </div>
 
-      {/* Completion */}
-      <Card className="p-4 bg-muted/30 border-0">
+      <Card className="p-4 bg-muted/30 border-border text-left">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Completude do perfil</span>
-          <span className="text-lg font-bold text-primary">{completionPercent}%</span>
+          <span className="text-xs font-medium text-foreground">Completude do perfil</span>
+          <span className="text-sm font-bold text-primary font-mono">{completionPercent}%</span>
         </div>
-        <div className="w-full bg-muted rounded-full h-3">
-          <div
-            className="bg-primary rounded-full h-3 transition-all"
-            style={{ width: `${completionPercent}%` }}
-          />
+        <div className="w-full bg-border rounded-full h-1.5">
+          <div className="bg-primary rounded-full h-1.5 transition-all" style={{ width: `${completionPercent}%` }} />
         </div>
 
         {format === 'multiple' && completedVideos < totalVideos && (
-          <div className="mt-3 text-left">
-            <p className="text-xs text-muted-foreground mb-2">Faltam:</p>
+          <div className="mt-3">
+            <p className="text-xs text-muted-foreground mb-1.5">Faltam:</p>
             <div className="flex flex-wrap gap-1">
               {CATEGORIES.slice(completedVideos).map((cat) => (
-                <Badge key={cat} variant="outline" className="text-xs">
+                <Badge key={cat} className="bg-muted text-muted-foreground border-0 text-xs">
                   <AlertTriangle className="w-3 h-3 mr-1" />{cat}
                 </Badge>
               ))}
@@ -60,31 +56,31 @@ const UploadComplete = ({ format, completedVideos, totalVideos, hasPersonalVideo
         )}
 
         {!hasPersonalVideo && (
-          <p className="text-xs text-warning mt-2 flex items-center gap-1 justify-center">
+          <p className="text-xs text-accent mt-2 flex items-center gap-1 justify-center">
             <AlertTriangle className="w-3 h-3" />
-            Apresentação pessoal não enviada — perfis com vídeo pessoal têm 3x mais visualizações.
+            Perfis com vídeo pessoal têm 3x mais visualizações.
           </p>
         )}
       </Card>
 
       {format === 'multiple' && (
-        <Button variant="outline" className="w-full">
-          <Sparkles className="w-4 h-4 mr-2" />
-          Gerar compilado automático dos melhores momentos
+        <Button variant="outline" className="w-full text-xs border-border">
+          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+          Gerar compilado automático
         </Button>
       )}
 
-      <div className="space-y-3">
-        <Button className="w-full bg-primary hover:bg-primary/90" onClick={() => navigate('/analysis')}>
+      <div className="space-y-2">
+        <Button className="w-full bg-gradient-golden text-background font-semibold h-11 rounded-xl" onClick={() => navigate('/analysis')}>
           <Send className="w-4 h-4 mr-2" />
           Enviar para análise
         </Button>
-        <Button variant="outline" className="w-full">
-          <Share2 className="w-4 h-4 mr-2" />
-          Copiar link para compartilhar
+        <Button variant="outline" className="w-full text-xs border-border">
+          <Share2 className="w-3.5 h-3.5 mr-1.5" />
+          Copiar link
         </Button>
-        <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => navigate('/analysis')}>
-          <Save className="w-4 h-4 mr-2" />
+        <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => navigate('/analysis')}>
+          <Save className="w-3.5 h-3.5 mr-1.5" />
           Salvar e enviar depois
         </Button>
       </div>

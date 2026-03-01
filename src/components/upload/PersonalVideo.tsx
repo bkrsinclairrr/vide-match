@@ -13,22 +13,22 @@ const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => 
   const [video, setVideo] = useState<VideoFile>({ file: null, status: 'empty' });
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       <div>
-        <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2">
+        <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-4 h-4 mr-1" />Voltar
         </Button>
-        <h2 className="text-xl font-bold">Apresentação Pessoal</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Grave um vídeo de até 5 minutos contando sua trajetória, clubes por onde passou, conquistas e por que quer ser jogador profissional.
+        <h2 className="text-lg font-bold text-foreground">Apresentação Pessoal</h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Grave um vídeo de até 5 minutos contando sua trajetória, conquistas e motivação.
         </p>
-        <p className="text-xs text-muted-foreground mt-2 italic">
+        <p className="text-xs text-muted-foreground mt-1 italic opacity-70">
           (Opcional — mas altamente recomendado. Dirigentes gostam de conhecer o atleta por trás do vídeo.)
         </p>
       </div>
 
-      <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 text-sm text-center">
-        ⭐ <strong>Recomendado</strong> — Perfis com apresentação pessoal têm <strong>3x mais visualizações</strong> de olheiros.
+      <div className="bg-accent/5 border border-accent/20 rounded-xl p-3 text-xs text-center text-muted-foreground">
+        ⭐ <span className="text-accent font-medium">Recomendado</span> — Perfis com apresentação pessoal têm <span className="text-foreground font-medium">3x mais visualizações</span> de olheiros.
       </div>
 
       <VideoUploadCard
@@ -43,18 +43,15 @@ const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => 
         showCapture={true}
       />
 
-      <div className="space-y-3">
-        <Button
-          className="w-full bg-primary hover:bg-primary/90"
+      <div className="space-y-2">
+        <Button className="w-full bg-gradient-golden text-background font-semibold h-11 rounded-xl"
           onClick={() => onContinue(video.status === 'ok')}
-          disabled={video.status === 'uploading' || video.status === 'validating'}
-        >
+          disabled={video.status === 'uploading' || video.status === 'validating'}>
           {video.status === 'ok' ? 'Continuar com apresentação' : 'Enviar para análise'}
         </Button>
-
         {video.status !== 'ok' && (
-          <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => onContinue(false)}>
-            <SkipForward className="w-4 h-4 mr-2" />
+          <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => onContinue(false)}>
+            <SkipForward className="w-3.5 h-3.5 mr-1.5" />
             Pular — enviar sem apresentação
           </Button>
         )}
