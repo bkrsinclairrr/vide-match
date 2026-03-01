@@ -338,8 +338,15 @@ export default function Dashboard() {
                 </section>
 
                 {/* ─── FOOTER ─── */}
-                <footer className="text-center py-8 border-t border-white/5">
+                <footer className="text-center py-8 border-t border-white/5 space-y-4">
                     <p className="text-xs text-white/20">© 2026 Zyron. Todos os direitos reservados.</p>
+                    <div className="max-w-2xl mx-auto text-[10px] text-white/15 leading-relaxed space-y-2 text-left">
+                        <p>A Zyron é uma plataforma AI-Based de análise de performance esportiva. As avaliações, projeções, estimativas salariais e recomendações de clubes são geradas por modelos algorítmicos com base nas informações e vídeos fornecidos pelo próprio atleta.</p>
+                        <p>A Zyron não representa, não garante contrato, aprovação, convocação, teste ou vínculo profissional com qualquer clube, federação ou entidade esportiva.</p>
+                        <p>O desenvolvimento esportivo, evolução técnica, oportunidades e eventuais resultados dependem exclusivamente do desempenho, dedicação, condições individuais e decisões do próprio atleta.</p>
+                        <p>As análises possuem caráter informativo, educacional e de direcionamento estratégico, não constituindo promessa, intermediação oficial ou garantia de resultados.</p>
+                        <p>O uso da plataforma implica na concordância com estes termos e com a Política de Privacidade.</p>
+                    </div>
                 </footer>
             </main>
         </div>
