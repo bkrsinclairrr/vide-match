@@ -3,31 +3,53 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Trophy, Mail, Lock, User, ArrowRight, Github, Chrome } from "lucide-react"
+import { Trophy, Mail, Lock, User, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
+import { supabase } from "@/integrations/supabase/client"
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [name, setName] = useState("")
+  const [regEmail, setRegEmail] = useState("")
+  const [regPassword, setRegPassword] = useState("")
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  const handleAuth = async (e: React.FormEvent, type: 'login' | 'register') => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    // For now, allow any login to pass to demonstrate the premium flow
-    localStorage.setItem("autenticado", "true")
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     setIsLoading(false)
-    toast({
-      title: type === 'login' ? "Bem-vindo de volta!" : "Conta criada com sucesso!",
-      description: "Redirecionando para o seu painel...",
-    })
-    navigate("/")
+    if (error) {
+      toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" })
+    } else {
+      toast({ title: "Bem-vindo de volta!", description: "Redirecionando para a plataforma..." })
+      navigate("/")
+    }
   }
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    const { error } = await supabase.auth.signUp({
+      email: regEmail,
+      password: regPassword,
+      options: { data: { full_name: name } }
+    })
+    setIsLoading(false)
+    if (error) {
+      toast({ title: "Erro ao criar conta", description: error.message, variant: "destructive" })
+    } else {
+      toast({
+        title: "Conta criada! ✅",
+        description: "Verifique seu e-mail para confirmar o cadastro.",
+      })
+    }
+  }
+
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-background font-sans">
@@ -93,12 +115,20 @@ export default function Login() {
 
             {/* TAB: LOGIN */}
             <TabsContent value="login" className="space-y-6 mt-0">
-              <form onSubmit={(e) => handleAuth(e, 'login')} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="email" type="email" placeholder="nome@exemplo.com" className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all" required />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="nome@exemplo.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -108,7 +138,15 @@ export default function Login() {
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="password" type="password" placeholder="••••••••" className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all" required />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
+                      required
+                    />
                   </div>
                 </div>
 
@@ -130,26 +168,51 @@ export default function Login() {
 
             {/* TAB: REGISTER */}
             <TabsContent value="register" className="space-y-6 mt-0">
-              <form onSubmit={(e) => handleAuth(e, 'register')} className="space-y-4">
+              <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome completo</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="name" type="text" placeholder="João Silva" className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all" required />
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="João Silva"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reg-email">E-mail</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="reg-email" type="email" placeholder="nome@exemplo.com" className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all" required />
+                    <Input
+                      id="reg-email"
+                      type="email"
+                      placeholder="nome@exemplo.com"
+                      value={regEmail}
+                      onChange={(e) => setRegEmail(e.target.value)}
+                      className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
+                      required
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reg-password">Criar senha</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="reg-password" type="password" placeholder="••••••••" className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all" required minLength={8} />
+                    <Input
+                      id="reg-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
+                      required
+                      minLength={8}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">A senha deve ter pelo menos 8 caracteres.</p>
                 </div>
@@ -167,24 +230,6 @@ export default function Login() {
               </form>
             </TabsContent>
           </Tabs>
-
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-background px-4 text-muted-foreground uppercase font-medium">Ou continue com</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="h-12 rounded-xl bg-background/50 hover:bg-muted border-border font-medium flex items-center gap-2 transition-all">
-              <Chrome className="w-4 h-4" /> Google
-            </Button>
-            <Button variant="outline" className="h-12 rounded-xl bg-background/50 hover:bg-muted border-border font-medium flex items-center gap-2 transition-all">
-              <Github className="w-4 h-4" /> GitHub
-            </Button>
-          </div>
 
         </div>
 
