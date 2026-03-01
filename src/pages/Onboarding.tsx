@@ -70,7 +70,7 @@ const Onboarding = () => {
       if (error) throw error;
       localStorage.setItem('playerData', JSON.stringify(playerData));
       toast({ title: "Sucesso!", description: "Dados salvos com sucesso!" });
-      navigate("/analysis");
+      navigate("/upload");
     } catch (error) {
       console.error('Erro ao salvar dados:', error);
       toast({ title: "Erro", description: "Erro ao salvar dados. Tente novamente.", variant: "destructive" });
