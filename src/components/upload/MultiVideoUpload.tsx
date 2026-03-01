@@ -6,12 +6,13 @@ import { useState } from "react";
 
 const STEPS = [
   {
-    title: "Corrida Intensa (20m)",
+    title: "Tiro de Velocidade",
+    subtitle: "20m",
     description: "Aceleração dos 0–20m com cronômetro visível ou marcações de campo.",
     duration: "15–30s (3 repetições)",
     example: "Mostre sua explosão e velocidade nos primeiros 20 metros.",
     maxDuration: 180,
-    category: "corrida20",
+    category: "tiro_velocidade20",
   },
   {
     title: "Domínio de Bola",
@@ -30,12 +31,12 @@ const STEPS = [
     category: "finalizacao",
   },
   {
-    title: "Tomada de Bola / Recuperação",
+    title: "Roubada de Bola",
     description: "Desarmes, interceptações, reação defensiva.",
     duration: "20–60s",
     example: undefined,
     maxDuration: 180,
-    category: "tomada",
+    category: "roubada",
   },
   {
     title: "Passe e Visão de Jogo",
@@ -92,63 +93,68 @@ const MultiVideoUpload = ({ onBack, onContinue, playerId }: MultiVideoUploadProp
     setVideos(next);
   };
 
-  const canContinue = completedCount >= 4; // at least half
+  const canContinue = completedCount >= 4;
+
+  const getDisplayTitle = (step: typeof STEPS[number]) => {
+    if (step.subtitle) {
+      return (
+        <span>
+          {step.title.split(' (')[0].split(' /')[0]}
+          <span className="text-xs text-muted-foreground ml-1">{step.subtitle}</span>
+        </span>
+      );
+    }
+    return step.title.split(' (')[0].split(' /')[0];
+  };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       <div>
-        <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2">
+        <Button variant="ghost" size="sm" onClick={onBack} className="mb-2 -ml-2 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-4 h-4 mr-1" />Voltar
         </Button>
-        <h2 className="text-xl font-bold">Enviar Vídeos por Habilidade</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Envie cada fundamento separadamente para uma análise mais precisa.
-        </p>
+        <h2 className="text-lg font-bold text-foreground">Enviar Vídeos por Habilidade</h2>
+        <p className="text-xs text-muted-foreground mt-1">Análise mais precisa por fundamento.</p>
       </div>
 
       {/* Progress */}
       <div className="space-y-2">
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">{completedCount} de {STEPS.length} enviados</span>
-          <span className="font-medium text-primary">{Math.round(progressPercent)}%</span>
+          <span className="font-medium text-primary font-mono">{Math.round(progressPercent)}%</span>
         </div>
-        <Progress value={progressPercent} />
+        <Progress value={progressPercent} className="h-1.5" />
         <div className="flex gap-1">
           {STEPS.map((_, i) => (
-            <button
-              key={i}
-              className={`flex-1 h-2 rounded-full transition-colors ${
-                videos[i].status === 'ok' ? 'bg-success' :
-                videos[i].status === 'warning' ? 'bg-warning' :
+            <button key={i}
+              className={`flex-1 h-1.5 rounded-full transition-colors ${
+                videos[i].status === 'ok' ? 'bg-primary' :
+                videos[i].status === 'warning' ? 'bg-accent' :
                 videos[i].status === 'error' ? 'bg-destructive' :
-                i === currentStep ? 'bg-primary/50' : 'bg-muted'
+                i === currentStep ? 'bg-primary/30' : 'bg-border'
               }`}
-              onClick={() => setCurrentStep(i)}
-            />
+              onClick={() => setCurrentStep(i)} />
           ))}
         </div>
       </div>
 
       {/* Step tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-2">
+      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
         {STEPS.map((s, i) => (
-          <button
-            key={i}
-            onClick={() => setCurrentStep(i)}
-            className={`px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-colors ${
+          <button key={i} onClick={() => setCurrentStep(i)}
+            className={`px-2.5 py-1 rounded-lg text-xs whitespace-nowrap transition-colors ${
               i === currentStep ? 'bg-primary text-primary-foreground' :
-              videos[i].status === 'ok' ? 'bg-success/20 text-success' :
+              videos[i].status === 'ok' ? 'bg-primary/10 text-primary' :
               'bg-muted text-muted-foreground'
-            }`}
-          >
+            }`}>
             {i + 1}. {s.title.split(' (')[0].split(' /')[0]}
           </button>
         ))}
       </div>
 
-      {/* Current step upload */}
       <VideoUploadCard
         title={STEPS[currentStep].title}
+        subtitle={STEPS[currentStep].subtitle}
         description={STEPS[currentStep].description}
         duration={STEPS[currentStep].duration}
         example={STEPS[currentStep].example}
@@ -159,38 +165,33 @@ const MultiVideoUpload = ({ onBack, onContinue, playerId }: MultiVideoUploadProp
         onChange={(v) => updateVideo(currentStep, v)}
       />
 
-      {/* Navigation */}
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         {currentStep > 0 && (
-          <Button variant="outline" onClick={() => setCurrentStep(currentStep - 1)}>
+          <Button variant="outline" size="sm" className="border-border text-foreground" onClick={() => setCurrentStep(currentStep - 1)}>
             Anterior
           </Button>
         )}
         {currentStep < STEPS.length - 1 ? (
-          <Button className="flex-1 bg-primary hover:bg-primary/90" onClick={() => setCurrentStep(currentStep + 1)}>
+          <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-sm" onClick={() => setCurrentStep(currentStep + 1)}>
             Próximo fundamento
           </Button>
         ) : (
-          <Button
-            className="flex-1 bg-primary hover:bg-primary/90"
-            disabled={!canContinue}
-            onClick={onContinue}
-          >
-            Continuar para Apresentação Pessoal
+          <Button className="flex-1 bg-gradient-golden text-background font-semibold text-sm" disabled={!canContinue} onClick={onContinue}>
+            Continuar para Apresentação
           </Button>
         )}
       </div>
 
-      <Button variant="ghost" className="w-full text-muted-foreground" onClick={() => {
+      <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => {
         localStorage.setItem('videoUploadDraft', JSON.stringify({ step: currentStep, completedCount }));
       }}>
-        <Save className="w-4 h-4 mr-2" />
-        Salvar rascunho e continuar depois
+        <Save className="w-3.5 h-3.5 mr-1.5" />
+        Salvar rascunho
       </Button>
 
       {!canContinue && (
         <p className="text-xs text-muted-foreground text-center">
-          Envie pelo menos 4 vídeos para continuar. Quanto mais, melhor a análise.
+          Envie pelo menos 4 vídeos para continuar.
         </p>
       )}
     </div>
