@@ -21,6 +21,19 @@ interface IBGECity {
 let brazilianCities: string[] = [];
 let citiesLoaded = false;
 
+// Injetar RAs do DF de forma global para garantir que sempre estejam na lista
+const dfRegions = [
+  "Plano Piloto - DF", "Asa Sul - DF", "Asa Norte - DF", "Gama - DF", "Taguatinga - DF",
+  "Brazlândia - DF", "Sobradinho - DF", "Planaltina - DF", "Paranoá - DF",
+  "Núcleo Bandeirante - DF", "Ceilândia - DF", "Guará - DF", "Cruzeiro - DF",
+  "Samambaia - DF", "Santa Maria - DF", "São Sebastião - DF", "Recanto das Emas - DF",
+  "Lago Sul - DF", "Riacho Fundo - DF", "Lago Norte - DF", "Candangolândia - DF",
+  "Águas Claras - DF", "Riacho Fundo II - DF", "Sudoeste/Octogonal - DF", "Varjão - DF",
+  "Park Way - DF", "SCIA (Estrutural) - DF", "Sobradinho II - DF", "Jardim Botânico - DF",
+  "Itapoã - DF", "SIA - DF", "Vicente Pires - DF", "Fercal - DF",
+  "Sol Nascente/Pôr do Sol - DF", "Arniqueira - DF", "Arapoanga - DF", "Água Quente - DF"
+];
+
 export const loadBrazilianCities = async (): Promise<string[]> => {
   if (citiesLoaded && brazilianCities.length > 0) {
     return brazilianCities;
@@ -45,8 +58,6 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
     if (!response.ok) throw new Error("IBGE API unavailable");
     const cities = await response.json();
     brazilianCities = formatCities(cities);
-    citiesLoaded = true;
-    return brazilianCities;
   } catch (primaryError) {
     console.warn('IBGE API failed, trying secondary source...', primaryError);
 
@@ -69,20 +80,7 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
     }
   }
 
-  // Inject Distrito Federal Administrative Regions (RAs) because IBGE doesn't list them as municipalities
-  const dfRegions = [
-    "Plano Piloto - DF", "Asa Sul - DF", "Asa Norte - DF", "Gama - DF", "Taguatinga - DF",
-    "Brazlândia - DF", "Sobradinho - DF", "Planaltina - DF", "Paranoá - DF",
-    "Núcleo Bandeirante - DF", "Ceilândia - DF", "Guará - DF", "Cruzeiro - DF",
-    "Samambaia - DF", "Santa Maria - DF", "São Sebastião - DF", "Recanto das Emas - DF",
-    "Lago Sul - DF", "Riacho Fundo - DF", "Lago Norte - DF", "Candangolândia - DF",
-    "Águas Claras - DF", "Riacho Fundo II - DF", "Sudoeste/Octogonal - DF", "Varjão - DF",
-    "Park Way - DF", "SCIA (Estrutural) - DF", "Sobradinho II - DF", "Jardim Botânico - DF",
-    "Itapoã - DF", "SIA - DF", "Vicente Pires - DF", "Fercal - DF",
-    "Sol Nascente/Pôr do Sol - DF", "Arniqueira - DF", "Arapoanga - DF", "Água Quente - DF"
-  ];
-
-  // Merge, deduplicate, and sort
+  // Merge DF Regions dynamically into the loaded cities
   brazilianCities = Array.from(new Set([...brazilianCities, ...dfRegions])).sort();
   citiesLoaded = true;
 
