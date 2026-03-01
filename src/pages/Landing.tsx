@@ -32,7 +32,7 @@ const Landing = () => {
             <Shield className="w-3.5 h-3.5 text-primary" />
             Plataforma oficial de scouting com IA
           </div>
-          
+
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-foreground mb-6 leading-[1.1] tracking-tight animate-fade-in">
             Mostre Seu Talento.
             <br />
@@ -42,15 +42,15 @@ const Landing = () => {
             <br />
             <span className="text-foreground text-xl sm:text-3xl md:text-4xl font-medium">no Futebol Profissional.</span>
           </h1>
-          
+
           <p className="text-base sm:text-lg text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in px-4">
             Upload de vídeo + Relatório de performance + Match com clubes que precisam de você.
             <br />
             <span className="text-primary font-semibold">Sua carreira profissional começa aqui.</span>
           </p>
-          
+
           <div className="flex justify-center mb-8">
-            <Button 
+            <Button
               className="bg-gradient-golden text-background font-bold text-sm sm:text-base hover:scale-105 transition-all duration-300 shadow-glow px-8 sm:px-12 py-5 sm:py-6 h-auto rounded-xl"
               onClick={() => navigate("/onboarding")}
             >
@@ -175,7 +175,7 @@ const Landing = () => {
               23 clubes ativos hoje
             </div>
           </div>
-          <Button 
+          <Button
             className="bg-gradient-golden text-background font-bold text-base hover:scale-105 transition-all duration-300 shadow-glow px-10 py-6 h-auto rounded-xl"
             onClick={() => navigate("/onboarding")}
           >
@@ -191,7 +191,7 @@ const Landing = () => {
       {/* Footer */}
       <footer id="contato" className="container mx-auto px-4 py-12 text-center">
         <p className="text-sm text-muted-foreground">
-          Zyron © 2025 • Transformando sonhos em oportunidades reais
+          Zyron © 2026 • Transformando sonhos em oportunidades reais
         </p>
       </footer>
     </div>
