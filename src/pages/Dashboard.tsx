@@ -12,24 +12,29 @@ import { useToast } from "@/hooks/use-toast"
 // Official club logos via Wikimedia Commons
 const CLUBS = [
     {
-        name: "Brighton & Hove Albion",
-        logo: "https://upload.wikimedia.org/wikipedia/en/f/fd/Brighton_%26_Hove_Albion_logo.svg",
+        name: "West Ham United",
+        logo: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg",
         country: "Inglaterra",
+    },
+    {
+        name: "Real Betis",
+        logo: "https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg",
+        country: "Espanha",
+    },
+    {
+        name: "Olympique de Marseille",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg",
+        country: "França",
+    },
+    {
+        name: "AS Roma",
+        logo: "https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg",
+        country: "Itália",
     },
     {
         name: "Sevilla FC",
         logo: "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg",
         country: "Espanha",
-    },
-    {
-        name: "Atalanta BC",
-        logo: "https://upload.wikimedia.org/wikipedia/en/6/6c/Atalanta_BC_logo.svg",
-        country: "Itália",
-    },
-    {
-        name: "Sporting CP",
-        logo: "https://upload.wikimedia.org/wikipedia/en/9/9e/Sporting_CP_%28logo%29.svg",
-        country: "Portugal",
     },
 ]
 
