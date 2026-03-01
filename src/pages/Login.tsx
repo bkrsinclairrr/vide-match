@@ -26,8 +26,7 @@ export default function Login() {
     if (error) {
       toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" })
     } else {
-      toast({ title: "Bem-vindo de volta!", description: "Redirecionando para a plataforma..." })
-      navigate("/")
+      navigate("/dashboard")
     }
   }
 
@@ -44,9 +43,10 @@ export default function Login() {
       toast({ title: "Erro ao criar conta", description: error.message, variant: "destructive" })
     } else {
       toast({
-        title: "Conta criada! ✅",
-        description: "Verifique seu e-mail para confirmar o cadastro.",
+        title: "Conta criada! Confirme seu e-mail. ✅",
+        description: "Verifique sua caixa de entrada e clique no link de confirmação.",
       })
+      navigate("/dashboard")
     }
   }
 

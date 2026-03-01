@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "@/contexts/AuthContext"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import Landing from "./pages/Landing"
+import Dashboard from "./pages/Dashboard"
 import Login from "./pages/Login"
 import Onboarding from "./pages/Onboarding"
 import Upload from "./pages/Upload"
@@ -30,6 +31,7 @@ const Home = () => (
 
             {/* Protected routes - require authentication */}
             <Route path="/" element={<ProtectedRoute><Landing /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
             <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
