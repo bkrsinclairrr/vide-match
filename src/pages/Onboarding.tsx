@@ -57,8 +57,12 @@ const Onboarding = () => {
   const totalSteps = 5;
 
   const savePlayerData = async () => {
+    setIsLoading(true);
+    // Always save locally first — this is the source of truth for the analysis flow
+    localStorage.setItem('playerData', JSON.stringify(playerData));
+
+    // Try Supabase in background — if it fails, we still proceed
     try {
-      setIsLoading(true);
       const dataToSave = {
         nome: playerData.name, idade: parseInt(playerData.age),
         altura: parseFloat(playerData.height), peso: parseFloat(playerData.weight),
@@ -66,17 +70,13 @@ const Onboarding = () => {
         posicao: playerData.position, cidade: playerData.city,
         estado: playerData.state
       };
-      const { error } = await supabase.from('Atletas').insert([dataToSave]);
-      if (error) throw error;
-      localStorage.setItem('playerData', JSON.stringify(playerData));
-      toast({ title: "Sucesso!", description: "Dados salvos com sucesso!" });
-      navigate("/upload");
-    } catch (error) {
-      console.error('Erro ao salvar dados:', error);
-      toast({ title: "Erro", description: "Erro ao salvar dados. Tente novamente.", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
+      await supabase.from('Atletas').insert([dataToSave]);
+    } catch (err) {
+      console.warn('Supabase insert failed (non-blocking):', err);
     }
+
+    setIsLoading(false);
+    navigate("/upload");
   };
 
   const handleNext = () => {
