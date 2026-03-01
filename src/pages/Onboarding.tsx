@@ -22,9 +22,12 @@ const positions = [
   "Ponta Direita", "Ponta Esquerda", "Centroavante"
 ];
 
-const experiences = [
-  "Iniciante (0-2 anos)", "Amador (3-5 anos)",
-  "Semi-profissional (6-10 anos)", "Profissional (10+ anos)"
+const states = [
+  "Acre", "Alagoas", "Amapá", "Amazonas", "Bahia", "Ceará", "Distrito Federal",
+  "Espírito Santo", "Goiás", "Maranhão", "Mato Grosso", "Mato Grosso do Sul",
+  "Minas Gerais", "Pará", "Paraíba", "Paraná", "Pernambuco", "Piauí", "Rio de Janeiro",
+  "Rio Grande do Norte", "Rio Grande do Sul", "Rondônia", "Roraima", "Santa Catarina",
+  "São Paulo", "Sergipe", "Tocantins"
 ];
 
 const countries = [
@@ -46,7 +49,7 @@ const Onboarding = () => {
   const [playerData, setPlayerData] = useState({
     name: "", age: "", height: "", weight: "",
     preferredFoot: "", nationality: "", position: "",
-    city: "", experience: "", photo: "", category: "",
+    state: "", city: "", photo: "", category: "",
     hasDualCitizenship: "", dualCitizenshipCountry: ""
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +64,7 @@ const Onboarding = () => {
         altura: parseFloat(playerData.height), peso: parseFloat(playerData.weight),
         melhor_pe: playerData.preferredFoot, nacionalidade: playerData.nationality,
         posicao: playerData.position, cidade: playerData.city,
-        experiencia: playerData.experience
+        estado: playerData.state
       };
       const { error } = await supabase.from('Atletas').insert([dataToSave]);
       if (error) throw error;
@@ -96,7 +99,7 @@ const Onboarding = () => {
       case 2: return playerData.nationality && (playerData.hasDualCitizenship === 'Não' || (playerData.hasDualCitizenship === 'Sim' && playerData.dualCitizenshipCountry));
       case 3: return playerData.position;
       case 4: return playerData.category;
-      case 5: return playerData.city && playerData.experience;
+      case 5: return playerData.city && playerData.state;
       default: return false;
     }
   };
@@ -268,21 +271,21 @@ const Onboarding = () => {
 
           {step === 5 && (
             <div className="space-y-4">
+              <div>
+                <Label className="text-foreground">Estado</Label>
+                <Select value={playerData.state} onValueChange={(v) => setPlayerData({ ...playerData, state: v })}>
+                  <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione seu estado" /></SelectTrigger>
+                  <SelectContent className="bg-card border-border max-h-60">
+                    {states.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <CityAutocomplete
                 value={playerData.city}
                 onChange={(v) => setPlayerData({ ...playerData, city: v })}
                 placeholder="Digite sua cidade..."
                 label="Cidade"
               />
-              <div>
-                <Label className="text-foreground">Experiência</Label>
-                <Select value={playerData.experience} onValueChange={(v) => setPlayerData({ ...playerData, experience: v })}>
-                  <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Seu nível de experiência" /></SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    {experiences.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           )}
 
