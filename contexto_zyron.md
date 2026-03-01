@@ -30,8 +30,22 @@
    - **Filtro por Estado (Última Ação):** Na etapa "Quase lá", a lista de 50 cidades sugeridas agora é **estritamente filtrada** pela sigla do `State` que o usuário escolheu no dropdown anterior (ex: Escolheu "Distrito Federal", a IA na API mapeia o estado correspondente e limita a resposta do autocomplete apenas a itens terminados em `- DF`). O campo cidade também se reseta ao mudar o Estado.
    - **Busca Smart:** Funciona ignorando acentos textuais.
 
-## 4. Onde o Código Está
+## 4. Histórico de Conversas Anteriores (Contexto Completo)
+Para sua ciência, nova IA, eu (Gemini) cobri duas conversas principais com o usuário que precederam a sua chegada:
+
+**Chat 1 (Setup Inicial):**
+- O usuário pediu para analisar todo o projeto base e instalar as dependências necessárias.
+- Configuramos o Tailwind, Shadcn e a fundação do React Vite.
+
+**Chat 2 (Aprofundamento de UI e Dados - *Nossa conversa principal*):**
+- **O grande foco:** Design "Lovable" (extrema alta qualidade, visual premium).
+- O usuário instruiu especificamente para **não exibir caixas de confirmação chatas** e assumir postura de execução autônoma.
+- Criamos a página de Login do zero com tabs de "Entrar" e "Criar Conta" em `/login`.
+- Aprimoramos o Onboarding: Trocamos anos de experiência por Estados, integramos o autocomplete infalível de cidades do Brasil inteiro, inserimos as exclusivas regiões do Distrito Federal na mão, e consertamos bugs da API do IBGE que limitava a 8 ou 10 municípios.
+
+## 5. Onde o Código Está
 - O Git e GitHub do usuário (`bkrsinclairrr/vide-match`) **já estão 100% sincronizados** até o passo anterior. Tudo que está na branch `main` é a versão oficial de trabalho.
 - Componentes chave para atentar: `src/App.tsx` (Router), `src/services/ibgeApi.ts` (Core da busca BR e DF), `src/pages/Onboarding.tsx` e `src/pages/Login.tsx`.
 
-Vá em frente, traga todo o seu raciocínio (Thinking) e construa algo fenomenal com o usuário!
+## A Sua Missão Agora:
+Leia este arquivo, compreenda o nível técnico e de design que o usuário exige, assuma o controle com autonomia e construa os próximos módulos do Zyron (seja o Feed, Perfil, BD, etc) com o rigor técnico de um modelo *Claude 3.7 Sonnet*. O usuário confia na sua excelência em UI/UX. Vá decolar!
