@@ -17,6 +17,16 @@ import Privacy from "./pages/Privacy"
 import Terms from "./pages/Terms"
 import NotFound from "./pages/NotFound"
 
+import { useEffect } from "react"
+import { useLocation } from "react-router-dom"
+
+// Scrolls to top on every route change
+const ScrollToTop = () => {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 const queryClient = new QueryClient()
 
 const Home = () => (
@@ -26,6 +36,7 @@ const Home = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
