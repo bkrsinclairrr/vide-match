@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 const CATEGORIES = [
   "Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10",
   "Sub 11", "Sub 12", "Sub 13", "Sub 14", "Sub 15",
-  "Sub 16", "Sub 17", "Sub 20"
+  "Sub 16", "Sub 17", "Sub 18", "Sub 19", "Sub 20"
 ];
 
 const positions = [
@@ -443,8 +443,8 @@ const Onboarding = () => {
                   </div>
                 );
 
-                // Sub 16–17: Base nacional com faixa salarial
-                if (["Sub 16", "Sub 17"].includes(cat)) return (
+                // Sub 16–19: Base nacional com faixa salarial
+                if (["Sub 16", "Sub 17", "Sub 18", "Sub 19"].includes(cat)) return (
                   <div className="p-4 rounded-xl border border-amber-400/20 bg-amber-400/5 animate-fade-in">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
