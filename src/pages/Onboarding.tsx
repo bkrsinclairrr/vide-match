@@ -57,14 +57,22 @@ const STEPS = [
 // Text secondary: white/60
 // Text hint: white/35
 
+// Input style — solid concrete dark bg so white text is always legible
+const inputStyle = {
+  background: "#1E1E22",
+  border: "1px solid rgba(255,255,255,0.10)",
+  color: "#fff",
+};
 const inputCls = [
-  "w-full bg-white/4 border border-white/8 text-white placeholder-white/30",
-  "rounded-xl px-4 h-12 text-sm",
-  "focus:outline-none focus:ring-2 focus:ring-amber-400/60 focus:border-amber-400/50",
+  "w-full rounded-xl px-4 h-12 text-sm",
+  "placeholder:text-white/30",
+  "focus:outline-none focus:ring-2 focus:ring-amber-400/60",
   "transition-all duration-200"
 ].join(" ");
 
-const selectTriggerCls = "bg-white/4 border-white/8 text-white focus:ring-amber-400/60 focus:border-amber-400/50 h-12 rounded-xl";
+// Select dropdown — same solid bg
+const selectTriggerCls = "h-12 rounded-xl text-white focus:ring-amber-400/60 focus:border-amber-400/50";
+const selectTriggerStyle = { background: "#1E1E22", border: "1px solid rgba(255,255,255,0.10)" };
 
 // Required field label with amber dot
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
@@ -215,71 +223,98 @@ const Onboarding = () => {
         <div className="rounded-3xl p-6 space-y-5 animate-fade-in"
           style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}>
 
-          {/* ── STEP 1 — Premium redesign ── */}
+          {/* ── STEP 1 — Optimized ── */}
           {step === 1 && (
             <>
-              {/* Photo upload */}
-              <div className="flex flex-col items-center py-1">
+              {/* Photo upload — larger, prominent */}
+              <div className="flex flex-col items-center pt-1 pb-2">
                 <button onClick={() => fileInputRef.current?.click()} className="relative group">
-                  <div className={[
-                    "w-24 h-24 rounded-full border-2 border-dashed transition-all duration-300 flex items-center justify-center overflow-hidden",
-                    playerData.photo
-                      ? "border-amber-400/60 shadow-[0_0_24px_rgba(251,191,36,0.2)]"
-                      : "border-white/15 group-hover:border-amber-400/40 group-hover:shadow-[0_0_16px_rgba(251,191,36,0.12)]"
-                  ].join(" ")} style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <div
+                    className={[
+                      "w-28 h-28 rounded-full border-2 border-dashed transition-all duration-300 flex items-center justify-center overflow-hidden",
+                      playerData.photo
+                        ? "border-amber-400 shadow-[0_0_32px_rgba(251,191,36,0.30)]"
+                        : "border-white/20 group-hover:border-amber-400/50 group-hover:shadow-[0_0_20px_rgba(251,191,36,0.15)]"
+                    ].join(" ")}
+                    style={{ background: "#1A1A1E" }}
+                  >
                     {playerData.photo ? (
                       <img src={playerData.photo} alt="Foto" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="flex flex-col items-center gap-1.5 text-white/30 group-hover:text-amber-400/80 transition-colors">
-                        <Camera className="w-6 h-6" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Foto</span>
+                      <div className="flex flex-col items-center gap-2 transition-colors"
+                        style={{ color: playerData.photo ? "transparent" : "rgba(255,255,255,0.28)" }}>
+                        <Camera className="w-7 h-7 group-hover:text-amber-400 transition-colors" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest group-hover:text-amber-400 transition-colors">Foto</span>
                       </div>
                     )}
                   </div>
-                  {/* Completion badge */}
                   {playerData.photo && (
-                    <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg"
-                      style={{ background: "linear-gradient(135deg, #34D399, #059669)" }}>
-                      <Check className="w-3.5 h-3.5 text-white" />
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
+                      style={{ background: "linear-gradient(135deg,#34D399,#059669)" }}>
+                      <Check className="w-4 h-4 text-white" />
                     </div>
                   )}
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                <p className="text-[11px] text-white/30 mt-2 font-medium">Opcional</p>
+                <p className="text-xs mt-3 font-medium" style={{ color: "rgba(255,255,255,0.28)" }}>
+                  {playerData.photo ? "Toque para trocar" : "Foto de perfil — opcional"}
+                </p>
+              </div>
+
+              {/* Subtle divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
+                <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: "rgba(255,255,255,0.22)" }}>dados do atleta</span>
+                <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
               </div>
 
               {/* Name */}
               <div>
                 <FieldLabel>Nome completo</FieldLabel>
-                <input className={inputCls} value={playerData.name}
+                <input
+                  className={inputCls}
+                  style={inputStyle}
+                  value={playerData.name}
                   onChange={(e) => setPlayerData({ ...playerData, name: e.target.value })}
-                  placeholder="João Silva" />
+                  placeholder="João Silva"
+                />
               </div>
 
-              {/* Age / Height / Weight */}
+              {/* Age / Height / Weight — with floating unit label */}
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: "Idade", key: "age", placeholder: "22" },
-                  { label: "Altura cm", key: "height", placeholder: "175" },
-                  { label: "Peso kg", key: "weight", placeholder: "70" },
-                ].map(({ label, key, placeholder }) => (
+                  { label: "Idade", key: "age", placeholder: "22", unit: "anos" },
+                  { label: "Altura", key: "height", placeholder: "175", unit: "cm" },
+                  { label: "Peso", key: "weight", placeholder: "70", unit: "kg" },
+                ].map(({ label, key, placeholder, unit }) => (
                   <div key={key}>
                     <FieldLabel>{label}</FieldLabel>
-                    <input type="number" className={inputCls}
-                      value={playerData[key as keyof typeof playerData]}
-                      onChange={(e) => setPlayerData({ ...playerData, [key]: e.target.value })}
-                      placeholder={placeholder} />
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className={inputCls + " pr-8"}
+                        style={inputStyle}
+                        value={playerData[key as keyof typeof playerData]}
+                        onChange={(e) => setPlayerData({ ...playerData, [key]: e.target.value })}
+                        placeholder={placeholder}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold pointer-events-none"
+                        style={{ color: "rgba(255,255,255,0.28)" }}>{unit}</span>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {/* Preferred foot — pill selector */}
+              {/* Preferred foot */}
               <div>
                 <FieldLabel>Melhor pé</FieldLabel>
                 <div className="grid grid-cols-3 gap-2">
                   {["Destro", "Canhoto", "Ambidestro"].map((foot) => (
-                    <PillBtn key={foot} active={playerData.preferredFoot === foot.toLowerCase()}
-                      onClick={() => setPlayerData({ ...playerData, preferredFoot: foot.toLowerCase() })}>
+                    <PillBtn
+                      key={foot}
+                      active={playerData.preferredFoot === foot.toLowerCase()}
+                      onClick={() => setPlayerData({ ...playerData, preferredFoot: foot.toLowerCase() })}
+                    >
                       {foot}
                     </PillBtn>
                   ))}
@@ -356,20 +391,46 @@ const Onboarding = () => {
 
           {/* ── STEP 4 — Category ── */}
           {step === 4 && (
-            <div>
-              <FieldLabel>Categoria / Faixa etária</FieldLabel>
-              <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
-                <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                  {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div>
+                <FieldLabel>Categoria / Faixa etária</FieldLabel>
+                <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
+                  <SelectTrigger className={selectTriggerCls} style={selectTriggerStyle}><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                    {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {playerData.category && (
-                <div className="mt-3 flex items-center gap-2 rounded-xl px-4 py-3 animate-fade-in"
-                  style={{ background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
-                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-emerald-300">{playerData.category} selecionado</span>
+              {/* Category-specific warning messages (restored from original) */}
+              {playerData.category && ["Sub 16", "Sub 17", "Sub 20"].includes(playerData.category) && (
+                <div className={`p-4 rounded-xl border animate-fade-in ${playerData.category === 'Sub 20'
+                    ? 'border-emerald-500/30 bg-emerald-500/5'
+                    : 'border-amber-400/20 bg-amber-400/5'
+                  }`}>
+                  {playerData.category === 'Sub 20' ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-sm font-semibold text-emerald-400">Transição Profissional</span>
+                      </div>
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        Acesso a clubes brasileiros <strong className="text-white/70">e internacionais</strong>. Projeção salarial individualizada por clube, estimativa de valorização e potencial de transferência internacional.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-amber-400" />
+                        <span className="text-sm font-semibold text-amber-300">Base Nacional</span>
+                      </div>
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        Clubes brasileiros — Série A e B. Faixa salarial estimada para categoria de base:{" "}
+                        <span className="text-amber-400 font-semibold">R$ 8.000 a R$ 23.000</span>.
+                      </p>
+                      <p className="text-xs text-white/30">Projeção média de mercado, não promessa contratual.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -391,8 +452,11 @@ const Onboarding = () => {
               {playerData.state && (
                 <div className="animate-fade-in">
                   <FieldLabel>Cidade</FieldLabel>
-                  <CityAutocomplete state={playerData.state} value={playerData.city}
-                    onChange={(city) => setPlayerData({ ...playerData, city })} />
+                  <CityAutocomplete
+                    selectedState={playerData.state}
+                    value={playerData.city}
+                    onChange={(city) => setPlayerData({ ...playerData, city })}
+                  />
                 </div>
               )}
 
