@@ -156,7 +156,7 @@ const Onboarding = () => {
   const completedSteps = step - 1;
 
   return (
-    <div className="min-h-screen text-white font-sans antialiased flex flex-col" style={{ background: "#0D0D0F" }}>
+    <div className="text-white font-sans antialiased" style={{ background: "#0D0D0F", minHeight: "100svh" }}>
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-xl" style={{ background: "rgba(13,13,15,0.92)" }}>
@@ -223,8 +223,8 @@ const Onboarding = () => {
         </div>
       </div>
 
-      {/* ── Form content + CTA ── */}
-      <main className="flex-1 flex flex-col max-w-lg mx-auto w-full px-4 pb-6 gap-4">
+      {/* ── Form content ── */}
+      <main className="max-w-lg mx-auto w-full px-4 pb-8">
         <div className="rounded-3xl p-6 space-y-5 animate-fade-in"
           style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}>
 
@@ -297,6 +297,8 @@ const Onboarding = () => {
                     <div className="relative">
                       <input
                         type="number"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         className={inputCls + " pr-8"}
                         style={inputStyle}
                         value={playerData[key as keyof typeof playerData]}
@@ -515,8 +517,8 @@ const Onboarding = () => {
           )}
         </div>
 
-        {/* ── CTA — mt-auto keeps it close to content, not anchored to viewport bottom ── */}
-        <div className="mt-auto pt-2 space-y-2">
+        {/* ── CTA — directly below form, no floating ── */}
+        <div className="mt-4 pb-4 space-y-2">
           <button
             onClick={handleNext}
             disabled={!canProceed() || isLoading}
