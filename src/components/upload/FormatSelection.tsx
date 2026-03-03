@@ -57,13 +57,23 @@ const FormatSelection = ({ onSelect }: FormatSelectionProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm" onClick={() => onSelect('single')}>
-          Vídeo Único
-        </Button>
-        <Button className="bg-accent hover:bg-accent/90 text-accent-foreground font-medium text-sm" onClick={() => onSelect('multiple')}>
-          Vários Vídeos
-        </Button>
+      <div className="flex flex-col gap-3 pt-1">
+        <button
+          onClick={() => onSelect('single')}
+          className="w-full h-14 rounded-2xl font-bold text-base text-black flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-[0_0_28px_rgba(251,191,36,0.35)] hover:shadow-[0_0_40px_rgba(251,191,36,0.5)]"
+          style={{ background: "linear-gradient(135deg,#FBBF24,#F97316)" }}
+        >
+          <Film className="w-5 h-5" />
+          Enviar vídeo compilado
+        </button>
+        <button
+          onClick={() => onSelect('multiple')}
+          className="w-full h-12 rounded-2xl font-semibold text-sm border flex items-center justify-center gap-2 transition-all active:scale-[0.98] hover:border-amber-400/40 hover:text-white"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.65)" }}
+        >
+          <Layers className="w-4 h-4" />
+          Vídeos separados por habilidade
+        </button>
       </div>
     </div>
   );

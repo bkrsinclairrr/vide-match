@@ -70,20 +70,21 @@ const UploadComplete = ({ format, completedVideos, totalVideos, hasPersonalVideo
         </Button>
       )}
 
-      <div className="space-y-2">
-        <Button className="w-full bg-gradient-golden text-background font-semibold h-11 rounded-xl" onClick={() => navigate('/analysis')}>
-          <Send className="w-4 h-4 mr-2" />
+      <div className="space-y-3 pt-1">
+        <button
+          className="w-full h-16 rounded-2xl font-black text-lg text-black flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_32px_rgba(251,191,36,0.4)] hover:shadow-[0_0_48px_rgba(251,191,36,0.55)]"
+          style={{ background: "linear-gradient(135deg,#FBBF24,#F97316)" }}
+          onClick={() => navigate('/analysis')}
+        >
+          <Send className="w-5 h-5" />
           Enviar para análise
-        </Button>
-        <Button variant="outline" className="w-full text-xs border-border">
-          <Share2 className="w-3.5 h-3.5 mr-1.5" />
-          Copiar link
-        </Button>
-        <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => navigate('/analysis')}>
+        </button>
+        <Button variant="outline" className="w-full text-xs border-border" onClick={() => navigate('/analysis')}>
           <Save className="w-3.5 h-3.5 mr-1.5" />
           Salvar e enviar depois
         </Button>
       </div>
+
     </div>
   );
 };
