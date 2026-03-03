@@ -115,7 +115,7 @@ const Onboarding = () => {
         {/* Header */}
         <div className="flex items-center justify-between py-6">
           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground"
-            onClick={() => step > 1 ? setStep(step - 1) : navigate("/")}>
+            onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="text-sm text-muted-foreground font-medium">{step} de {totalSteps}</div>

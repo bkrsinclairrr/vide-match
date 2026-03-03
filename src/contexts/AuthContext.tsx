@@ -21,19 +21,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Get initial session
+        let mounted = true
+
+        // Get initial session — this is the single source of truth on load/refresh
         supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!mounted) return
             setSession(session)
             setLoading(false)
         })
 
-        // Listen for auth state changes
+        // Listen for subsequent auth changes (login, logout, token refresh)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!mounted) return
             setSession(session)
-            setLoading(false)
+            // Don't touch loading here — getSession above owns the initial load
         })
 
-        return () => subscription.unsubscribe()
+        return () => {
+            mounted = false
+            subscription.unsubscribe()
+        }
     }, [])
 
     const signOut = async () => {
