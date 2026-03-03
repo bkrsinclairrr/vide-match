@@ -216,8 +216,9 @@ export default function Analysis() {
     || "Atleta"
   const firstName = displayName.split(" ")[0]
   const avatarLetter = firstName.charAt(0).toUpperCase()
-  // Real profile photo (populated when user signs in with Google)
-  const avatarUrl: string | undefined = user?.user_metadata?.avatar_url
+  // Real profile photo — priority: photo uploaded in onboarding > Google avatar > initial letter
+  const avatarUrl: string | undefined =
+    playerData?.photo || user?.user_metadata?.avatar_url || undefined
 
   // Helper: renders photo if available, otherwise initial letter
   const AvatarImg = ({ size }: { size: "sm" | "md" | "lg" }) => {
