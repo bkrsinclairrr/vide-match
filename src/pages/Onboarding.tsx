@@ -2,7 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag, User } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -108,6 +108,11 @@ const Onboarding = () => {
     hasDualCitizenship: "", dualCitizenshipCountry: ""
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Scroll to top whenever step changes (critical for mobile UX)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
   const totalSteps = 5;
 
   const savePlayerData = async () => {
