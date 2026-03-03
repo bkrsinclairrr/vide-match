@@ -21,18 +21,24 @@ function seededRand(seed: number, index: number): number {
 }
 
 // ─── CLUBS DATA ─────────────────────────────────────────────────────────────
+// Sub 6–17 → Brazil only (Série A & B)
 const NATIONAL_CLUBS = [
-  "Flamengo", "Palmeiras", "São Paulo FC", "Corinthians", "Athletico Paranaense",
-  "Grêmio", "Internacional", "Atlético Mineiro", "Santos FC", "Sport Recife",
-  "Fortaleza EC", "Ceará SC", "Bahia", "Vasco da Gama", "Fluminense",
-  "Avaí FC", "Coritiba", "América Mineiro", "Red Bull Bragantino", "Cuiabá EC",
+  "Flamengo", "Palmeiras", "Corinthians", "São Paulo FC", "Santos FC",
+  "Grêmio", "Internacional", "Atlético Mineiro", "Fluminense", "Vasco da Gama",
+  "Athletico Paranaense", "Red Bull Bragantino", "Cruzeiro", "Sport Recife", "Fortaleza EC",
+  "Ceará SC", "Bahia", "Coritiba", "América Mineiro", "Goiás EC",
+  "Botafogo", "Avaí FC", "Juventude", "Cuiabá EC", "Chapecoense",
+  "Ponte Preta", "Criciúma", "Londrina EC", "Náutico", "Sampaio Corrêa",
 ]
 
+// Sub 20 → International clubs only
 const INTERNATIONAL_CLUBS = [
   "West Ham United", "Sevilla FC", "Olympique de Marseille", "AS Roma", "Real Betis",
   "Sporting CP", "Benfica", "FC Porto", "Ajax", "Anderlecht",
   "FC Nantes", "RC Lens", "Valencia CF", "Getafe CF", "Hellas Verona",
-  "Galatasaray", "Fenerbahçe", "FK Crvena zvezda", "Legia Warszawa", "Club Brugge",
+  "Galatasaray", "Fenerbahçe", "Club Brugge", "RSC Anderlecht", "Legia Warszawa",
+  "Celta de Vigo", "Osasuna", "Villarreal CF", "Girona FC", "Rennes",
+  "Toulouse FC", "Standard Liège", "FC Köln", "Hajduk Split", "Panathinaikos",
 ]
 
 // ─── LOADING MESSAGES ────────────────────────────────────────────────────────
@@ -90,9 +96,12 @@ export default function Analysis() {
           setPhase("report")
           return 35
         }
-        // find latest message index
-        const msgIdx = LOADING_MESSAGES.findLastIndex((m) => m.t <= next)
-        if (msgIdx >= 0) setCurrentMsg(msgIdx)
+        // find latest message index (compatible with ES2020 targets)
+        let msgIdx = 0
+        for (let i = 0; i < LOADING_MESSAGES.length; i++) {
+          if (LOADING_MESSAGES[i].t <= next) msgIdx = i
+        }
+        setCurrentMsg(msgIdx)
         return next
       })
     }, 1000)
@@ -115,12 +124,19 @@ export default function Analysis() {
     [stats]
   )
 
-  // Club selection — deterministic per user, by category
-  const category = playerData?.category ?? "Sub 17"
-  const isInternational = category === "Sub 20"
-  const clubPool = isInternational ? INTERNATIONAL_CLUBS : NATIONAL_CLUBS
-  const club = clubPool[seed % clubPool.length]
-  const compatibility = 94 + (seed % 5) // 94–98
+  // Club selection — deterministic per user, safe category read from playerData
+  // Sub 20 = international; everything else (Sub 6..Sub 17) = national
+  const { club, isInternational, compatibility } = useMemo(() => {
+    const raw = playerData?.category ?? ""
+    const isInt = raw.trim() === "Sub 20"
+    const pool = isInt ? INTERNATIONAL_CLUBS : NATIONAL_CLUBS
+    const idx = seed % pool.length
+    return {
+      club: pool[idx],
+      isInternational: isInt,
+      compatibility: 94 + (seed % 5), // 94–98, stable per user
+    }
+  }, [seed, playerData?.category])
 
   // ─── LOADING PHASE ─────────────────────────────────────────────────────────
   if (phase === "loading") {
