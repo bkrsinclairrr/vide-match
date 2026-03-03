@@ -265,12 +265,12 @@ export default function Dashboard() {
                         SISTEMA ATIVO — PRONTO PARA ANÁLISE
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black leading-tight tracking-tight">
-                        {firstName}, o mercado<br />
-                        <span className="text-white/30">não espera por quem</span>{" "}
-                        <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">não aparece.</span>
+                        Olá, {firstName}.<br />
+                        <span className="text-white/30">Sua carreira</span>{" "}
+                        <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">começa aqui.</span>
                     </h1>
                     <p className="text-lg text-white/50 max-w-2xl leading-relaxed">
-                        Enquanto você lê isso, outro atleta com talento parecido com o seu está sendo analisado, mapeado e direcionado. A janela de oportunidade não fica aberta para sempre.
+                        Você está acessando o ambiente de análise do Zyron. O que acontece a seguir vai determinar como o mercado enxerga o seu futebol.
                     </p>
                 </section>
 
@@ -370,18 +370,16 @@ export default function Dashboard() {
 
                 {/* ─── BOTÃO PRINCIPAL ─── */}
                 <section className="flex flex-col items-center text-center space-y-5">
-                    <p className="text-sm text-red-400/80 uppercase tracking-widest font-semibold">
-                        ⚠️ Cada dia sem análise é um dia que outro atleta sai na sua frente
-                    </p>
+                    <p className="text-sm text-white/30 uppercase tracking-widest font-semibold">Tudo pronto. É hora de dar o próximo passo.</p>
                     <button
                         onClick={() => navigate("/onboarding")}
                         className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-lg px-10 py-5 rounded-2xl transition-all duration-200 shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] active:scale-95"
                     >
                         <Zap className="w-5 h-5" />
-                        QUERO SER ANALISADO AGORA
+                        INICIAR MINHA ANÁLISE
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
-                    <p className="text-xs text-white/20">Gratuito. Sem peneira. Sem conhecidos. Só dados e talento.</p>
+                    <p className="text-xs text-white/20">Processo rápido. Resultado permanente.</p>
                 </section>
 
                 {/* ─── CONEXÃO EMOCIONAL ─── */}
@@ -389,9 +387,9 @@ export default function Dashboard() {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto">
                         <Star className="w-5 h-5 text-black" />
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black">O Talento Não Basta. A Visibilidade Sim.</h3>
+                    <h3 className="text-2xl md:text-3xl font-black">Você Está Dando o Próximo Passo</h3>
                     <p className="text-white/50 max-w-xl mx-auto leading-relaxed">
-                        Centenas de atletas com qualidade técnica nunca foram vistos porque não tinham como mostrar o que fazem de verdade. O Zyron coloca seu futebol na frente de quem tomará as decisões — com dados, credibilidade e timing certo.
+                        Cada grande jogador começou com uma avaliação. O que separa atletas comuns dos que chegam ao alto nível é a decisão de evoluir com método, dados e direcionamento estratégico.
                     </p>
                 </section>
 
@@ -399,7 +397,7 @@ export default function Dashboard() {
                 <section className="space-y-8">
                     <div className="text-center">
                         <p className="text-xs text-white/30 font-semibold tracking-widest uppercase mb-2">Resultados reais</p>
-                        <h3 className="text-xl md:text-2xl font-bold">Atletas Que Pararam de Esperar</h3>
+                        <h3 className="text-xl md:text-2xl font-bold">Atletas Que Tomaram a Decisão</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {TESTIMONIALS.map((t) => (

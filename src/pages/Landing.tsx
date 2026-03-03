@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Play, Upload, BarChart3, Target, Star, Users, Award, Trophy, ArrowRight, CheckCircle, Shield, Zap } from "lucide-react";
+import { Upload, BarChart3, Target, Star, Users, Trophy, ArrowRight, CheckCircle, Shield, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Landing = () => {
@@ -199,4 +199,3 @@ const Landing = () => {
 };
 
 export default Landing;
-
