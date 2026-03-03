@@ -270,15 +270,15 @@ export default function Analysis() {
           </div>
         </div>
 
-        <div className="w-full max-w-md space-y-2 mt-6">
+        <div className="w-full max-w-md space-y-2 mt-6 px-2">
           {LOADING_MESSAGES.slice(0, currentMsg + 1).map((m, i) => (
             <div
               key={i}
-              className={`flex items-center gap-3 text-xs transition-all duration-500 ${i === currentMsg ? "text-amber-400 opacity-100" : "text-white/25 opacity-60"
+              className={`flex items-start gap-3 text-xs transition-all duration-500 ${i === currentMsg ? "text-amber-400 opacity-100" : "text-white/25 opacity-60"
                 }`}
             >
-              <CheckCircle2 className={`w-3.5 h-3.5 flex-shrink-0 ${i === currentMsg ? "text-amber-400" : "text-white/20"}`} />
-              {m.text}
+              <CheckCircle2 className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${i === currentMsg ? "text-amber-400" : "text-white/20"}`} />
+              <span className="leading-relaxed">{m.text}</span>
             </div>
           ))}
         </div>
@@ -307,7 +307,7 @@ export default function Analysis() {
           </div>
         </header>
 
-        <main className="max-w-3xl mx-auto px-4 py-10 space-y-10">
+        <main className="max-w-3xl mx-auto px-4 py-6 md:py-10 space-y-8 md:space-y-10">
           <section className="flex flex-col items-center text-center">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
               <Star className="w-3.5 h-3.5" />
@@ -356,7 +356,7 @@ export default function Analysis() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-8 text-center space-y-5">
+          <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-5 md:p-8 text-center space-y-5">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto">
               <Globe2 className="w-5 h-5 text-black" />
             </div>
@@ -367,7 +367,7 @@ export default function Analysis() {
             </p>
             <button
               onClick={() => setPhase("club-loading")}
-              className="group inline-flex items-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-base px-9 py-4 rounded-2xl transition-all shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] active:scale-95"
+              className="group w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-base px-8 py-4 rounded-2xl transition-all shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] active:scale-95"
             >
               <Trophy className="w-5 h-5" />
               DESCOBRIR MEU CLUBE IDEAL
@@ -498,7 +498,7 @@ export default function Analysis() {
           <p className="text-xs text-white/30 uppercase tracking-widest font-semibold">
             {isInternational ? "Clube Internacional Recomendado" : "Clube Nacional Recomendado — Série A/B"}
           </p>
-          <h2 className="text-4xl md:text-6xl font-black text-white">{club}</h2>
+          <h2 className="text-3xl md:text-5xl font-black text-white">{club}</h2>
 
           <div className="inline-flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-6 py-4 rounded-2xl">
             <div className="text-4xl font-black text-emerald-400">{compatibility}%</div>

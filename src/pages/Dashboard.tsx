@@ -256,7 +256,7 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <main className="max-w-5xl mx-auto px-4 py-12 space-y-24">
+            <main className="max-w-5xl mx-auto px-4 py-6 md:py-12 space-y-14 md:space-y-24">
 
                 {/* ─── HERO / SAUDAÇÃO ─── */}
                 <section className="space-y-6">
@@ -264,12 +264,12 @@ export default function Dashboard() {
                         <Activity className="w-3.5 h-3.5" />
                         SISTEMA ATIVO — PRONTO PARA ANÁLISE
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black leading-tight tracking-tight">
+                    <h1 className="text-3xl md:text-6xl font-black leading-tight tracking-tight">
                         Olá, {firstName}.<br />
                         <span className="text-white/30">Sua carreira</span>{" "}
                         <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">começa aqui.</span>
                     </h1>
-                    <p className="text-lg text-white/50 max-w-2xl leading-relaxed">
+                    <p className="text-base md:text-lg text-white/50 max-w-2xl leading-relaxed">
                         Você está acessando o ambiente de análise do Zyron. O que acontece a seguir vai determinar como o mercado enxerga o seu futebol.
                     </p>
                 </section>
@@ -280,7 +280,7 @@ export default function Dashboard() {
                         {STATS.map((stat) => {
                             const Icon = stat.icon
                             return (
-                                <div key={stat.label} className="rounded-2xl border border-white/5 bg-white/3 p-5 flex flex-col gap-3 hover:border-white/10 transition-all">
+                                <div key={stat.label} className="rounded-2xl border border-white/5 bg-white/3 p-3 md:p-5 flex flex-col gap-2 md:gap-3 hover:border-white/10 transition-all">
                                     <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
                                         <Icon className="w-4 h-4 text-white" />
                                     </div>
@@ -295,7 +295,7 @@ export default function Dashboard() {
                 </section>
 
                 {/* ─── COPY PSICOLÓGICO PRINCIPAL ─── */}
-                <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-8 md:p-12 space-y-6">
+                <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-5 md:p-12 space-y-6">
                     <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold tracking-widest uppercase">
                         <Shield className="w-3.5 h-3.5" />
                         O Futebol Mudou. A Avaliação Também.
