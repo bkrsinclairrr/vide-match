@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES = [
-  "Sub 1", "Sub 2", "Sub 3", "Sub 4", "Sub 5",
   "Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10",
   "Sub 11", "Sub 12", "Sub 13", "Sub 14", "Sub 15",
   "Sub 16", "Sub 17", "Sub 18", "Sub 19", "Sub 20"
@@ -404,8 +403,8 @@ const Onboarding = () => {
                 <FieldLabel>Categoria / Faixa etária</FieldLabel>
                 <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
                   <SelectTrigger className={selectTriggerCls} style={selectTriggerStyle}><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-52 overflow-y-auto">
-                    {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-80 overflow-y-auto">
+                    {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300 h-10">{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -414,8 +413,8 @@ const Onboarding = () => {
               {playerData.category && (() => {
                 const cat = playerData.category;
 
-                // Sub 1–10: Formação inicial
-                if (["Sub 1", "Sub 2", "Sub 3", "Sub 4", "Sub 5", "Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10"].includes(cat)) return (
+                // Sub 6–10: Formação inicial
+                if (["Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10"].includes(cat)) return (
                   <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
                     <p className="text-xs text-white/40 leading-relaxed">
                       <span className="text-white/60 font-semibold">Formação Inicial.</span>{" "}
