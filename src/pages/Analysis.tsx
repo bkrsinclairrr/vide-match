@@ -223,10 +223,10 @@ export default function Analysis() {
   // Helper: renders photo if available, otherwise initial letter
   const AvatarImg = ({ size }: { size: "sm" | "md" | "lg" }) => {
     const sizes = { sm: "w-8 h-8 text-xs", md: "w-14 h-14 text-2xl", lg: "w-16 h-16 text-2xl" }
-    const cls = `${sizes[size]} rounded-full flex items-center justify-center font-black text-black flex-shrink-0 overflow-hidden`
+    const cls = `${sizes[size]} rounded-full flex items-center justify-center font-black text-black flex-shrink-0 overflow-hidden shadow-md`
     if (avatarUrl) {
       return (
-        <div className={`${cls} ring-2 ring-amber-400/30`}>
+        <div className={cls}>
           <img src={avatarUrl} alt={firstName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
         </div>
       )
@@ -313,10 +313,13 @@ export default function Analysis() {
               <Star className="w-3.5 h-3.5" />
               ANÁLISE CONCLUÍDA — EQUIPE DE SCOUT ZYRON
             </div>
-            {/* Avatar + score side by side on small screens, score below on large */}
-            <div className="flex flex-col items-center gap-3 mb-4">
+            {/* Avatar inline with player name */}
+            <div className="flex items-center justify-center gap-3 mb-4">
               <AvatarImg size="md" />
-              <p className="text-white/50 text-sm font-medium">{firstName}</p>
+              <div className="text-left">
+                <p className="text-white font-bold text-lg leading-none">{firstName}</p>
+                <p className="text-white/40 text-xs mt-0.5">Atleta analisado</p>
+              </div>
             </div>
             <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)] mb-4">
               <span className="text-5xl font-black text-black leading-none">{overallScore}</span>
@@ -480,15 +483,14 @@ export default function Analysis() {
             </div>
             <p className="text-white/40 text-xs mt-1">{firstName}</p>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black leading-tight">
-            {firstName}, depois de analisar{" "}
+          <h1 className="text-3xl md:text-4xl font-black leading-tight">
+            {firstName}, encontramos{" "}
             <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-              12.438 variáveis do seu jogo,
+              o seu clube ideal.
             </span>
-            <br />encontramos o clube feito para você.
           </h1>
           <p className="text-white/40 max-w-md mx-auto text-sm leading-relaxed">
-            Não é um clube qualquer. É o clube que identificamos como o encaixe exato para o seu perfil técnico, físico e tático — validado pela nossa equipe de scouts com mais de 14 anos de mercado.
+            Com base nas suas informações e na análise do seu perfil, identificamos a correspondência que melhor se encaixa no seu momento de carreira.
           </p>
         </section>
 
