@@ -216,6 +216,26 @@ export default function Analysis() {
     || "Atleta"
   const firstName = displayName.split(" ")[0]
   const avatarLetter = firstName.charAt(0).toUpperCase()
+  // Real profile photo (populated when user signs in with Google)
+  const avatarUrl: string | undefined = user?.user_metadata?.avatar_url
+
+  // Helper: renders photo if available, otherwise initial letter
+  const AvatarImg = ({ size }: { size: "sm" | "md" | "lg" }) => {
+    const sizes = { sm: "w-8 h-8 text-xs", md: "w-14 h-14 text-2xl", lg: "w-16 h-16 text-2xl" }
+    const cls = `${sizes[size]} rounded-full flex items-center justify-center font-black text-black flex-shrink-0 overflow-hidden`
+    if (avatarUrl) {
+      return (
+        <div className={`${cls} ring-2 ring-amber-400/30`}>
+          <img src={avatarUrl} alt={firstName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        </div>
+      )
+    }
+    return (
+      <div className={`${cls} bg-gradient-to-br from-amber-400 to-amber-600`}>
+        {avatarLetter}
+      </div>
+    )
+  }
 
   // ════════════════════════════════════════════════════════════════════════════
   // PHASE 1 — ANALYSIS LOADING (47s)
@@ -281,9 +301,7 @@ export default function Analysis() {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-white/30 font-semibold uppercase tracking-widest hidden sm:block">Relatório de Performance</span>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-bold text-black ml-2">
-                {avatarLetter}
-              </div>
+              <AvatarImg size="sm" />
             </div>
           </div>
         </header>
@@ -296,9 +314,7 @@ export default function Analysis() {
             </div>
             {/* Avatar + score side by side on small screens, score below on large */}
             <div className="flex flex-col items-center gap-3 mb-4">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-2xl font-black text-black shadow-[0_0_30px_rgba(251,191,36,0.3)]">
-                {avatarLetter}
-              </div>
+              <AvatarImg size="md" />
               <p className="text-white/50 text-sm font-medium">{firstName}</p>
             </div>
             <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)] mb-4">
@@ -445,9 +461,7 @@ export default function Analysis() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-white/30 font-semibold uppercase tracking-widest hidden sm:block">Clube Ideal</span>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-bold text-black ml-2">
-              {avatarLetter}
-            </div>
+            <AvatarImg size="sm" />
           </div>
         </div>
       </header>
@@ -460,8 +474,8 @@ export default function Analysis() {
           </div>
           {/* Avatar personalizado */}
           <div className="flex flex-col items-center gap-1 py-2">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-2xl font-black text-black shadow-[0_0_40px_rgba(251,191,36,0.3)] ring-4 ring-amber-400/20">
-              {avatarLetter}
+            <div className="shadow-[0_0_40px_rgba(251,191,36,0.3)] ring-4 ring-amber-400/20 rounded-full">
+              <AvatarImg size="lg" />
             </div>
             <p className="text-white/40 text-xs mt-1">{firstName}</p>
           </div>
