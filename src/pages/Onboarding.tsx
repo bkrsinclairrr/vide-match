@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
@@ -40,20 +39,54 @@ const countries = [
 ];
 
 const STEPS = [
-  { icon: User, label: "Vamos te conhecer", desc: "Conte-nos sobre você" },
+  { icon: User, label: "Vamos te conhecer", desc: "Informações básicas" },
   { icon: Flag, label: "Sua nacionalidade", desc: "Origem e cidadania" },
-  { icon: Layers, label: "Sua posição", desc: "Posição principal" },
-  { icon: Zap, label: "Sua categoria", desc: "Selecione sua categoria" },
-  { icon: MapPin, label: "Quase lá!", desc: "Últimas informações" },
+  { icon: Layers, label: "Sua posição", desc: "Onde você joga" },
+  { icon: Zap, label: "Sua categoria", desc: "Faixa etária" },
+  { icon: MapPin, label: "Quase lá!", desc: "Localização" },
 ];
 
-// Shared input style for steps 2-5 (original style, dark-adapted)
-const selectCls = "mt-1 bg-white/5 border-white/10 text-white";
-const labelCls2 = "text-white/80";
+// ── Color tokens ─────────────────────────────────────────────────────────────
+// BG: #0D0D0F (warm near-black, easier on eyes than pure #000)
+// Primary: amber-400 (#FBBF24) — action, selected, progress
+// Success: emerald-400 (#34D399) — completed steps
+// Surface: white/4 — card backgrounds
+// Border default: white/8
+// Border focus: amber-400/60
+// Text primary: white
+// Text secondary: white/60
+// Text hint: white/35
 
-// Step 1 exclusive styles
-const inputCls = "w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 h-12 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all";
-const labelCls = "block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2";
+const inputCls = [
+  "w-full bg-white/4 border border-white/8 text-white placeholder-white/30",
+  "rounded-xl px-4 h-12 text-sm",
+  "focus:outline-none focus:ring-2 focus:ring-amber-400/60 focus:border-amber-400/50",
+  "transition-all duration-200"
+].join(" ");
+
+const selectTriggerCls = "bg-white/4 border-white/8 text-white focus:ring-amber-400/60 focus:border-amber-400/50 h-12 rounded-xl";
+
+// Required field label with amber dot
+const FieldLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex items-center gap-1.5 mb-2">
+    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+    <span className="text-xs font-semibold text-white/60 uppercase tracking-widest">{children}</span>
+  </div>
+);
+
+// Pill selector button (Step 1 foot selection, used elsewhere)
+const PillBtn = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+  <button type="button" onClick={onClick}
+    className={[
+      "h-11 rounded-xl border text-sm font-semibold transition-all duration-200",
+      active
+        ? "border-amber-400 bg-amber-400/12 text-amber-300 shadow-[0_0_16px_rgba(251,191,36,0.25)]"
+        : "border-white/8 bg-white/3 text-white/45 hover:border-white/20 hover:text-white/80 hover:bg-white/6"
+    ].join(" ")}
+  >
+    {children}
+  </button>
+);
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -73,31 +106,24 @@ const Onboarding = () => {
     setIsLoading(true);
     localStorage.setItem('playerData', JSON.stringify(playerData));
     try {
-      const dataToSave = {
+      await supabase.from('Atletas').insert([{
         nome: playerData.name, idade: parseInt(playerData.age),
         altura: parseFloat(playerData.height), peso: parseFloat(playerData.weight),
         melhor_pe: playerData.preferredFoot, nacionalidade: playerData.nationality,
-        posicao: playerData.position, cidade: playerData.city,
-        estado: playerData.state
-      };
-      await supabase.from('Atletas').insert([dataToSave]);
-    } catch (err) {
-      console.warn('Supabase insert failed (non-blocking):', err);
-    }
+        posicao: playerData.position, cidade: playerData.city, estado: playerData.state
+      }]);
+    } catch (err) { console.warn('Supabase insert failed (non-blocking):', err); }
     setIsLoading(false);
     navigate("/upload");
   };
 
-  const handleNext = () => {
-    if (step < totalSteps) setStep(step + 1);
-    else savePlayerData();
-  };
+  const handleNext = () => { if (step < totalSteps) setStep(step + 1); else savePlayerData(); };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => setPlayerData({ ...playerData, photo: e.target?.result as string });
+      reader.onload = (ev) => setPlayerData({ ...playerData, photo: ev.target?.result as string });
       reader.readAsDataURL(file);
     }
   };
@@ -114,167 +140,191 @@ const Onboarding = () => {
   };
 
   const StepIcon = STEPS[step - 1].icon;
+  const completedSteps = step - 1;
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans antialiased flex flex-col">
+    <div className="min-h-screen text-white font-sans antialiased flex flex-col" style={{ background: "#0D0D0F" }}>
+
       {/* ── Header ── */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-black/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-xl" style={{ background: "rgba(13,13,15,0.92)" }}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <button
-            onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}
-            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all"
-          >
-            <ArrowLeft className="w-4 h-4 text-white/60" />
+          <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}
+            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/8 hover:border-white/18 bg-white/4 hover:bg-white/8 transition-all">
+            <ArrowLeft className="w-4 h-4 text-white/50" />
           </button>
+
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.4)]">
               <Zap className="w-3.5 h-3.5 text-black" />
             </div>
             <span className="font-bold text-sm tracking-tight">ZYRON</span>
           </div>
-          <span className="text-xs text-white/30 font-semibold">{step}/{totalSteps}</span>
+
+          {/* Step counter with semantic color */}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalSteps }).map((_, i) => (
+              <div key={i} className={[
+                "rounded-full transition-all duration-500",
+                i < completedSteps ? "w-2 h-2 bg-emerald-400" :
+                  i === step - 1 ? "w-2 h-2 bg-amber-400" :
+                    "w-1.5 h-1.5 bg-white/15"
+              ].join(" ")} />
+            ))}
+          </div>
+        </div>
+
+        {/* Progress bar: amber → emerald gradient as you advance */}
+        <div className="h-0.5 bg-white/5">
+          <div
+            className="h-full transition-all duration-700 ease-out"
+            style={{
+              width: `${(step / totalSteps) * 100}%`,
+              background: step === totalSteps
+                ? "linear-gradient(to right, #FBBF24, #34D399)"
+                : "linear-gradient(to right, #FBBF24, #FB923C)"
+            }}
+          />
         </div>
       </header>
 
-      {/* ── Progress ── */}
-      <div className="max-w-lg mx-auto w-full px-4 pt-4">
-        <div className="flex gap-1">
-          {Array.from({ length: totalSteps }).map((_, i) => (
-            <div key={i} className={`flex-1 h-1 rounded-full transition-all duration-500 ${i < step ? 'bg-amber-400' : 'bg-white/10'}`} />
-          ))}
-        </div>
-      </div>
-
       {/* ── Step indicator ── */}
-      <div className="max-w-lg mx-auto w-full px-4 pt-6 pb-2">
+      <div className="max-w-lg mx-auto w-full px-4 pt-5 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 border border-amber-400/20 flex items-center justify-center flex-shrink-0">
+          {/* Icon badge — amber when active */}
+          <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(251,191,36,0.2)]"
+            style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(251,120,0,0.10))", border: "1px solid rgba(251,191,36,0.25)" }}>
             <StepIcon className="w-5 h-5 text-amber-400" />
           </div>
           <div>
-            <p className="text-xs text-white/30 uppercase tracking-widest font-semibold">{STEPS[step - 1].desc}</p>
-            <h2 className="text-xl font-black">{STEPS[step - 1].label}</h2>
+            <p className="text-[10px] text-white/35 uppercase tracking-widest font-semibold">{STEPS[step - 1].desc}</p>
+            <h2 className="text-lg font-black leading-tight">{STEPS[step - 1].label}</h2>
           </div>
-          {step > 1 && (
-            <div className="ml-auto flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs px-2 py-1 rounded-full">
-              <Check className="w-3 h-3" />
-              <span className="font-semibold">{step - 1} concluído{step - 1 !== 1 ? 's' : ''}</span>
+          {/* Completed badge — emerald signals "done" semantically */}
+          {completedSteps > 0 && (
+            <div className="ml-auto flex items-center gap-1.5 border rounded-full px-2.5 py-1"
+              style={{ background: "rgba(52,211,153,0.08)", borderColor: "rgba(52,211,153,0.25)" }}>
+              <Check className="w-3 h-3 text-emerald-400" />
+              <span className="text-[11px] font-semibold text-emerald-400">{completedSteps}/{totalSteps}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* ── Content ── */}
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
-        <div className="rounded-3xl border border-white/5 bg-white/3 p-6 space-y-5 animate-fade-in">
+      {/* ── Form content ── */}
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-6">
+        <div className="rounded-3xl p-6 space-y-5 animate-fade-in"
+          style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}>
 
-          {/* ─── STEP 1 — Premium redesign ─── */}
+          {/* ── STEP 1 — Premium redesign ── */}
           {step === 1 && (
             <>
-              <div className="flex flex-col items-center py-2">
+              {/* Photo upload */}
+              <div className="flex flex-col items-center py-1">
                 <button onClick={() => fileInputRef.current?.click()} className="relative group">
-                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-white/20 group-hover:border-amber-400/50 transition-colors flex items-center justify-center overflow-hidden bg-white/5">
+                  <div className={[
+                    "w-24 h-24 rounded-full border-2 border-dashed transition-all duration-300 flex items-center justify-center overflow-hidden",
+                    playerData.photo
+                      ? "border-amber-400/60 shadow-[0_0_24px_rgba(251,191,36,0.2)]"
+                      : "border-white/15 group-hover:border-amber-400/40 group-hover:shadow-[0_0_16px_rgba(251,191,36,0.12)]"
+                  ].join(" ")} style={{ background: "rgba(255,255,255,0.04)" }}>
                     {playerData.photo ? (
                       <img src={playerData.photo} alt="Foto" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="flex flex-col items-center gap-1 text-white/30 group-hover:text-amber-400 transition-colors">
+                      <div className="flex flex-col items-center gap-1.5 text-white/30 group-hover:text-amber-400/80 transition-colors">
                         <Camera className="w-6 h-6" />
-                        <span className="text-[10px] font-semibold uppercase tracking-wide">Foto</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Foto</span>
                       </div>
                     )}
                   </div>
+                  {/* Completion badge */}
                   {playerData.photo && (
-                    <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-amber-400 rounded-full flex items-center justify-center shadow-lg">
-                      <Check className="w-3.5 h-3.5 text-black" />
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg"
+                      style={{ background: "linear-gradient(135deg, #34D399, #059669)" }}>
+                      <Check className="w-3.5 h-3.5 text-white" />
                     </div>
                   )}
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                <p className="text-xs text-white/30 mt-2">Foto (opcional)</p>
+                <p className="text-[11px] text-white/30 mt-2 font-medium">Opcional</p>
               </div>
 
+              {/* Name */}
               <div>
-                <label className={labelCls}>Nome completo</label>
+                <FieldLabel>Nome completo</FieldLabel>
                 <input className={inputCls} value={playerData.name}
                   onChange={(e) => setPlayerData({ ...playerData, name: e.target.value })}
                   placeholder="João Silva" />
               </div>
 
+              {/* Age / Height / Weight */}
               <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className={labelCls}>Idade</label>
-                  <input type="number" className={inputCls} value={playerData.age}
-                    onChange={(e) => setPlayerData({ ...playerData, age: e.target.value })}
-                    placeholder="22" />
-                </div>
-                <div>
-                  <label className={labelCls}>Altura cm</label>
-                  <input type="number" className={inputCls} value={playerData.height}
-                    onChange={(e) => setPlayerData({ ...playerData, height: e.target.value })}
-                    placeholder="175" />
-                </div>
-                <div>
-                  <label className={labelCls}>Peso kg</label>
-                  <input type="number" className={inputCls} value={playerData.weight}
-                    onChange={(e) => setPlayerData({ ...playerData, weight: e.target.value })}
-                    placeholder="70" />
-                </div>
+                {[
+                  { label: "Idade", key: "age", placeholder: "22" },
+                  { label: "Altura cm", key: "height", placeholder: "175" },
+                  { label: "Peso kg", key: "weight", placeholder: "70" },
+                ].map(({ label, key, placeholder }) => (
+                  <div key={key}>
+                    <FieldLabel>{label}</FieldLabel>
+                    <input type="number" className={inputCls}
+                      value={playerData[key as keyof typeof playerData]}
+                      onChange={(e) => setPlayerData({ ...playerData, [key]: e.target.value })}
+                      placeholder={placeholder} />
+                  </div>
+                ))}
               </div>
 
+              {/* Preferred foot — pill selector */}
               <div>
-                <label className={labelCls}>Melhor pé</label>
+                <FieldLabel>Melhor pé</FieldLabel>
                 <div className="grid grid-cols-3 gap-2">
-                  {["destro", "canhoto", "ambidestro"].map((foot) => (
-                    <button key={foot} type="button"
-                      onClick={() => setPlayerData({ ...playerData, preferredFoot: foot })}
-                      className={`h-11 rounded-xl border text-sm font-semibold capitalize transition-all ${playerData.preferredFoot === foot
-                          ? "border-amber-400 bg-amber-400/10 text-amber-400"
-                          : "border-white/10 bg-white/5 text-white/50 hover:border-white/20 hover:text-white"
-                        }`}
-                    >
-                      {foot.charAt(0).toUpperCase() + foot.slice(1)}
-                    </button>
+                  {["Destro", "Canhoto", "Ambidestro"].map((foot) => (
+                    <PillBtn key={foot} active={playerData.preferredFoot === foot.toLowerCase()}
+                      onClick={() => setPlayerData({ ...playerData, preferredFoot: foot.toLowerCase() })}>
+                      {foot}
+                    </PillBtn>
                   ))}
                 </div>
               </div>
             </>
           )}
 
-          {/* ─── STEP 2 — Original style ─── */}
+          {/* ── STEP 2 — Nationality ── */}
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <Label className={labelCls2}>Nacionalidade</Label>
+                <FieldLabel>Nacionalidade</FieldLabel>
                 <Select value={playerData.nationality} onValueChange={(v) => setPlayerData({ ...playerData, nationality: v })}>
-                  <SelectTrigger className={selectCls}><SelectValue placeholder="Selecione seu país" /></SelectTrigger>
+                  <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione seu país" /></SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
-                    {countries.map((c) => <SelectItem key={c} value={c} className="focus:bg-white/10">{c}</SelectItem>)}
+                    {countries.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="pt-2 border-t border-white/5">
-                <Label className={`${labelCls2} flex items-center gap-2`}>
+              <div className="rounded-2xl p-4 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-amber-400" />
-                  Possui dupla cidadania?
-                </Label>
-                <p className="text-xs text-white/40 mb-2">Isso pode ampliar suas oportunidades em clubes internacionais.</p>
-                <Select value={playerData.hasDualCitizenship} onValueChange={(v) => setPlayerData({ ...playerData, hasDualCitizenship: v, dualCitizenshipCountry: v === 'Não' ? '' : playerData.dualCitizenshipCountry })}>
-                  <SelectTrigger className={selectCls}><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                    <SelectItem value="Sim" className="focus:bg-white/10">Sim</SelectItem>
-                    <SelectItem value="Não" className="focus:bg-white/10">Não</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <FieldLabel>Dupla cidadania?</FieldLabel>
+                </div>
+                <p className="text-xs text-white/40 -mt-2">Amplia oportunidades em clubes internacionais.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {["Sim", "Não"].map((opt) => (
+                    <PillBtn key={opt}
+                      active={playerData.hasDualCitizenship === opt}
+                      onClick={() => setPlayerData({ ...playerData, hasDualCitizenship: opt, dualCitizenshipCountry: opt === 'Não' ? '' : playerData.dualCitizenshipCountry })}>
+                      {opt}
+                    </PillBtn>
+                  ))}
+                </div>
               </div>
 
               {playerData.hasDualCitizenship === 'Sim' && (
                 <div className="animate-fade-in">
-                  <Label className={labelCls2}>País da segunda cidadania</Label>
+                  <FieldLabel>Segunda cidadania</FieldLabel>
                   <Select value={playerData.dualCitizenshipCountry} onValueChange={(v) => setPlayerData({ ...playerData, dualCitizenshipCountry: v })}>
-                    <SelectTrigger className={selectCls}><SelectValue placeholder="Selecione o país" /></SelectTrigger>
+                    <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione o país" /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
-                      {countries.filter(c => c !== playerData.nationality).map((c) => <SelectItem key={c} value={c} className="focus:bg-white/10">{c}</SelectItem>)}
+                      {countries.filter(c => c !== playerData.nationality).map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -282,70 +332,97 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* ─── STEP 3 — Original style ─── */}
+          {/* ── STEP 3 — Position ── */}
           {step === 3 && (
-            <div className="space-y-4">
-              <div>
-                <Label className={labelCls2}>Posição principal</Label>
-                <Select value={playerData.position} onValueChange={(v) => setPlayerData({ ...playerData, position: v })}>
-                  <SelectTrigger className={selectCls}><SelectValue placeholder="Selecione sua posição" /></SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                    {positions.map((p) => <SelectItem key={p} value={p} className="focus:bg-white/10">{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <FieldLabel>Posição principal</FieldLabel>
+              <Select value={playerData.position} onValueChange={(v) => setPlayerData({ ...playerData, position: v })}>
+                <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione sua posição" /></SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  {positions.map((p) => <SelectItem key={p} value={p} className="focus:bg-amber-400/10 focus:text-amber-300">{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              {/* Visual confirmation when selected */}
+              {playerData.position && (
+                <div className="mt-3 flex items-center gap-2 rounded-xl px-4 py-3 animate-fade-in"
+                  style={{ background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-emerald-300">{playerData.position}</span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* ─── STEP 4 — Original style ─── */}
+          {/* ── STEP 4 — Category ── */}
           {step === 4 && (
-            <div className="space-y-4">
-              <div>
-                <Label className={labelCls2}>Categoria</Label>
-                <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
-                  <SelectTrigger className={selectCls}><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                    {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="focus:bg-white/10">{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <FieldLabel>Categoria / Faixa etária</FieldLabel>
+              <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
+                <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              {playerData.category && (
+                <div className="mt-3 flex items-center gap-2 rounded-xl px-4 py-3 animate-fade-in"
+                  style={{ background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                  <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="text-sm font-semibold text-emerald-300">{playerData.category} selecionado</span>
+                </div>
+              )}
             </div>
           )}
 
-          {/* ─── STEP 5 — Original style ─── */}
+          {/* ── STEP 5 — Location ── */}
           {step === 5 && (
             <div className="space-y-4">
               <div>
-                <Label className={labelCls2}>Estado</Label>
+                <FieldLabel>Estado</FieldLabel>
                 <Select value={playerData.state} onValueChange={(v) => setPlayerData({ ...playerData, state: v, city: "" })}>
-                  <SelectTrigger className={selectCls}><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
+                  <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
-                    {states.map((s) => <SelectItem key={s} value={s} className="focus:bg-white/10">{s}</SelectItem>)}
+                    {states.map((s) => <SelectItem key={s} value={s} className="focus:bg-amber-400/10 focus:text-amber-300">{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
+
               {playerData.state && (
                 <div className="animate-fade-in">
-                  <Label className={labelCls2}>Cidade</Label>
-                  <CityAutocomplete
-                    state={playerData.state}
-                    value={playerData.city}
-                    onChange={(city) => setPlayerData({ ...playerData, city })}
-                  />
+                  <FieldLabel>Cidade</FieldLabel>
+                  <CityAutocomplete state={playerData.state} value={playerData.city}
+                    onChange={(city) => setPlayerData({ ...playerData, city })} />
                 </div>
               )}
+
+              {/* Location context tip */}
+              <div className="rounded-xl px-4 py-3 flex items-start gap-2"
+                style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.15)" }}>
+                <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-400/70 leading-relaxed">
+                  Sua localização ajuda o algoritmo a identificar clubes na sua região e avaliar mobilidade geográfica.
+                </p>
+              </div>
             </div>
           )}
         </div>
       </main>
 
-      {/* ── Sticky bottom CTA ── */}
-      <div className="sticky bottom-0 border-t border-white/5 bg-black/90 backdrop-blur-xl px-4 py-4">
-        <div className="max-w-lg mx-auto">
-          <button
-            onClick={handleNext}
-            disabled={!canProceed() || isLoading}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 disabled:from-white/10 disabled:to-white/10 disabled:text-white/30 text-black font-black text-base rounded-2xl transition-all shadow-[0_0_40px_rgba(251,191,36,0.2)] enabled:hover:shadow-[0_0_60px_rgba(251,191,36,0.4)] active:scale-[0.98] py-3.5"
+      {/* ── Sticky CTA ── */}
+      <div className="sticky bottom-0 border-t border-white/5 px-4 py-4 backdrop-blur-xl" style={{ background: "rgba(13,13,15,0.95)" }}>
+        <div className="max-w-lg mx-auto space-y-2">
+          <button onClick={handleNext} disabled={!canProceed() || isLoading}
+            className={[
+              "w-full flex items-center justify-center gap-3 font-black text-base rounded-2xl py-3.5 transition-all duration-200",
+              canProceed() && !isLoading
+                ? "text-black shadow-[0_0_32px_rgba(251,191,36,0.3)] hover:shadow-[0_0_48px_rgba(251,191,36,0.45)] active:scale-[0.98]"
+                : "text-white/30 cursor-not-allowed"
+            ].join(" ")}
+            style={canProceed() && !isLoading
+              ? { background: "linear-gradient(135deg, #FBBF24, #F97316)" }
+              : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }
+            }
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
@@ -356,9 +433,15 @@ const Onboarding = () => {
               </>
             )}
           </button>
-          {step < totalSteps && (
-            <p className="text-center text-xs text-white/20 mt-2">
+
+          {/* Remaining steps hint — amber for progress, emerald when last step */}
+          {step < totalSteps ? (
+            <p className="text-center text-[11px] text-white/25 font-medium">
               {totalSteps - step} etapa{totalSteps - step !== 1 ? 's' : ''} restante{totalSteps - step !== 1 ? 's' : ''}
+            </p>
+          ) : (
+            <p className="text-center text-[11px] font-semibold" style={{ color: "rgba(52,211,153,0.6)" }}>
+              ✓ Tudo preenchido — pronto para análise
             </p>
           )}
         </div>
