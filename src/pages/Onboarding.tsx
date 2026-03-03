@@ -64,14 +64,14 @@ const inputStyle = {
   color: "#fff",
 };
 const inputCls = [
-  "w-full rounded-xl px-4 h-12 text-sm",
+  "w-full rounded-xl px-4 h-12 text-base",
   "placeholder:text-white/30",
   "focus:outline-none focus:ring-2 focus:ring-amber-400/60",
   "transition-all duration-200"
 ].join(" ");
 
 // Select dropdown — same solid bg
-const selectTriggerCls = "h-12 rounded-xl text-white focus:ring-amber-400/60 focus:border-amber-400/50";
+const selectTriggerCls = "h-12 rounded-xl text-base text-white focus:ring-amber-400/60 focus:border-amber-400/50";
 const selectTriggerStyle = { background: "#1E1E22", border: "1px solid rgba(255,255,255,0.10)" };
 
 // Required field label with amber dot
