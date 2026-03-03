@@ -42,45 +42,43 @@ const INTERNATIONAL_CLUBS = [
   "Toulouse FC", "Standard Liège", "FC Köln", "Hajduk Split", "Panathinaikos",
 ]
 
-// ─── CLUB BADGE URLs (Wikimedia Commons SVG) ─────────────────────────────────
-// Used for the scanning carousel in the club-loading phase
+// ─── CLUB BADGE URLs ─────────────────────────────────────────────────────────
+// Using Wikipedia article thumbnail CDN (more reliable than raw Wikimedia SVGs)
 const BADGE_URLS = [
-  "https://upload.wikimedia.org/wikipedia/commons/4/4f/Flamengo_braz_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/5/58/Palmeiras_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/c/ce/Sport_Club_Corinthians_Paulista_crest.svg",
-  "https://upload.wikimedia.org/wikipedia/en/0/0e/S%C3%A3o_Paulo_FC.svg",
-  "https://upload.wikimedia.org/wikipedia/en/3/38/Santos_fc_logo.png",
-  "https://upload.wikimedia.org/wikipedia/commons/f/f1/Gr%C3%AAmio_FBPA.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/0/0b/Sport_Club_Internacional.svg",
-  "https://upload.wikimedia.org/wikipedia/en/f/f5/Atletico_mineiro_galo.png",
-  "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg",
-  "https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/en/9/9e/Sporting_CP_%28logo%29.svg",
-  "https://upload.wikimedia.org/wikipedia/en/d/d8/SL_Benfica_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg",
-  "https://upload.wikimedia.org/wikipedia/en/7/79/Ajax_Amsterdam.svg",
-  "https://upload.wikimedia.org/wikipedia/en/3/31/Footballclub_fluminense.svg",
-  "https://upload.wikimedia.org/wikipedia/commons/9/9f/Botafogo_de_Futebol_e_Regatas_logo.svg",
-  "https://upload.wikimedia.org/wikipedia/en/5/5e/Valencia_CF_Logo.svg",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/c/c2/West_Ham_United_FC_logo.svg/100px-West_Ham_United_FC_logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/3/3b/Sevilla_FC_logo.svg/100px-Sevilla_FC_logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/AS_Roma_logo_%282017%29.svg/100px-AS_Roma_logo_%282017%29.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/1/13/Real_betis_logo.svg/100px-Real_betis_logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/d/d8/SL_Benfica_logo.svg/100px-SL_Benfica_logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/FC_Porto.svg/100px-FC_Porto.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/7/79/Ajax_Amsterdam.svg/100px-Ajax_Amsterdam.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/9/9e/Sporting_CP_%28logo%29.svg/100px-Sporting_CP_%28logo%29.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Valencia_CF_Logo.svg/100px-Valencia_CF_Logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Olympique_Marseille_logo.svg/100px-Olympique_Marseille_logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/3/38/Santos_fc_logo.png/100px-Santos_fc_logo.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/f/f5/Atletico_mineiro_galo.png/100px-Atletico_mineiro_galo.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/3/31/Footballclub_fluminense.svg/100px-Footballclub_fluminense.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/0/0e/S%C3%A3o_Paulo_FC.svg/100px-S%C3%A3o_Paulo_FC.svg.png",
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Palmeiras_logo.svg/100px-Palmeiras_logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Sport_Club_Corinthians_Paulista_crest.svg/100px-Sport_Club_Corinthians_Paulista_crest.svg.png",
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Flamengo_braz_logo.svg/100px-Flamengo_braz_logo.svg.png",
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Gr%C3%AAmio_FBPA.svg/100px-Gr%C3%AAmio_FBPA.svg.png",
+  "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sport_Club_Internacional.svg/100px-Sport_Club_Internacional.svg.png",
+  "https://upload.wikimedia.org/wikipedia/en/thumb/b/b1/FC_Schalke_04_Logo.svg/100px-FC_Schalke_04_Logo.svg.png",
 ]
 
-// ─── LOADING MESSAGES — 47 seconds ──────────────────────────────────────────
+// ─── LOADING MESSAGES — 38 seconds ──────────────────────────────────────────
 const LOADING_MESSAGES = [
   { t: 0, text: "Inicializando módulo de análise de vídeo biométrico..." },
-  { t: 4, text: "Extraindo frames e mapeando silhueta corporal em movimento..." },
-  { t: 8, text: "Isolando ações técnicas: toque de bola, arranque e domínio orientado..." },
-  { t: 12, text: "Mapeando biomecânica de aceleração no terço final do campo..." },
-  { t: 16, text: "Calculando frequência cardíaca estimada e nível de exaustão por fase..." },
-  { t: 20, text: "Cruzando dados com banco de 12.400 perfis de atletas catalogados..." },
-  { t: 24, text: "Aplicando modelos de análise tática, posicionamento e leitura de jogo..." },
-  { t: 28, text: "Processando tomada de decisão em espaços curtos e pressão direta..." },
-  { t: 32, text: "Encaminhando perfil técnico-físico para a equipe de Scout Zyron..." },
-  { t: 36, text: "Scout especializado com 14 anos de mercado revisando os dados..." },
-  { t: 40, text: "Gerando relatório individualizado de performance com 10 indicadores..." },
-  { t: 44, text: "Validando, assinando e criptografando relatório — última etapa..." },
+  { t: 4, text: "Extraindo frames e isolando ações técnicas individuais..." },
+  { t: 8, text: "Mapeando biomecânica de aceleração e domínio sob pressão..." },
+  { t: 12, text: "Cruzando dados com banco de 12.400 perfis de atletas catalogados..." },
+  { t: 16, text: "Aplicando modelos de análise tática e leitura de jogo em espaços curtos..." },
+  { t: 20, text: "Calculando índices de finalização, velocidade e explosão física..." },
+  { t: 24, text: "Encaminhando perfil técnico-físico para revisão da equipe de Scout Zyron..." },
+  { t: 28, text: "Scout especializado com 14 anos de mercado validando os dados..." },
+  { t: 32, text: "Gerando relatório individualizado com 10 indicadores de performance..." },
+  { t: 35, text: "Assinando e finalizando relatório — quase pronto..." },
 ]
 
 // ─── CLUB-LOADING MESSAGES — 16 seconds ─────────────────────────────────────
@@ -137,10 +135,10 @@ export default function Analysis() {
     const interval = setInterval(() => {
       setElapsed((e) => {
         const next = e + 1
-        if (next >= 47) {
+        if (next >= 38) {
           clearInterval(interval)
           setPhase("report")
-          return 47
+          return 38
         }
         let msgIdx = 0
         for (let i = 0; i < LOADING_MESSAGES.length; i++) {
@@ -215,7 +213,7 @@ export default function Analysis() {
   // PHASE 1 — ANALYSIS LOADING (47s)
   // ════════════════════════════════════════════════════════════════════════════
   if (phase === "loading") {
-    const progress = Math.min((elapsed / 47) * 100, 100)
+    const progress = Math.min((elapsed / 38) * 100, 100)
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
         <div className="relative mb-10">
@@ -401,8 +399,8 @@ export default function Analysis() {
             <div
               key={i}
               className={`flex items-center gap-3 text-xs transition-all duration-500 ${i === currentClubMsg
-                  ? isNearEnd ? "text-emerald-400 opacity-100" : "text-amber-400 opacity-100"
-                  : "text-white/20 opacity-50"
+                ? isNearEnd ? "text-emerald-400 opacity-100" : "text-amber-400 opacity-100"
+                : "text-white/20 opacity-50"
                 }`}
             >
               <CheckCircle2 className={`w-3 h-3 flex-shrink-0 ${i === currentClubMsg ? (isNearEnd ? "text-emerald-400" : "text-amber-400") : "text-white/15"}`} />

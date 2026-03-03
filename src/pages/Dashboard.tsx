@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
-    Settings, LogOut, Lock, Moon, Sun, User, ChevronDown,
+    Settings, LogOut, Lock, User, ChevronDown,
     Zap, Globe2, BarChart3, Users, TrendingUp, ArrowRight,
-    Shield, Star, Activity, Target
+    Shield, Star, Activity, Target, Bell, HelpCircle,
+    FileText, Moon, X
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
@@ -77,6 +78,8 @@ export default function Dashboard() {
     const navigate = useNavigate()
     const { toast } = useToast()
     const [menuOpen, setMenuOpen] = useState(false)
+    const [settingsOpen, setSettingsOpen] = useState(false)
+    const [darkMode, setDarkMode] = useState(true)
 
     const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Atleta"
     const firstName = displayName.split(" ")[0]
@@ -88,6 +91,7 @@ export default function Dashboard() {
 
     const handleChangePassword = async () => {
         setMenuOpen(false)
+        setSettingsOpen(false)
         const { error } = await supabase.auth.resetPasswordForEmail(user?.email || "", {
             redirectTo: "https://www.aizyron.site/reset-password",
         })
@@ -101,8 +105,86 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-black text-white font-sans antialiased">
+
+            {/* ─── SETTINGS PANEL (slide-in) ─── */}
+            {settingsOpen && (
+                <>
+                    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={() => setSettingsOpen(false)} />
+                    <div className="fixed top-0 right-0 h-full w-80 z-50 bg-zinc-950 border-l border-white/10 shadow-2xl flex flex-col">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+                            <div className="flex items-center gap-2">
+                                <Settings className="w-4 h-4 text-amber-400" />
+                                <span className="font-semibold text-sm">Configurações</span>
+                            </div>
+                            <button onClick={() => setSettingsOpen(false)} className="text-white/30 hover:text-white transition-colors">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-1">
+                            {/* Account section */}
+                            <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-3 pb-1">Conta</p>
+
+                            <button
+                                onClick={() => { setSettingsOpen(false); navigate("/onboarding") }}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                            >
+                                <User className="w-4 h-4 text-white/40" /> Editar informações pessoais
+                            </button>
+
+                            <button
+                                onClick={handleChangePassword}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                            >
+                                <Lock className="w-4 h-4 text-white/40" /> Alterar senha
+                            </button>
+
+                            {/* Preferences section */}
+                            <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Preferências</p>
+
+                            <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-white/70 hover:bg-white/5 transition-all">
+                                <span className="flex items-center gap-3">
+                                    <Moon className="w-4 h-4 text-white/40" /> Modo noturno
+                                </span>
+                                <button
+                                    onClick={() => setDarkMode(!darkMode)}
+                                    className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${darkMode ? "bg-amber-500" : "bg-white/10"}`}
+                                >
+                                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? "translate-x-4" : "translate-x-0"}`} />
+                                </button>
+                            </div>
+
+                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
+                                <Bell className="w-4 h-4 text-white/40" /> Notificações
+                                <span className="ml-auto text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Em breve</span>
+                            </button>
+
+                            {/* Support section */}
+                            <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Suporte</p>
+
+                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
+                                <HelpCircle className="w-4 h-4 text-white/40" /> Central de ajuda
+                            </button>
+
+                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
+                                <FileText className="w-4 h-4 text-white/40" /> Política de privacidade
+                            </button>
+                        </div>
+
+                        <div className="p-4 border-t border-white/5">
+                            <button
+                                onClick={handleSignOut}
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all text-left"
+                            >
+                                <LogOut className="w-4 h-4" /> Sair da conta
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
+
             {/* ─── HEADER ─── */}
-            <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-black/80 backdrop-blur-xl">
+            <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-black/80 backdrop-blur-xl">
                 <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center gap-2">
@@ -112,61 +194,64 @@ export default function Dashboard() {
                         <span className="font-bold text-white tracking-tight">ZYRON</span>
                     </div>
 
-                    {/* User Menu */}
-                    <div className="relative">
+                    {/* Right side: settings gear + user menu */}
+                    <div className="flex items-center gap-2">
+                        {/* Settings gear icon */}
                         <button
-                            onClick={() => setMenuOpen(!menuOpen)}
-                            className="flex items-center gap-2.5 py-1.5 px-3 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all"
+                            onClick={() => setSettingsOpen(true)}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all"
+                            title="Configurações"
                         >
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-bold text-black">
-                                {firstName.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="text-sm text-white/80 max-w-[120px] truncate">{firstName}</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+                            <Settings className="w-4 h-4 text-white/60" />
                         </button>
 
-                        {menuOpen && (
-                            <>
-                                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                                <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
-                                    <div className="px-4 py-3 border-b border-white/5">
-                                        <p className="text-sm font-semibold text-white truncate">{displayName}</p>
-                                        <p className="text-xs text-white/40 truncate">{user?.email}</p>
-                                    </div>
-                                    <div className="p-2">
-                                        <button
-                                            onClick={handleChangePassword}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
-                                        >
-                                            <Lock className="w-4 h-4" /> Alterar senha
-                                        </button>
-                                        <button
-                                            onClick={() => { setMenuOpen(false); navigate("/onboarding") }}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
-                                        >
-                                            <User className="w-4 h-4" /> Editar informações pessoais
-                                        </button>
-                                        <button
-                                            onClick={() => setMenuOpen(false)}
-                                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all"
-                                        >
-                                            <span className="flex items-center gap-3"><Moon className="w-4 h-4" /> Modo escuro</span>
-                                            <div className="w-9 h-5 rounded-full bg-amber-500 flex items-center px-0.5">
-                                                <div className="w-4 h-4 rounded-full bg-black ml-auto" />
-                                            </div>
-                                        </button>
-                                    </div>
-                                    <div className="p-2 border-t border-white/5">
-                                        <button
-                                            onClick={handleSignOut}
-                                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all text-left"
-                                        >
-                                            <LogOut className="w-4 h-4" /> Sair da conta
-                                        </button>
-                                    </div>
+                        {/* User avatar dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setMenuOpen(!menuOpen)}
+                                className="flex items-center gap-2 py-1.5 px-2.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all"
+                            >
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-bold text-black">
+                                    {firstName.charAt(0).toUpperCase()}
                                 </div>
-                            </>
-                        )}
+                                <span className="text-sm text-white/80 max-w-[100px] truncate hidden sm:block">{firstName}</span>
+                                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+                            </button>
+
+                            {menuOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                                    <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
+                                        <div className="px-4 py-3 border-b border-white/5">
+                                            <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                                            <p className="text-xs text-white/40 truncate">{user?.email}</p>
+                                        </div>
+                                        <div className="p-2">
+                                            <button
+                                                onClick={() => { setMenuOpen(false); navigate("/onboarding") }}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                                            >
+                                                <User className="w-4 h-4" /> Meu perfil
+                                            </button>
+                                            <button
+                                                onClick={() => { setMenuOpen(false); setSettingsOpen(true) }}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                                            >
+                                                <Settings className="w-4 h-4" /> Configurações
+                                            </button>
+                                        </div>
+                                        <div className="p-2 border-t border-white/5">
+                                            <button
+                                                onClick={handleSignOut}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all text-left"
+                                            >
+                                                <LogOut className="w-4 h-4" /> Sair da conta
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
                     </div>
                 </div>
             </header>
@@ -180,12 +265,12 @@ export default function Dashboard() {
                         SISTEMA ATIVO — PRONTO PARA ANÁLISE
                     </div>
                     <h1 className="text-4xl md:text-6xl font-black leading-tight tracking-tight">
-                        Olá, {firstName}.<br />
-                        <span className="text-white/30">Sua carreira</span>{" "}
-                        <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">começa aqui.</span>
+                        {firstName}, o mercado<br />
+                        <span className="text-white/30">não espera por quem</span>{" "}
+                        <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">não aparece.</span>
                     </h1>
                     <p className="text-lg text-white/50 max-w-2xl leading-relaxed">
-                        Você está acessando o ambiente de análise do Zyron. O que acontece a seguir vai determinar como o mercado enxerga o seu futebol.
+                        Enquanto você lê isso, outro atleta com talento parecido com o seu está sendo analisado, mapeado e direcionado. A janela de oportunidade não fica aberta para sempre.
                     </p>
                 </section>
 
@@ -213,34 +298,30 @@ export default function Dashboard() {
                 <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-8 md:p-12 space-y-6">
                     <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold tracking-widest uppercase">
                         <Shield className="w-3.5 h-3.5" />
-                        Tecnologia de Nível Internacional
+                        O Futebol Mudou. A Avaliação Também.
                     </div>
                     <h2 className="text-2xl md:text-4xl font-black leading-tight">
-                        Sua Performance Está Prestes a Ser Analisada com{" "}
+                        Os maiores clubes da Europa{" "}
                         <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-                            Precisão Total.
+                            já não contratam mais pelo olhar.
                         </span>
                     </h2>
                     <div className="space-y-4 text-white/60 leading-relaxed text-base">
                         <p>
-                            Nossa Inteligência Artificial observa cada detalhe do seu jogo com precisão máxima.
-                            Nenhum frame ignorado. Nenhuma ação perdida.
+                            <strong className="text-white">Brighton, Ajax, Bayer Leverkusen, Benfica.</strong> Clubes que estão no topo do futebol mundial hoje têm uma coisa em comum: eles encontram talentos que nenhum olheiro tradicional teria notado. E fazem isso através de dados, modelos preditivos e análise de vídeo com IA.
                         </p>
                         <p>
-                            Utilizamos modelos avançados de análise de desempenho semelhantes aos utilizados por
-                            grandes clubes internacionais — os mesmos que inverteram a lógica do mercado: dados
-                            encontram talento antes que o olheiro tradicional pisque o olho.
+                            O problema é que essa tecnologia nunca esteve acessível para o atleta brasileiro que está no começo da carreira — aquele que vai bem num jogo, mas nunca tem quem grave, analise e apresente seu desempenho de forma profissional.
                         </p>
                         <p>
-                            Seu perfil será cruzado com métricas técnicas, físicas e táticas para identificar o
-                            melhor encaixe estratégico para sua evolução. O resultado é um relatório inquestionável.
+                            <strong className="text-white">O Zyron encerra essa desigualdade.</strong> Nossa IA processa cada frame do seu jogo, identifica suas características únicas e gera um relatório técnico com o mesmo nível de profundidade usado pelos departamentos de scout internacionais.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
                         {[
-                            { icon: BarChart3, label: "100% das ações analisadas", sub: "Nenhum momento é descartado" },
-                            { icon: Activity, label: "Sem fadiga. Sem parcialidade.", sub: "Apenas dados objetivos e reais" },
-                            { icon: Globe2, label: "Compatibilidade global", sub: "Cruzado com oportunidades reais" },
+                            { icon: BarChart3, label: "100% das ações analisadas", sub: "Sem fadiga, sem preferências — só dados" },
+                            { icon: Activity, label: "Resultados em minutos", sub: "O que um olheiro demora semanas pra ver" },
+                            { icon: Globe2, label: "Match com clubes reais", sub: "Compatibilidade cruzada com oportunidades abertas" },
                         ].map((item) => {
                             const Icon = item.icon
                             return (
@@ -289,16 +370,18 @@ export default function Dashboard() {
 
                 {/* ─── BOTÃO PRINCIPAL ─── */}
                 <section className="flex flex-col items-center text-center space-y-5">
-                    <p className="text-sm text-white/30 uppercase tracking-widest font-semibold">Tudo pronto. É hora de dar o próximo passo.</p>
+                    <p className="text-sm text-red-400/80 uppercase tracking-widest font-semibold">
+                        ⚠️ Cada dia sem análise é um dia que outro atleta sai na sua frente
+                    </p>
                     <button
                         onClick={() => navigate("/onboarding")}
                         className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-lg px-10 py-5 rounded-2xl transition-all duration-200 shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] active:scale-95"
                     >
                         <Zap className="w-5 h-5" />
-                        INICIAR MINHA ANÁLISE
+                        QUERO SER ANALISADO AGORA
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
-                    <p className="text-xs text-white/20">Processo rápido. Resultado permanente.</p>
+                    <p className="text-xs text-white/20">Gratuito. Sem peneira. Sem conhecidos. Só dados e talento.</p>
                 </section>
 
                 {/* ─── CONEXÃO EMOCIONAL ─── */}
@@ -306,10 +389,9 @@ export default function Dashboard() {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto">
                         <Star className="w-5 h-5 text-black" />
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black">Você Está Dando o Próximo Passo</h3>
+                    <h3 className="text-2xl md:text-3xl font-black">O Talento Não Basta. A Visibilidade Sim.</h3>
                     <p className="text-white/50 max-w-xl mx-auto leading-relaxed">
-                        Cada grande jogador começou com uma avaliação. O que separa atletas comuns dos que chegam
-                        ao alto nível é a decisão de evoluir com método, dados e direcionamento estratégico.
+                        Centenas de atletas com qualidade técnica nunca foram vistos porque não tinham como mostrar o que fazem de verdade. O Zyron coloca seu futebol na frente de quem tomará as decisões — com dados, credibilidade e timing certo.
                     </p>
                 </section>
 
@@ -317,7 +399,7 @@ export default function Dashboard() {
                 <section className="space-y-8">
                     <div className="text-center">
                         <p className="text-xs text-white/30 font-semibold tracking-widest uppercase mb-2">Resultados reais</p>
-                        <h3 className="text-xl md:text-2xl font-bold">Atletas Que Tomaram a Decisão</h3>
+                        <h3 className="text-xl md:text-2xl font-bold">Atletas Que Pararam de Esperar</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {TESTIMONIALS.map((t) => (
