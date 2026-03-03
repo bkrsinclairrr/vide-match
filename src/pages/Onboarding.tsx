@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES = [
+  "Sub 1", "Sub 2", "Sub 3", "Sub 4", "Sub 5",
   "Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10",
   "Sub 11", "Sub 12", "Sub 13", "Sub 14", "Sub 15",
   "Sub 16", "Sub 17", "Sub 18", "Sub 19", "Sub 20"
@@ -413,8 +414,8 @@ const Onboarding = () => {
               {playerData.category && (() => {
                 const cat = playerData.category;
 
-                // Sub 6–10: Formação inicial
-                if (["Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10"].includes(cat)) return (
+                // Sub 1–10: Formação inicial
+                if (["Sub 1", "Sub 2", "Sub 3", "Sub 4", "Sub 5", "Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10"].includes(cat)) return (
                   <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
                     <p className="text-xs text-white/40 leading-relaxed">
                       <span className="text-white/60 font-semibold">Formação Inicial.</span>{" "}
