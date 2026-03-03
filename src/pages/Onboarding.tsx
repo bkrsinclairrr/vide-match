@@ -396,45 +396,83 @@ const Onboarding = () => {
                 <FieldLabel>Categoria / Faixa etária</FieldLabel>
                 <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
                   <SelectTrigger className={selectTriggerCls} style={selectTriggerStyle}><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
-                  <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-52 overflow-y-auto">
                     {CATEGORIES.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Category-specific warning messages (restored from original) */}
-              {playerData.category && ["Sub 16", "Sub 17", "Sub 20"].includes(playerData.category) && (
-                <div className={`p-4 rounded-xl border animate-fade-in ${playerData.category === 'Sub 20'
-                    ? 'border-emerald-500/30 bg-emerald-500/5'
-                    : 'border-amber-400/20 bg-amber-400/5'
-                  }`}>
-                  {playerData.category === 'Sub 20' ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-sm font-semibold text-emerald-400">Transição Profissional</span>
-                      </div>
-                      <p className="text-xs text-white/50 leading-relaxed">
-                        Acesso a clubes brasileiros <strong className="text-white/70">e internacionais</strong>. Projeção salarial individualizada por clube, estimativa de valorização e potencial de transferência internacional.
-                      </p>
-                    </div>
-                  ) : (
+              {/* Category info cards */}
+              {playerData.category && (() => {
+                const cat = playerData.category;
+
+                // Sub 6–10: Formação inicial
+                if (["Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10"].includes(cat)) return (
+                  <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                      <span className="text-white/60 font-semibold">Formação Inicial.</span>{" "}
+                      Foco em fundamentos técnicos e coordenação motora. A análise identifica clubes com programas de base estruturados para esse perfil.
+                    </p>
+                  </div>
+                );
+
+                // Sub 11–13: Desenvolvimento
+                if (["Sub 11", "Sub 12", "Sub 13"].includes(cat)) return (
+                  <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                      <span className="text-white/60 font-semibold">Desenvolvimento Técnico.</span>{" "}
+                      Fase de especialização tática e aprimoramento por posição. Identificamos clubes com academias reconhecidas para essa faixa.
+                    </p>
+                  </div>
+                );
+
+                // Sub 14–15: Pré-competitivo
+                if (["Sub 14", "Sub 15"].includes(cat)) return (
+                  <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <p className="text-xs text-white/40 leading-relaxed">
+                      <span className="text-white/60 font-semibold">Base Competitiva.</span>{" "}
+                      Transição para competições regionais e estaduais. Boa janela para ser visto por olheiros de clubes profissionais.
+                    </p>
+                  </div>
+                );
+
+                // Sub 16–17: Base nacional com faixa salarial
+                if (["Sub 16", "Sub 17"].includes(cat)) return (
+                  <div className="p-4 rounded-xl border border-amber-400/20 bg-amber-400/5 animate-fade-in">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-amber-400" />
                         <span className="text-sm font-semibold text-amber-300">Base Nacional</span>
                       </div>
                       <p className="text-xs text-white/50 leading-relaxed">
-                        Clubes brasileiros — Série A e B. Faixa salarial estimada para categoria de base:{" "}
+                        Clubes brasileiros — Série A e B. Faixa salarial estimada:{" "}
                         <span className="text-amber-400 font-semibold">R$ 8.000 a R$ 23.000</span>.
                       </p>
                       <p className="text-xs text-white/30">Projeção média de mercado, não promessa contratual.</p>
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                );
+
+                // Sub 20: Transição profissional
+                if (cat === "Sub 20") return (
+                  <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 animate-fade-in">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-sm font-semibold text-emerald-400">Transição Profissional</span>
+                      </div>
+                      <p className="text-xs text-white/50 leading-relaxed">
+                        Acesso a clubes brasileiros <strong className="text-white/70">e internacionais</strong>. Projeção salarial individualizada, estimativa de valorização e potencial de transferência.
+                      </p>
+                    </div>
+                  </div>
+                );
+
+                return null;
+              })()}
             </div>
           )}
+
 
           {/* ── STEP 5 — Location ── */}
           {step === 5 && (
