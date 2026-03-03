@@ -104,7 +104,7 @@ const Onboarding = () => {
   const [playerData, setPlayerData] = useState({
     name: "", age: "", height: "", weight: "",
     preferredFoot: "", nationality: "", position: "",
-    state: "", city: "", photo: "", category: "",
+    state: "", city: "", photo: "", category: "Sub 16",
     hasDualCitizenship: "", dualCitizenshipCountry: ""
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
