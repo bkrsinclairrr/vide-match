@@ -209,6 +209,14 @@ export default function Analysis() {
     }
   }, [seed, playerData?.category])
 
+  // Display name: prefer saved playerData name, then user metadata, then email prefix
+  const displayName = playerData?.name
+    || user?.user_metadata?.full_name
+    || user?.email?.split("@")[0]
+    || "Atleta"
+  const firstName = displayName.split(" ")[0]
+  const avatarLetter = firstName.charAt(0).toUpperCase()
+
   // ════════════════════════════════════════════════════════════════════════════
   // PHASE 1 — ANALYSIS LOADING (47s)
   // ════════════════════════════════════════════════════════════════════════════
@@ -271,7 +279,12 @@ export default function Analysis() {
               </div>
               <span className="font-bold text-sm tracking-tight">ZYRON</span>
             </div>
-            <span className="text-xs text-white/30 font-semibold uppercase tracking-widest">Relatório de Performance</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-white/30 font-semibold uppercase tracking-widest hidden sm:block">Relatório de Performance</span>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-bold text-black ml-2">
+                {avatarLetter}
+              </div>
+            </div>
           </div>
         </header>
 
@@ -280,6 +293,13 @@ export default function Analysis() {
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
               <Star className="w-3.5 h-3.5" />
               ANÁLISE CONCLUÍDA — EQUIPE DE SCOUT ZYRON
+            </div>
+            {/* Avatar + score side by side on small screens, score below on large */}
+            <div className="flex flex-col items-center gap-3 mb-4">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-2xl font-black text-black shadow-[0_0_30px_rgba(251,191,36,0.3)]">
+                {avatarLetter}
+              </div>
+              <p className="text-white/50 text-sm font-medium">{firstName}</p>
             </div>
             <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)] mb-4">
               <span className="text-5xl font-black text-black leading-none">{overallScore}</span>
@@ -425,7 +445,12 @@ export default function Analysis() {
             </div>
             <span className="font-bold text-sm tracking-tight">ZYRON</span>
           </div>
-          <span className="text-xs text-white/30 font-semibold uppercase tracking-widest">Clube Ideal</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/30 font-semibold uppercase tracking-widest hidden sm:block">Clube Ideal</span>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-bold text-black ml-2">
+              {avatarLetter}
+            </div>
+          </div>
         </div>
       </header>
 
@@ -434,6 +459,13 @@ export default function Analysis() {
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-full">
             <CheckCircle2 className="w-3.5 h-3.5" />
             CORRESPONDÊNCIA IDENTIFICADA PELA EQUIPE DE SCOUT
+          </div>
+          {/* Avatar personalizado */}
+          <div className="flex flex-col items-center gap-1 py-2">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-2xl font-black text-black shadow-[0_0_40px_rgba(251,191,36,0.3)] ring-4 ring-amber-400/20">
+              {avatarLetter}
+            </div>
+            <p className="text-white/40 text-xs mt-1">{firstName}</p>
           </div>
           <h1 className="text-3xl md:text-5xl font-black leading-tight">
             O Algoritmo Encontrou<br />
