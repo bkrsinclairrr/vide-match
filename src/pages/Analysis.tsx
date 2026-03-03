@@ -369,20 +369,18 @@ export default function Analysis() {
 
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
-        {/* Radar ring animation */}
+        {/* Pulsing orb with radar rings — no external images */}
         <div className="relative flex items-center justify-center mb-8">
-          <div className="absolute w-48 h-48 rounded-full border border-amber-400/10 animate-ping" style={{ animationDuration: "2s" }} />
-          <div className="absolute w-36 h-36 rounded-full border border-amber-400/15 animate-ping" style={{ animationDuration: "1.5s" }} />
-          <div className="absolute w-24 h-24 rounded-full border border-amber-400/20 animate-ping" style={{ animationDuration: "1s" }} />
-
-          {/* Spinning badge carousel */}
-          <div className="relative w-24 h-24 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl">
-            <img
-              src={BADGE_URLS[badgeIdx]}
-              alt="club badge"
-              className={`w-16 h-16 object-contain transition-opacity duration-150 ${isNearEnd ? "opacity-100" : "opacity-70"}`}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
-            />
+          {/* Radar rings */}
+          <div className="absolute w-56 h-56 rounded-full border border-amber-400/8 animate-ping" style={{ animationDuration: "2.5s" }} />
+          <div className="absolute w-40 h-40 rounded-full border border-amber-400/12 animate-ping" style={{ animationDuration: "1.8s" }} />
+          <div className="absolute w-28 h-28 rounded-full border border-amber-400/18 animate-ping" style={{ animationDuration: "1.2s" }} />
+          {/* Centre orb */}
+          <div className={`relative w-24 h-24 rounded-full flex items-center justify-center shadow-[0_0_80px_rgba(251,191,36,0.5)] animate-pulse transition-all duration-1000
+            ${isNearEnd
+              ? "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-[0_0_80px_rgba(52,211,153,0.5)]"
+              : "bg-gradient-to-br from-amber-400 to-amber-600"}`}>
+            <Globe2 className="w-10 h-10 text-black" />
           </div>
         </div>
 
