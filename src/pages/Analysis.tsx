@@ -231,7 +231,7 @@ export default function Analysis() {
           <div className="absolute inset-0 rounded-full border-2 border-amber-400/20 animate-ping" />
         </div>
 
-        <h2 className="text-xl font-black mb-1 tracking-tight">Análise de Performance em Curso</h2>
+        <h2 className="text-xl font-black mb-1 tracking-tight">Análise de Performance em Andamento</h2>
         <p className="text-white/40 text-sm mb-10 text-center max-w-xs">
           Nossa IA processa o que nenhum olheiro humano conseguiria em uma peneira
         </p>
