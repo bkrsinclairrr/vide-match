@@ -302,8 +302,8 @@ export default function Login() {
         {/* Footer Link */}
         <p className="absolute bottom-8 text-sm text-muted-foreground text-center">
           Ao continuar, você concorda com nossos <br className="sm:hidden" />
-          <a href="#" className="underline underline-offset-4 hover:text-foreground transition-colors">Termos de Serviço</a> e{" "}
-          <a href="#" className="underline underline-offset-4 hover:text-foreground transition-colors">Política de Privacidade</a>.
+          <a href="/termos" className="underline underline-offset-4 hover:text-foreground transition-colors">Termos de Uso</a> e{" "}
+          <a href="/privacidade" className="underline underline-offset-4 hover:text-foreground transition-colors">Política de Privacidade</a>.
         </p>
 
       </div>

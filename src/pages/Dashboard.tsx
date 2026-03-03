@@ -166,7 +166,7 @@ export default function Dashboard() {
                                 <HelpCircle className="w-4 h-4 text-white/40" /> Central de ajuda
                             </button>
 
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
+                            <button onClick={() => navigate('/privacidade')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
                                 <FileText className="w-4 h-4 text-white/40" /> Política de privacidade
                             </button>
                         </div>
