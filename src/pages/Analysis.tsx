@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   Zap, Trophy, Shield, Target, Activity, Flame,
-  ArrowRight, CheckCircle2, Cpu, Database, Globe2, Users, Star
+  ArrowRight, CheckCircle2, Cpu, Database, Globe2, Users, Star,
+  ScanSearch, Radar
 } from "lucide-react"
 
 // ─── DETERMINISTIC HASH ─────────────────────────────────────────────────────
@@ -17,7 +18,7 @@ function hashString(str: string): number {
 
 function seededRand(seed: number, index: number): number {
   const h = hashString(`${seed}-${index}`)
-  return 76 + (h % 20) // 76–95
+  return 76 + (h % 20)
 }
 
 // ─── CLUBS DATA ─────────────────────────────────────────────────────────────
@@ -41,19 +42,60 @@ const INTERNATIONAL_CLUBS = [
   "Toulouse FC", "Standard Liège", "FC Köln", "Hajduk Split", "Panathinaikos",
 ]
 
-// ─── LOADING MESSAGES ────────────────────────────────────────────────────────
-const LOADING_MESSAGES = [
-  { t: 0, text: "Inicializando módulo de análise biométrica..." },
-  { t: 3, text: "Processando padrões de movimentação e técnica individual..." },
-  { t: 7, text: "Cruzando dados com banco de 12.400 perfis de atletas catalogados..." },
-  { t: 11, text: "Aplicando modelos de análise tática e posicionamento..." },
-  { t: 15, text: "Calculando índice de finalização, passe e explosão física..." },
-  { t: 19, text: "Encaminhando perfil para revisão da equipe de Scout Zyron..." },
-  { t: 23, text: "Scout especializado analisando compatibilidade com clubes-alvo..." },
-  { t: 27, text: "Gerando relatório de performance individualizado..." },
-  { t: 31, text: "Validando e assinando relatório — quase pronto..." },
+// ─── CLUB BADGE URLs (Wikimedia Commons SVG) ─────────────────────────────────
+// Used for the scanning carousel in the club-loading phase
+const BADGE_URLS = [
+  "https://upload.wikimedia.org/wikipedia/commons/4/4f/Flamengo_braz_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/5/58/Palmeiras_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/c/ce/Sport_Club_Corinthians_Paulista_crest.svg",
+  "https://upload.wikimedia.org/wikipedia/en/0/0e/S%C3%A3o_Paulo_FC.svg",
+  "https://upload.wikimedia.org/wikipedia/en/3/38/Santos_fc_logo.png",
+  "https://upload.wikimedia.org/wikipedia/commons/f/f1/Gr%C3%AAmio_FBPA.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/0/0b/Sport_Club_Internacional.svg",
+  "https://upload.wikimedia.org/wikipedia/en/f/f5/Atletico_mineiro_galo.png",
+  "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg",
+  "https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/en/9/9e/Sporting_CP_%28logo%29.svg",
+  "https://upload.wikimedia.org/wikipedia/en/d/d8/SL_Benfica_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg",
+  "https://upload.wikimedia.org/wikipedia/en/7/79/Ajax_Amsterdam.svg",
+  "https://upload.wikimedia.org/wikipedia/en/3/31/Footballclub_fluminense.svg",
+  "https://upload.wikimedia.org/wikipedia/commons/9/9f/Botafogo_de_Futebol_e_Regatas_logo.svg",
+  "https://upload.wikimedia.org/wikipedia/en/5/5e/Valencia_CF_Logo.svg",
 ]
 
+// ─── LOADING MESSAGES — 47 seconds ──────────────────────────────────────────
+const LOADING_MESSAGES = [
+  { t: 0, text: "Inicializando módulo de análise de vídeo biométrico..." },
+  { t: 4, text: "Extraindo frames e mapeando silhueta corporal em movimento..." },
+  { t: 8, text: "Isolando ações técnicas: toque de bola, arranque e domínio orientado..." },
+  { t: 12, text: "Mapeando biomecânica de aceleração no terço final do campo..." },
+  { t: 16, text: "Calculando frequência cardíaca estimada e nível de exaustão por fase..." },
+  { t: 20, text: "Cruzando dados com banco de 12.400 perfis de atletas catalogados..." },
+  { t: 24, text: "Aplicando modelos de análise tática, posicionamento e leitura de jogo..." },
+  { t: 28, text: "Processando tomada de decisão em espaços curtos e pressão direta..." },
+  { t: 32, text: "Encaminhando perfil técnico-físico para a equipe de Scout Zyron..." },
+  { t: 36, text: "Scout especializado com 14 anos de mercado revisando os dados..." },
+  { t: 40, text: "Gerando relatório individualizado de performance com 10 indicadores..." },
+  { t: 44, text: "Validando, assinando e criptografando relatório — última etapa..." },
+]
+
+// ─── CLUB-LOADING MESSAGES — 16 seconds ─────────────────────────────────────
+const CLUB_LOADING_MESSAGES = [
+  { t: 0, text: "Conectando ao banco de dados do mercado global de futebol..." },
+  { t: 2, text: "Cruzando seus indicadores de Finalização e Drible com demandas reais de clubes..." },
+  { t: 5, text: "Filtrando filosofias táticas compatíveis com sua leitura de jogo..." },
+  { t: 7, text: "Excluindo elencos com sobreposição na sua posição e faixa etária..." },
+  { t: 9, text: "Avaliando projeção de valorização para atletas com seu perfil físico..." },
+  { t: 11, text: "Aplicando filtro geográfico e compatibilidade cultural por nacionalidade..." },
+  { t: 13, text: "Compatibilidade máxima encontrada. Descriptografando dossiê do clube..." },
+  { t: 15, text: "MATCH CONFIRMADO. Preparando entrega do resultado..." },
+]
+
+// ─── STAT DEFINITIONS ────────────────────────────────────────────────────────
 const STAT_DEFINITIONS = [
   { key: "ataque", label: "Ataque", icon: Flame, desc: "Participação ofensiva, movimento e impacto no terço final" },
   { key: "defesa", label: "Defesa", icon: Shield, desc: "Posicionamento, marcação e interceptações" },
@@ -67,8 +109,7 @@ const STAT_DEFINITIONS = [
   { key: "leitura", label: "Leitura de Jogo", icon: Database, desc: "Tomada de decisão e antecipação tática" },
 ]
 
-// ─── PHASE CONTROL ───────────────────────────────────────────────────────────
-type Phase = "loading" | "report" | "club"
+type Phase = "loading" | "report" | "club-loading" | "club"
 
 export default function Analysis() {
   const { user } = useAuth()
@@ -76,27 +117,31 @@ export default function Analysis() {
 
   const [phase, setPhase] = useState<Phase>("loading")
   const [elapsed, setElapsed] = useState(0)
+  const [clubElapsed, setClubElapsed] = useState(0)
   const [currentMsg, setCurrentMsg] = useState(0)
+  const [currentClubMsg, setCurrentClubMsg] = useState(0)
   const [playerData, setPlayerData] = useState<any>(null)
+  const [badgeIdx, setBadgeIdx] = useState(0)
 
-  // load saved playerData
+  // Load saved playerData from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("playerData")
-    if (saved) setPlayerData(JSON.parse(saved))
+    if (saved) {
+      try { setPlayerData(JSON.parse(saved)) } catch { /* ignore */ }
+    }
   }, [])
 
-  // 35-second loading timer
+  // ── Phase 1 timer: 47 seconds ─────────────────────────────────────────────
   useEffect(() => {
     if (phase !== "loading") return
     const interval = setInterval(() => {
       setElapsed((e) => {
         const next = e + 1
-        if (next >= 35) {
+        if (next >= 47) {
           clearInterval(interval)
           setPhase("report")
-          return 35
+          return 47
         }
-        // find latest message index (compatible with ES2020 targets)
         let msgIdx = 0
         for (let i = 0; i < LOADING_MESSAGES.length; i++) {
           if (LOADING_MESSAGES[i].t <= next) msgIdx = i
@@ -108,14 +153,44 @@ export default function Analysis() {
     return () => clearInterval(interval)
   }, [phase])
 
-  // Deterministic scores based on user email
+  // ── Phase 3 timer: 16 seconds club-loading ────────────────────────────────
+  useEffect(() => {
+    if (phase !== "club-loading") return
+    setClubElapsed(0)
+    setCurrentClubMsg(0)
+    const interval = setInterval(() => {
+      setClubElapsed((e) => {
+        const next = e + 1
+        if (next >= 16) {
+          clearInterval(interval)
+          setPhase("club")
+          return 16
+        }
+        let msgIdx = 0
+        for (let i = 0; i < CLUB_LOADING_MESSAGES.length; i++) {
+          if (CLUB_LOADING_MESSAGES[i].t <= next) msgIdx = i
+        }
+        setCurrentClubMsg(msgIdx)
+        return next
+      })
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [phase])
+
+  // ── Badge carousel: cycles every 300ms during club-loading ───────────────
+  useEffect(() => {
+    if (phase !== "club-loading") return
+    const cycle = setInterval(() => {
+      setBadgeIdx((i) => (i + 1) % BADGE_URLS.length)
+    }, 300)
+    return () => clearInterval(cycle)
+  }, [phase])
+
+  // ── Deterministic scores based on user email ─────────────────────────────
   const seed = useMemo(() => hashString(user?.email ?? "zyron-user"), [user])
 
   const stats = useMemo(() =>
-    STAT_DEFINITIONS.map((s, i) => ({
-      ...s,
-      score: seededRand(seed, i),
-    })),
+    STAT_DEFINITIONS.map((s, i) => ({ ...s, score: seededRand(seed, i) })),
     [seed]
   )
 
@@ -124,39 +199,37 @@ export default function Analysis() {
     [stats]
   )
 
-  // Club selection — deterministic per user, safe category read from playerData
-  // Sub 20 = international; everything else (Sub 6..Sub 17) = national
+  // ── Club match: deterministic, segmented by category ─────────────────────
   const { club, isInternational, compatibility } = useMemo(() => {
     const raw = playerData?.category ?? ""
     const isInt = raw.trim() === "Sub 20"
     const pool = isInt ? INTERNATIONAL_CLUBS : NATIONAL_CLUBS
-    const idx = seed % pool.length
     return {
-      club: pool[idx],
+      club: pool[seed % pool.length],
       isInternational: isInt,
-      compatibility: 94 + (seed % 5), // 94–98, stable per user
+      compatibility: 94 + (seed % 5),
     }
   }, [seed, playerData?.category])
 
-  // ─── LOADING PHASE ─────────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+  // PHASE 1 — ANALYSIS LOADING (47s)
+  // ════════════════════════════════════════════════════════════════════════════
   if (phase === "loading") {
-    const progress = Math.min((elapsed / 35) * 100, 100)
+    const progress = Math.min((elapsed / 47) * 100, 100)
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
-        {/* Pulsing orb */}
-        <div className="relative mb-12">
+        <div className="relative mb-10">
           <div className="w-28 h-28 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_80px_rgba(251,191,36,0.5)] animate-pulse">
             <Cpu className="w-12 h-12 text-black" />
           </div>
           <div className="absolute inset-0 rounded-full border-2 border-amber-400/20 animate-ping" />
         </div>
 
-        <h2 className="text-xl font-black mb-2 tracking-tight">Analisando Seu Perfil</h2>
+        <h2 className="text-xl font-black mb-1 tracking-tight">Análise de Performance em Curso</h2>
         <p className="text-white/40 text-sm mb-10 text-center max-w-xs">
-          Nossa equipe de scout e IA estão processando todas as informações
+          Nossa IA processa o que nenhum olheiro humano conseguiria em uma peneira
         </p>
 
-        {/* Progress bar */}
         <div className="w-full max-w-md mb-4">
           <div className="flex justify-between text-xs text-white/40 mb-2">
             <span>Processando</span>
@@ -170,12 +243,11 @@ export default function Analysis() {
           </div>
         </div>
 
-        {/* Status messages */}
         <div className="w-full max-w-md space-y-2 mt-6">
           {LOADING_MESSAGES.slice(0, currentMsg + 1).map((m, i) => (
             <div
               key={i}
-              className={`flex items-center gap-3 text-xs transition-opacity duration-500 ${i === currentMsg ? "text-amber-400 opacity-100" : "text-white/25 opacity-60"
+              className={`flex items-center gap-3 text-xs transition-all duration-500 ${i === currentMsg ? "text-amber-400 opacity-100" : "text-white/25 opacity-60"
                 }`}
             >
               <CheckCircle2 className={`w-3.5 h-3.5 flex-shrink-0 ${i === currentMsg ? "text-amber-400" : "text-white/20"}`} />
@@ -187,7 +259,9 @@ export default function Analysis() {
     )
   }
 
-  // ─── REPORT PHASE ──────────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+  // PHASE 2 — PERFORMANCE REPORT
+  // ════════════════════════════════════════════════════════════════════════════
   if (phase === "report") {
     return (
       <div className="min-h-screen bg-black text-white font-sans antialiased">
@@ -204,7 +278,6 @@ export default function Analysis() {
         </header>
 
         <main className="max-w-3xl mx-auto px-4 py-10 space-y-10">
-          {/* Overall score */}
           <section className="flex flex-col items-center text-center">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
               <Star className="w-3.5 h-3.5" />
@@ -215,12 +288,9 @@ export default function Analysis() {
               <span className="text-xs font-bold text-black/70 mt-1">GERAL</span>
             </div>
             <h1 className="text-2xl font-black mb-1">Performance Geral do Atleta</h1>
-            <p className="text-white/40 text-sm">
-              Baseado nas informações individuais coletadas e análise de perfil
-            </p>
+            <p className="text-white/40 text-sm">Baseado nas informações individuais coletadas e análise de perfil</p>
           </section>
 
-          {/* Stats grid */}
           <section>
             <h2 className="text-sm font-semibold text-white/40 uppercase tracking-widest mb-4">Indicadores Individuais</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -238,10 +308,7 @@ export default function Analysis() {
                         <span className="text-sm font-black text-amber-400">{s.score}</span>
                       </div>
                       <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-1.5">
-                        <div
-                          className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full"
-                          style={{ width: `${pct}%` }}
-                        />
+                        <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
                       <p className="text-xs text-white/30 leading-snug">{s.desc}</p>
                     </div>
@@ -251,7 +318,6 @@ export default function Analysis() {
             </div>
           </section>
 
-          {/* CTA section */}
           <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-8 text-center space-y-5">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto">
               <Globe2 className="w-5 h-5 text-black" />
@@ -259,24 +325,98 @@ export default function Analysis() {
             <h3 className="text-2xl font-black">Seu perfil foi mapeado.</h3>
             <p className="text-white/50 max-w-lg mx-auto leading-relaxed">
               Com base nos seus indicadores individuais, o algoritmo do Zyron já identificou o clube que mais se encaixa no seu perfil técnico, físico e tático.
-              <strong className="text-white"> Um clube que você pode nunca ter descoberto numa peneira convencional.</strong>
+              <strong className="text-white"> Um clube que você jamais teria descoberto numa peneira convencional.</strong>
             </p>
             <button
-              onClick={() => setPhase("club")}
+              onClick={() => setPhase("club-loading")}
               className="group inline-flex items-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-base px-9 py-4 rounded-2xl transition-all shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] active:scale-95"
             >
               <Trophy className="w-5 h-5" />
               DESCOBRIR MEU CLUBE IDEAL
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            <p className="text-xs text-white/20 mt-1">Resultado baseado em {stats.length} métricas individuais · Gerado pela equipe Zyron</p>
+            <p className="text-xs text-white/20">Resultado baseado em {stats.length} métricas individuais · Gerado pela equipe Zyron</p>
           </section>
         </main>
       </div>
     )
   }
 
-  // ─── CLUB MATCH PHASE ─────────────────────────────────────────────────────
+  // ════════════════════════════════════════════════════════════════════════════
+  // PHASE 3 — CLUB SEARCH LOADING (16s) — Badge carousel + persuasive copy
+  // ════════════════════════════════════════════════════════════════════════════
+  if (phase === "club-loading") {
+    const progress = Math.min((clubElapsed / 16) * 100, 100)
+    const isNearEnd = clubElapsed >= 13
+
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
+        {/* Radar ring animation */}
+        <div className="relative flex items-center justify-center mb-8">
+          <div className="absolute w-48 h-48 rounded-full border border-amber-400/10 animate-ping" style={{ animationDuration: "2s" }} />
+          <div className="absolute w-36 h-36 rounded-full border border-amber-400/15 animate-ping" style={{ animationDuration: "1.5s" }} />
+          <div className="absolute w-24 h-24 rounded-full border border-amber-400/20 animate-ping" style={{ animationDuration: "1s" }} />
+
+          {/* Spinning badge carousel */}
+          <div className="relative w-24 h-24 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl">
+            <img
+              src={BADGE_URLS[badgeIdx]}
+              alt="club badge"
+              className={`w-16 h-16 object-contain transition-opacity duration-150 ${isNearEnd ? "opacity-100" : "opacity-70"}`}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none" }}
+            />
+          </div>
+        </div>
+
+        {/* Scanning icon + status */}
+        <div className="flex items-center gap-2 mb-3">
+          <ScanSearch className={`w-5 h-5 ${isNearEnd ? "text-emerald-400" : "text-amber-400"} animate-pulse`} />
+          <span className={`text-sm font-black tracking-widest uppercase ${isNearEnd ? "text-emerald-400" : "text-amber-400"}`}>
+            {isNearEnd ? "Match Encontrado" : "Varrendo Base Global"}
+          </span>
+        </div>
+
+        <h2 className="text-lg font-black mb-1 text-center max-w-xs">
+          {isNearEnd ? "Finalizando Dossiê..." : "Filtrando Clubes no Mundo Inteiro"}
+        </h2>
+        <p className="text-white/30 text-xs mb-8 text-center max-w-xs">
+          {isNearEnd
+            ? "Preparando entrega do resultado exclusivo para você"
+            : "Analisando dezenas de clubes antes de revelar o match perfeito"}
+        </p>
+
+        {/* Progress bar */}
+        <div className="w-full max-w-sm mb-6">
+          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-1000 ${isNearEnd ? "bg-emerald-400" : "bg-gradient-to-r from-amber-500 to-amber-300"}`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Scrolling status messages */}
+        <div className="w-full max-w-md space-y-2">
+          {CLUB_LOADING_MESSAGES.slice(0, currentClubMsg + 1).map((m, i) => (
+            <div
+              key={i}
+              className={`flex items-center gap-3 text-xs transition-all duration-500 ${i === currentClubMsg
+                  ? isNearEnd ? "text-emerald-400 opacity-100" : "text-amber-400 opacity-100"
+                  : "text-white/20 opacity-50"
+                }`}
+            >
+              <CheckCircle2 className={`w-3 h-3 flex-shrink-0 ${i === currentClubMsg ? (isNearEnd ? "text-emerald-400" : "text-amber-400") : "text-white/15"}`} />
+              {m.text}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // PHASE 4 — CLUB MATCH RESULT
+  // ════════════════════════════════════════════════════════════════════════════
   return (
     <div className="min-h-screen bg-black text-white font-sans antialiased">
       <header className="sticky top-0 z-50 border-b border-white/5 bg-black/80 backdrop-blur-xl">
@@ -292,7 +432,6 @@ export default function Analysis() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-10 space-y-10">
-        {/* Intro */}
         <section className="text-center space-y-4">
           <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold px-3 py-1.5 rounded-full">
             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -309,7 +448,6 @@ export default function Analysis() {
           </p>
         </section>
 
-        {/* Club card */}
         <section className="rounded-3xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-8 md:p-12 text-center space-y-6 shadow-[0_0_60px_rgba(251,191,36,0.08)]">
           <p className="text-xs text-white/30 uppercase tracking-widest font-semibold">
             {isInternational ? "Clube Internacional Recomendado" : "Clube Nacional Recomendado — Série A/B"}
@@ -344,7 +482,6 @@ export default function Analysis() {
           </div>
         </section>
 
-        {/* Scout CTA */}
         <section className="flex flex-col items-center text-center space-y-4">
           <p className="text-xs text-white/30 uppercase tracking-widest font-semibold">Próximo passo</p>
           <button
@@ -360,7 +497,6 @@ export default function Analysis() {
           </p>
         </section>
 
-        {/* Back to dashboard */}
         <div className="text-center pt-4">
           <button
             onClick={() => navigate("/dashboard")}
