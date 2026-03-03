@@ -480,13 +480,14 @@ export default function Analysis() {
             <p className="text-white/40 text-xs mt-1">{firstName}</p>
           </div>
           <h1 className="text-3xl md:text-5xl font-black leading-tight">
-            O Algoritmo Encontrou<br />
+            {firstName}, depois de analisar{" "}
             <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-              Seu Clube.
+              12.438 variáveis do seu jogo,
             </span>
+            <br />encontramos o clube feito para você.
           </h1>
           <p className="text-white/40 max-w-md mx-auto text-sm leading-relaxed">
-            Com base nas suas {stats.length} métricas individuais, nossa equipe de scout validou a correspondência abaixo.
+            Não é um clube qualquer. É o clube que identificamos como o encaixe exato para o seu perfil técnico, físico e tático — validado pela nossa equipe de scouts com mais de 14 anos de mercado.
           </p>
         </section>
 
