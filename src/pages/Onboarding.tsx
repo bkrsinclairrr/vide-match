@@ -223,8 +223,8 @@ const Onboarding = () => {
         </div>
       </div>
 
-      {/* ── Form content ── */}
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-6">
+      {/* ── Form content + CTA ── */}
+      <main className="flex-1 flex flex-col max-w-lg mx-auto w-full px-4 pb-6 gap-4">
         <div className="rounded-3xl p-6 space-y-5 animate-fade-in"
           style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}>
 
@@ -514,12 +514,12 @@ const Onboarding = () => {
             </div>
           )}
         </div>
-      </main>
 
-      {/* ── Sticky CTA ── */}
-      <div className="sticky bottom-0 border-t border-white/5 px-4 py-4 backdrop-blur-xl" style={{ background: "rgba(13,13,15,0.95)" }}>
-        <div className="max-w-lg mx-auto space-y-2">
-          <button onClick={handleNext} disabled={!canProceed() || isLoading}
+        {/* ── CTA — mt-auto keeps it close to content, not anchored to viewport bottom ── */}
+        <div className="mt-auto pt-2 space-y-2">
+          <button
+            onClick={handleNext}
+            disabled={!canProceed() || isLoading}
             className={[
               "w-full flex items-center justify-center gap-3 font-black text-base rounded-2xl py-3.5 transition-all duration-200",
               canProceed() && !isLoading
@@ -541,7 +541,6 @@ const Onboarding = () => {
             )}
           </button>
 
-          {/* Remaining steps hint — amber for progress, emerald when last step */}
           {step < totalSteps ? (
             <p className="text-center text-[11px] text-white/25 font-medium">
               {totalSteps - step} etapa{totalSteps - step !== 1 ? 's' : ''} restante{totalSteps - step !== 1 ? 's' : ''}
@@ -552,7 +551,9 @@ const Onboarding = () => {
             </p>
           )}
         </div>
-      </div>
+      </main>
+
+
     </div>
   );
 };
