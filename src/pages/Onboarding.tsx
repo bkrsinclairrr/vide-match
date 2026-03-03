@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
-import { ArrowLeft, User, MapPin, Trophy, Camera, Flag, Layers, Globe } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag, User } from "lucide-react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +40,17 @@ const countries = [
   "Israel", "Paraguai", "Bolívia"
 ];
 
+const STEPS = [
+  { icon: User, label: "Perfil", desc: "Informações básicas" },
+  { icon: Flag, label: "Origem", desc: "Nacionalidade" },
+  { icon: Layers, label: "Posição", desc: "Onde você joga" },
+  { icon: Zap, label: "Categoria", desc: "Faixa etária" },
+  { icon: MapPin, label: "Localização", desc: "Onde você está" },
+];
+
+const inputCls = "w-full bg-white/5 border border-white/10 text-white placeholder-white/30 rounded-xl px-4 h-12 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400/50 transition-all";
+const labelCls = "block text-xs font-semibold text-white/50 uppercase tracking-widest mb-2";
+
 const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -53,15 +63,11 @@ const Onboarding = () => {
     hasDualCitizenship: "", dualCitizenshipCountry: ""
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const totalSteps = 5;
 
   const savePlayerData = async () => {
     setIsLoading(true);
-    // Always save locally first — this is the source of truth for the analysis flow
     localStorage.setItem('playerData', JSON.stringify(playerData));
-
-    // Try Supabase in background — if it fails, we still proceed
     try {
       const dataToSave = {
         nome: playerData.name, idade: parseInt(playerData.age),
@@ -74,7 +80,6 @@ const Onboarding = () => {
     } catch (err) {
       console.warn('Supabase insert failed (non-blocking):', err);
     }
-
     setIsLoading(false);
     navigate("/upload");
   };
@@ -104,197 +109,291 @@ const Onboarding = () => {
     }
   };
 
-  const stepIcons = [User, Flag, Trophy, Layers, MapPin];
-  const stepTitles = ["Vamos te conhecer", "Sua nacionalidade", "Sua posição", "Sua categoria", "Quase lá!"];
-  const stepDescs = ["Conte-nos sobre você", "Origem e cidadania", "Posição principal", "Selecione sua categoria", "Últimas informações"];
-  const StepIcon = stepIcons[step - 1];
+  const StepIcon = STEPS[step - 1].icon;
 
   return (
-    <div className="min-h-screen bg-gradient-elite p-4">
-      <div className="container mx-auto max-w-md">
-        {/* Header */}
-        <div className="flex items-center justify-between py-6">
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground"
-            onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="text-sm text-muted-foreground font-medium">{step} de {totalSteps}</div>
-          <div className="w-10" />
+    <div className="min-h-screen bg-black text-white font-sans antialiased flex flex-col">
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-40 border-b border-white/5 bg-black/80 backdrop-blur-xl">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+          <button
+            onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}
+            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all"
+          >
+            <ArrowLeft className="w-4 h-4 text-white/60" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
+              <Zap className="w-3.5 h-3.5 text-black" />
+            </div>
+            <span className="font-bold text-sm tracking-tight">ZYRON</span>
+          </div>
+          <span className="text-xs text-white/30 font-semibold">{step}/{totalSteps}</span>
         </div>
+      </header>
 
-        {/* Progress */}
-        <div className="mb-6 flex gap-1.5">
+      {/* ── Progress ── */}
+      <div className="max-w-lg mx-auto w-full px-4 pt-4">
+        <div className="flex gap-1">
           {Array.from({ length: totalSteps }).map((_, i) => (
-            <div key={i} className={`flex-1 h-1 rounded-full transition-all duration-500 ${i < step ? 'bg-primary' : 'bg-border'}`} />
+            <div
+              key={i}
+              className={`flex-1 h-1 rounded-full transition-all duration-500 ${i < step ? 'bg-amber-400' : 'bg-white/10'}`}
+            />
           ))}
         </div>
+      </div>
 
-        {/* Content */}
-        <Card className="p-6 bg-card border-border animate-fade-in">
-          {/* Step Header */}
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
-              <StepIcon className="w-7 h-7 text-primary" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground">{stepTitles[step - 1]}</h2>
-            <p className="text-sm text-muted-foreground">{stepDescs[step - 1]}</p>
+      {/* ── Step indicator row ── */}
+      <div className="max-w-lg mx-auto w-full px-4 pt-6 pb-2">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 border border-amber-400/20 flex items-center justify-center flex-shrink-0">
+            <StepIcon className="w-5 h-5 text-amber-400" />
           </div>
+          <div>
+            <p className="text-xs text-white/30 uppercase tracking-widest font-semibold">{STEPS[step - 1].desc}</p>
+            <h2 className="text-xl font-black">{STEPS[step - 1].label}</h2>
+          </div>
+          {step > 1 && (
+            <div className="ml-auto flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs px-2 py-1 rounded-full">
+              <Check className="w-3 h-3" />
+              <span className="font-semibold">{step - 1} concluído</span>
+            </div>
+          )}
+        </div>
+      </div>
 
+      {/* ── Content ── */}
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 py-6">
+        <div className="rounded-3xl border border-white/5 bg-white/3 p-6 space-y-5 animate-fade-in">
+
+          {/* STEP 1 — Personal info */}
           {step === 1 && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <div className="w-20 h-20 rounded-full border-2 border-dashed border-border mx-auto flex items-center justify-center cursor-pointer hover:border-primary transition-colors"
-                  onClick={() => fileInputRef.current?.click()}>
-                  {playerData.photo ? (
-                    <img src={playerData.photo} alt="Foto" className="w-full h-full rounded-full object-cover" />
-                  ) : (
-                    <Camera className="w-6 h-6 text-muted-foreground" />
+            <>
+              {/* Photo upload */}
+              <div className="flex flex-col items-center py-2">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative group"
+                >
+                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-white/20 group-hover:border-amber-400/50 transition-colors flex items-center justify-center overflow-hidden bg-white/5">
+                    {playerData.photo ? (
+                      <img src={playerData.photo} alt="Foto" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex flex-col items-center gap-1 text-white/30 group-hover:text-amber-400 transition-colors">
+                        <Camera className="w-6 h-6" />
+                        <span className="text-[10px] font-semibold uppercase tracking-wide">Foto</span>
+                      </div>
+                    )}
+                  </div>
+                  {playerData.photo && (
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-amber-400 rounded-full flex items-center justify-center shadow-lg">
+                      <Check className="w-3.5 h-3.5 text-black" />
+                    </div>
                   )}
-                </div>
+                </button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                <p className="text-xs text-muted-foreground mt-2">Foto (opcional)</p>
+                <p className="text-xs text-white/30 mt-2">Foto (opcional)</p>
               </div>
-              <div><Label className="text-foreground">Nome completo</Label><Input value={playerData.name} onChange={(e) => setPlayerData({ ...playerData, name: e.target.value })} placeholder="Seu nome" className="mt-1 bg-muted border-border" /></div>
-              <div><Label className="text-foreground">Idade</Label><Input type="number" value={playerData.age} onChange={(e) => setPlayerData({ ...playerData, age: e.target.value })} placeholder="Sua idade" className="mt-1 bg-muted border-border" /></div>
-              <div><Label className="text-foreground">Altura (cm)</Label><Input type="number" value={playerData.height} onChange={(e) => setPlayerData({ ...playerData, height: e.target.value })} placeholder="Ex: 175" className="mt-1 bg-muted border-border" /></div>
-              <div><Label className="text-foreground">Peso (kg)</Label><Input type="number" value={playerData.weight} onChange={(e) => setPlayerData({ ...playerData, weight: e.target.value })} placeholder="Ex: 70" className="mt-1 bg-muted border-border" /></div>
+
               <div>
-                <Label className="text-foreground">Melhor pé</Label>
-                <Select value={playerData.preferredFoot} onValueChange={(v) => setPlayerData({ ...playerData, preferredFoot: v })}>
-                  <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    <SelectItem value="destro">Destro</SelectItem>
-                    <SelectItem value="canhoto">Canhoto</SelectItem>
-                    <SelectItem value="ambidestro">Ambidestro</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className={labelCls}>Nome completo</label>
+                <input
+                  className={inputCls}
+                  value={playerData.name}
+                  onChange={(e) => setPlayerData({ ...playerData, name: e.target.value })}
+                  placeholder="João Silva"
+                />
               </div>
-            </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className={labelCls}>Idade</label>
+                  <input type="number" className={inputCls} value={playerData.age}
+                    onChange={(e) => setPlayerData({ ...playerData, age: e.target.value })}
+                    placeholder="22" />
+                </div>
+                <div>
+                  <label className={labelCls}>Altura cm</label>
+                  <input type="number" className={inputCls} value={playerData.height}
+                    onChange={(e) => setPlayerData({ ...playerData, height: e.target.value })}
+                    placeholder="175" />
+                </div>
+                <div>
+                  <label className={labelCls}>Peso kg</label>
+                  <input type="number" className={inputCls} value={playerData.weight}
+                    onChange={(e) => setPlayerData({ ...playerData, weight: e.target.value })}
+                    placeholder="70" />
+                </div>
+              </div>
+
+              <div>
+                <label className={labelCls}>Melhor pé</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {["destro", "canhoto", "ambidestro"].map((foot) => (
+                    <button
+                      key={foot}
+                      type="button"
+                      onClick={() => setPlayerData({ ...playerData, preferredFoot: foot })}
+                      className={`h-11 rounded-xl border text-sm font-semibold capitalize transition-all ${playerData.preferredFoot === foot
+                          ? "border-amber-400 bg-amber-400/10 text-amber-400"
+                          : "border-white/10 bg-white/5 text-white/50 hover:border-white/20 hover:text-white"
+                        }`}
+                    >
+                      {foot.charAt(0).toUpperCase() + foot.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
 
+          {/* STEP 2 — Nationality */}
           {step === 2 && (
-            <div className="space-y-4">
+            <>
               <div>
-                <Label className="text-foreground">Nacionalidade</Label>
+                <label className={labelCls}>País de origem</label>
                 <Select value={playerData.nationality} onValueChange={(v) => setPlayerData({ ...playerData, nationality: v })}>
-                  <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione seu país" /></SelectTrigger>
-                  <SelectContent className="bg-card border-border max-h-60">
-                    {countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  <SelectTrigger className={`${inputCls} flex items-center`}><SelectValue placeholder="Selecione o país" /></SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
+                    {countries.map((c) => <SelectItem key={c} value={c} className="focus:bg-white/10">{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="pt-2 border-t border-border">
-                <Label className="text-foreground flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-primary" />
-                  Possui dupla cidadania?
-                </Label>
-                <p className="text-xs text-muted-foreground mb-2">Isso pode ampliar suas oportunidades em clubes internacionais.</p>
-                <Select value={playerData.hasDualCitizenship} onValueChange={(v) => setPlayerData({ ...playerData, hasDualCitizenship: v, dualCitizenshipCountry: v === 'Não' ? '' : playerData.dualCitizenshipCountry })}>
-                  <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    <SelectItem value="Sim">Sim</SelectItem>
-                    <SelectItem value="Não">Não</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {playerData.hasDualCitizenship === 'Sim' && (
-                <div className="animate-fade-in">
-                  <Label className="text-foreground">País da segunda cidadania</Label>
-                  <Select value={playerData.dualCitizenshipCountry} onValueChange={(v) => setPlayerData({ ...playerData, dualCitizenshipCountry: v })}>
-                    <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione o país" /></SelectTrigger>
-                    <SelectContent className="bg-card border-border max-h-60">
-                      {countries.filter(c => c !== playerData.nationality).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-primary mt-1">✦ Aumenta compatibilidade com clubes deste país</p>
+              <div className="rounded-2xl border border-white/5 bg-white/3 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-amber-400" />
+                  <p className="text-sm font-semibold">Dupla cidadania?</p>
                 </div>
-              )}
-            </div>
+                <p className="text-xs text-white/40">Isso pode ampliar suas oportunidades em clubes internacionais.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {["Sim", "Não"].map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => setPlayerData({ ...playerData, hasDualCitizenship: opt, dualCitizenshipCountry: opt === 'Não' ? '' : playerData.dualCitizenshipCountry })}
+                      className={`h-11 rounded-xl border text-sm font-semibold transition-all ${playerData.hasDualCitizenship === opt
+                          ? "border-amber-400 bg-amber-400/10 text-amber-400"
+                          : "border-white/10 bg-white/5 text-white/50 hover:border-white/20 hover:text-white"
+                        }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                {playerData.hasDualCitizenship === 'Sim' && (
+                  <div className="animate-fade-in">
+                    <label className={labelCls}>Segunda cidadania</label>
+                    <Select value={playerData.dualCitizenshipCountry} onValueChange={(v) => setPlayerData({ ...playerData, dualCitizenshipCountry: v })}>
+                      <SelectTrigger className={`${inputCls} flex items-center`}><SelectValue placeholder="Selecione o país" /></SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
+                        {countries.filter(c => c !== playerData.nationality).map((c) => <SelectItem key={c} value={c} className="focus:bg-white/10">{c}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </>
           )}
 
+          {/* STEP 3 — Position */}
           {step === 3 && (
-            <div>
-              <Label className="text-foreground">Posição principal</Label>
-              <Select value={playerData.position} onValueChange={(v) => setPlayerData({ ...playerData, position: v })}>
-                <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione sua posição" /></SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {positions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="space-y-2">
+              <label className={labelCls}>Posição principal em campo</label>
+              <div className="grid grid-cols-2 gap-2">
+                {positions.map((pos) => (
+                  <button
+                    key={pos}
+                    type="button"
+                    onClick={() => setPlayerData({ ...playerData, position: pos })}
+                    className={`h-12 rounded-xl border text-sm font-semibold transition-all ${playerData.position === pos
+                        ? "border-amber-400 bg-amber-400/10 text-amber-400"
+                        : "border-white/10 bg-white/5 text-white/50 hover:border-white/20 hover:text-white"
+                      }`}
+                  >
+                    {pos}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
+          {/* STEP 4 — Category */}
           {step === 4 && (
-            <div className="space-y-4">
+            <div className="space-y-2">
+              <label className={labelCls}>Categoria / Faixa etária</label>
+              <div className="grid grid-cols-3 gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setPlayerData({ ...playerData, category: cat })}
+                    className={`h-12 rounded-xl border text-sm font-bold transition-all ${playerData.category === cat
+                        ? "border-amber-400 bg-amber-400/10 text-amber-400"
+                        : "border-white/10 bg-white/5 text-white/50 hover:border-white/20 hover:text-white"
+                      }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5 — Location */}
+          {step === 5 && (
+            <>
               <div>
-                <Label className="text-foreground">Categoria</Label>
-                <Select value={playerData.category} onValueChange={(v) => setPlayerData({ ...playerData, category: v })}>
-                  <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione sua categoria" /></SelectTrigger>
-                  <SelectContent className="bg-card border-border max-h-60">
-                    {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                <label className={labelCls}>Estado</label>
+                <Select value={playerData.state} onValueChange={(v) => setPlayerData({ ...playerData, state: v, city: "" })}>
+                  <SelectTrigger className={`${inputCls} flex items-center`}><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
+                  <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
+                    {states.map((s) => <SelectItem key={s} value={s} className="focus:bg-white/10">{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-
-              {playerData.category && ["Sub 16", "Sub 17", "Sub 20"].includes(playerData.category) && (
-                <div className={`p-4 rounded-xl border animate-fade-in ${playerData.category === 'Sub 20' ? 'border-accent/30 bg-accent/5' : 'border-border bg-muted/30'}`}>
-                  {playerData.category === 'Sub 20' ? (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                        <span className="text-sm font-semibold text-accent">Transição Profissional</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Acesso a clubes brasileiros e internacionais. Projeção salarial individualizada por clube, estimativa de valorização e potencial de transferência internacional.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                        <span className="text-sm font-semibold text-foreground">Base Nacional</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Clubes brasileiros — Série A e B. Faixa salarial estimada para categoria de base: <span className="text-primary font-medium">R$ 8.000 a R$ 23.000</span>.
-                      </p>
-                      <p className="text-xs text-muted-foreground opacity-70">
-                        Projeção média de mercado, não promessa contratual.
-                      </p>
-                    </div>
-                  )}
+              {playerData.state && (
+                <div className="animate-fade-in">
+                  <label className={labelCls}>Cidade</label>
+                  <CityAutocomplete
+                    state={playerData.state}
+                    value={playerData.city}
+                    onChange={(city) => setPlayerData({ ...playerData, city })}
+                  />
                 </div>
               )}
-            </div>
-          )}
-
-          {step === 5 && (
-            <div className="space-y-4">
-              <div>
-                <Label className="text-foreground">Estado</Label>
-                <Select value={playerData.state} onValueChange={(v) => setPlayerData({ ...playerData, state: v, city: "" })}>
-                  <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Selecione seu estado" /></SelectTrigger>
-                  <SelectContent className="bg-card border-border max-h-60">
-                    {states.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="rounded-2xl border border-amber-400/10 bg-amber-400/5 p-4">
+                <p className="text-xs text-amber-400/70 leading-relaxed">
+                  📍 Sua localização ajuda o algoritmo a identificar clubes na sua região e oportunidades de mobilidade geográfica.
+                </p>
               </div>
-              <CityAutocomplete
-                value={playerData.city}
-                onChange={(v) => setPlayerData({ ...playerData, city: v })}
-                selectedState={playerData.state}
-                placeholder="Digite sua cidade..."
-                label="Cidade"
-              />
-            </div>
+            </>
           )}
+        </div>
+      </main>
 
-          <Button className="w-full mt-6 bg-gradient-golden text-background font-semibold hover:opacity-90 h-12 rounded-xl"
-            onClick={handleNext} disabled={!canProceed() || isLoading}>
-            {isLoading ? "Salvando..." : step === totalSteps ? "Finalizar Cadastro" : "Continuar"}
-          </Button>
-        </Card>
+      {/* ── Footer CTA ── */}
+      <div className="sticky bottom-0 border-t border-white/5 bg-black/90 backdrop-blur-xl px-4 py-4">
+        <div className="max-w-lg mx-auto">
+          <button
+            onClick={handleNext}
+            disabled={!canProceed() || isLoading}
+            className="w-full h-13 flex items-center justify-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 disabled:from-white/10 disabled:to-white/10 disabled:text-white/30 text-black font-black text-base rounded-2xl transition-all shadow-[0_0_40px_rgba(251,191,36,0.2)] enabled:hover:shadow-[0_0_60px_rgba(251,191,36,0.4)] active:scale-[0.98] py-3.5"
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+            ) : (
+              <>
+                {step === totalSteps ? "Iniciar Análise" : "Continuar"}
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
+          </button>
+          {step < totalSteps && (
+            <p className="text-center text-xs text-white/20 mt-2">{totalSteps - step} etapa{totalSteps - step !== 1 ? 's' : ''} restante{totalSteps - step !== 1 ? 's' : ''}</p>
+          )}
+        </div>
       </div>
     </div>
   );
