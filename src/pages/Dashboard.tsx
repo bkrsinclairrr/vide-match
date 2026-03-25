@@ -9,6 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
+import { useIsAdmin } from "@/hooks/useAdmin"
 
 // Official club logos via Wikimedia Commons
 const CLUBS = [
