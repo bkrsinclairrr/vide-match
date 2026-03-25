@@ -81,6 +81,7 @@ export default function Dashboard() {
     const [menuOpen, setMenuOpen] = useState(false)
     const [settingsOpen, setSettingsOpen] = useState(false)
     const [darkMode, setDarkMode] = useState(true)
+    const { isAdmin } = useIsAdmin()
 
     const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Atleta"
     const firstName = displayName.split(" ")[0]
