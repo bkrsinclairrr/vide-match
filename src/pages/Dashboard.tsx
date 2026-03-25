@@ -9,6 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
+import { useIsAdmin } from "@/hooks/useAdmin"
 
 // Official club logos via Wikimedia Commons
 const CLUBS = [
@@ -80,6 +81,7 @@ export default function Dashboard() {
     const [menuOpen, setMenuOpen] = useState(false)
     const [settingsOpen, setSettingsOpen] = useState(false)
     const [darkMode, setDarkMode] = useState(true)
+    const { isAdmin } = useIsAdmin()
 
     const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Atleta"
     const firstName = displayName.split(" ")[0]
@@ -158,6 +160,19 @@ export default function Dashboard() {
                                 <Bell className="w-4 h-4 text-white/40" /> Notificações
                                 <span className="ml-auto text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Em breve</span>
                             </button>
+
+                            {/* Admin section */}
+                            {isAdmin && (
+                                <>
+                                    <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Administração</p>
+                                    <button
+                                        onClick={() => { setSettingsOpen(false); navigate("/admin") }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-all text-left"
+                                    >
+                                        <Shield className="w-4 h-4" /> Gerenciar usuários
+                                    </button>
+                                </>
+                            )}
 
                             {/* Support section */}
                             <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Suporte</p>

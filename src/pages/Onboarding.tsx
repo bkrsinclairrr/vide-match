@@ -119,13 +119,31 @@ const Onboarding = () => {
     setIsLoading(true);
     localStorage.setItem('playerData', JSON.stringify(playerData));
     try {
-      await supabase.from('Atletas').insert([{
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({ title: "Erro de autenticação", description: "Você precisa estar logado.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      const { error } = await supabase.from('Atletas').insert([{
+        user_id: user.id,
         nome: playerData.name, idade: parseInt(playerData.age),
         altura: parseFloat(playerData.height), peso: parseFloat(playerData.weight),
         melhor_pe: playerData.preferredFoot, nacionalidade: playerData.nationality,
-        posicao: playerData.position, cidade: playerData.city, estado: playerData.state
+        posicao: playerData.position, cidade: playerData.city,
       }]);
-    } catch (err) { console.warn('Supabase insert failed (non-blocking):', err); }
+      if (error) {
+        console.error('Supabase insert error:', error);
+        toast({ title: "Erro ao salvar dados", description: error.message, variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+    } catch (err: any) {
+      console.error('Unexpected error:', err);
+      toast({ title: "Erro inesperado", description: err.message, variant: "destructive" });
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(false);
     navigate("/upload");
   };

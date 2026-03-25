@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute"
 import Dashboard from "./pages/Dashboard"
 import Login from "./pages/Login"
 import Onboarding from "./pages/Onboarding"
+import Admin from "./pages/Admin"
 import Upload from "./pages/Upload"
 import Analysis from "./pages/Analysis"
 import Match from "./pages/Match"
@@ -51,6 +52,7 @@ const Home = () => (
             <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
             <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
