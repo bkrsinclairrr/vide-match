@@ -161,6 +161,19 @@ export default function Dashboard() {
                                 <span className="ml-auto text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Em breve</span>
                             </button>
 
+                            {/* Admin section */}
+                            {isAdmin && (
+                                <>
+                                    <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Administração</p>
+                                    <button
+                                        onClick={() => { setSettingsOpen(false); navigate("/admin") }}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-all text-left"
+                                    >
+                                        <Shield className="w-4 h-4" /> Gerenciar usuários
+                                    </button>
+                                </>
+                            )}
+
                             {/* Support section */}
                             <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Suporte</p>
 
