@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Save } from "lucide-react";
 import VideoUploadCard, { VideoFile } from "./VideoUploadCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const STEPS = [
   {
@@ -75,17 +75,23 @@ const STEPS = [
 interface MultiVideoUploadProps {
   onBack: () => void;
   onContinue: () => void;
+  onCompletedChange: (n: number) => void;
   playerId: string;
 }
 
 const emptyVideo = (): VideoFile => ({ file: null, status: 'empty' });
 
-const MultiVideoUpload = ({ onBack, onContinue, playerId }: MultiVideoUploadProps) => {
+const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId }: MultiVideoUploadProps) => {
   const [videos, setVideos] = useState<VideoFile[]>(STEPS.map(() => emptyVideo()));
   const [currentStep, setCurrentStep] = useState(0);
 
   const completedCount = videos.filter(v => v.status === 'ok').length;
   const progressPercent = (completedCount / STEPS.length) * 100;
+
+  // Bug 1 fix: notifica Upload.tsx sempre que muda
+  useEffect(() => {
+    onCompletedChange(completedCount);
+  }, [completedCount, onCompletedChange]);
 
   const updateVideo = (index: number, video: VideoFile) => {
     const next = [...videos];

@@ -53,9 +53,11 @@ const VideoUploadCard = ({
     setUploading(true);
     const previewUrl = URL.createObjectURL(file);
     const validation = validateFile(file);
-    onChange({ ...video, file, previewUrl, status: 'uploading' });
+    // Imediatamente mostra "uploading" — usa valores locais, sem spread de video
+    onChange({ file, previewUrl, status: 'uploading' });
     setTimeout(() => {
-      onChange({ ...video, file, previewUrl, status: validation.status, errorMessage: validation.errorMessage, warningMessage: validation.warningMessage });
+      // Usa variáveis locais capturadas — sem stale closure de video
+      onChange({ file, previewUrl, status: validation.status, errorMessage: validation.errorMessage, warningMessage: validation.warningMessage });
       setUploading(false);
     }, 1500);
   };

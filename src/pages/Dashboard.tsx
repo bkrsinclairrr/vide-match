@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import {
     Settings, LogOut, Lock, User, ChevronDown,
@@ -82,6 +82,11 @@ export default function Dashboard() {
     const [settingsOpen, setSettingsOpen] = useState(false)
     const [darkMode, setDarkMode] = useState(true)
     const { isAdmin } = useIsAdmin()
+
+    // Bug 5 fix: aplica a classe dark no <html> para que o Tailwind responda
+    useEffect(() => {
+        document.documentElement.classList.toggle('dark', darkMode)
+    }, [darkMode])
 
     const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Atleta"
     const firstName = displayName.split(" ")[0]

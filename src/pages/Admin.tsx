@@ -22,7 +22,7 @@ export default function Admin() {
   const { isAdmin, loading: adminLoading } = useIsAdmin()
   const { toast } = useToast()
   const [users, setUsers] = useState<UserInfo[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {

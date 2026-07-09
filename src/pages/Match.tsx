@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, MapPin, Users, MessageCircle, CheckCircle2, Clock, Shield, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getRandomClub, getRandomBrazilianClub, Club } from "@/data/clubs";
 
 const LOADING_MESSAGES = [
@@ -85,11 +85,13 @@ const Match = () => {
     return reasons;
   };
 
-  const getUrgencyDate = () => {
+  const urgencyDateRef = useRef<string | null>(null);
+  if (!urgencyDateRef.current) {
     const d = new Date();
     d.setDate(d.getDate() + Math.floor(Math.random() * 14) + 7);
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
+    urgencyDateRef.current = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+  const urgencyDate = urgencyDateRef.current;
 
   const handleContact = () => {
     if (!matchedClub) return;
@@ -172,7 +174,7 @@ const Match = () => {
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-accent flex-shrink-0" />
                 <p className="text-muted-foreground">
-                  <span className="text-accent font-medium">Oportunidade limitada</span> — busca até {getUrgencyDate()}
+                  <span className="text-accent font-medium">Oportunidade limitada</span> — busca até {urgencyDate}
                 </p>
               </div>
             </Card>
@@ -267,7 +269,7 @@ const Match = () => {
               <Button variant="ghost" className="w-full text-muted-foreground text-sm" onClick={() => navigate("/history")}>
                 Ver Histórico de Matches
               </Button>
-              <Button variant="ghost" className="w-full text-muted-foreground text-sm" onClick={() => navigate("/")}>
+              <Button variant="ghost" className="w-full text-muted-foreground text-sm" onClick={() => navigate("/upload")}>
                 Nova Análise
               </Button>
             </div>

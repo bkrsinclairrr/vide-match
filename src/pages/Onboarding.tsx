@@ -125,13 +125,13 @@ const Onboarding = () => {
         setIsLoading(false);
         return;
       }
-      const { error } = await supabase.from('Atletas').insert([{
+      const { error } = await supabase.from('Atletas').upsert([{
         user_id: user.id,
         nome: playerData.name, idade: parseInt(playerData.age),
         altura: parseFloat(playerData.height), peso: parseFloat(playerData.weight),
         melhor_pe: playerData.preferredFoot, nacionalidade: playerData.nationality,
         posicao: playerData.position, cidade: playerData.city,
-      }]);
+      }], { onConflict: 'user_id' });
       if (error) {
         console.error('Supabase insert error:', error);
         toast({ title: "Erro ao salvar dados", description: error.message, variant: "destructive" });
@@ -354,7 +354,7 @@ const Onboarding = () => {
               <div>
                 <FieldLabel>Nacionalidade</FieldLabel>
                 <Select value={playerData.nationality} onValueChange={(v) => setPlayerData({ ...playerData, nationality: v })}>
-                  <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione seu país" /></SelectTrigger>
+                  <SelectTrigger className={selectTriggerCls} style={selectTriggerStyle}><SelectValue placeholder="Selecione seu país" /></SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
                     {countries.map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
                   </SelectContent>
@@ -382,7 +382,7 @@ const Onboarding = () => {
                 <div className="animate-fade-in">
                   <FieldLabel>Segunda cidadania</FieldLabel>
                   <Select value={playerData.dualCitizenshipCountry} onValueChange={(v) => setPlayerData({ ...playerData, dualCitizenshipCountry: v })}>
-                    <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione o país" /></SelectTrigger>
+                    <SelectTrigger className={selectTriggerCls} style={selectTriggerStyle}><SelectValue placeholder="Selecione o país" /></SelectTrigger>
                     <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
                       {countries.filter(c => c !== playerData.nationality).map((c) => <SelectItem key={c} value={c} className="focus:bg-amber-400/10 focus:text-amber-300">{c}</SelectItem>)}
                     </SelectContent>
@@ -397,7 +397,7 @@ const Onboarding = () => {
             <div>
               <FieldLabel>Posição principal</FieldLabel>
               <Select value={playerData.position} onValueChange={(v) => setPlayerData({ ...playerData, position: v })}>
-                <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione sua posição" /></SelectTrigger>
+                <SelectTrigger className={selectTriggerCls} style={selectTriggerStyle}><SelectValue placeholder="Selecione sua posição" /></SelectTrigger>
                 <SelectContent className="bg-zinc-900 border-white/10 text-white">
                   {positions.map((p) => <SelectItem key={p} value={p} className="focus:bg-amber-400/10 focus:text-amber-300">{p}</SelectItem>)}
                 </SelectContent>
@@ -505,7 +505,7 @@ const Onboarding = () => {
               <div>
                 <FieldLabel>Estado</FieldLabel>
                 <Select value={playerData.state} onValueChange={(v) => setPlayerData({ ...playerData, state: v, city: "" })}>
-                  <SelectTrigger className={selectTriggerCls}><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
+                  <SelectTrigger className={selectTriggerCls} style={selectTriggerStyle}><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
                   <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-60">
                     {states.map((s) => <SelectItem key={s} value={s} className="focus:bg-amber-400/10 focus:text-amber-300">{s}</SelectItem>)}
                   </SelectContent>

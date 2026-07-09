@@ -91,7 +91,7 @@ const History = () => {
         </Card>
 
         <div className="mt-4">
-          <Button variant="ghost" className="w-full text-muted-foreground text-sm" onClick={() => navigate("/")}>
+          <Button variant="ghost" className="w-full text-muted-foreground text-sm" onClick={() => navigate("/dashboard")}>
             Voltar ao Início
           </Button>
         </div>

@@ -58,7 +58,7 @@ const Upload = () => {
         <Card className="p-5 bg-card border-border">
           {step === 'format' && <FormatSelection onSelect={handleFormatSelect} />}
           {step === 'single' && <SingleVideoUpload onBack={() => setStep('format')} onContinue={() => { setCompletedVideos(1); setStep('personal'); }} playerId={playerId} />}
-          {step === 'multiple' && <MultiVideoUpload onBack={() => setStep('format')} onContinue={() => setStep('personal')} playerId={playerId} />}
+          {step === 'multiple' && <MultiVideoUpload onBack={() => setStep('format')} onContinue={() => setStep('personal')} onCompletedChange={setCompletedVideos} playerId={playerId} />}
           {step === 'personal' && <PersonalVideo onBack={() => setStep(format)} onContinue={handlePersonalContinue} playerId={playerId} />}
           {step === 'complete' && <UploadComplete format={format} completedVideos={format === 'single' ? 1 : completedVideos} totalVideos={format === 'single' ? 1 : 8} hasPersonalVideo={hasPersonalVideo} />}
         </Card>
