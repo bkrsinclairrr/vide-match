@@ -111,65 +111,65 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white font-sans antialiased">
+        <div className="min-h-screen bg-background text-foreground font-sans antialiased">
 
             {/* ─── SETTINGS PANEL (slide-in) ─── */}
             {settingsOpen && (
                 <>
                     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" onClick={() => setSettingsOpen(false)} />
-                    <div className="fixed top-0 right-0 h-full w-80 z-50 bg-zinc-950 border-l border-white/10 shadow-2xl flex flex-col">
-                        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+                    <div className="fixed top-0 right-0 h-full w-80 z-50 bg-card border-l border-foreground/10 shadow-2xl flex flex-col">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-foreground/5">
                             <div className="flex items-center gap-2">
                                 <Settings className="w-4 h-4 text-amber-400" />
                                 <span className="font-semibold text-sm">Configurações</span>
                             </div>
-                            <button onClick={() => setSettingsOpen(false)} className="text-white/30 hover:text-white transition-colors">
+                            <button onClick={() => setSettingsOpen(false)} className="text-foreground/30 hover:text-foreground transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-1">
                             {/* Account section */}
-                            <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-3 pb-1">Conta</p>
+                            <p className="text-[10px] text-foreground/30 uppercase tracking-widest font-semibold px-3 pt-3 pb-1">Conta</p>
 
                             <button
                                 onClick={() => { setSettingsOpen(false); navigate("/onboarding") }}
-                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all text-left"
                             >
-                                <User className="w-4 h-4 text-white/40" /> Editar informações pessoais
+                                <User className="w-4 h-4 text-foreground/40" /> Editar informações pessoais
                             </button>
 
                             <button
                                 onClick={handleChangePassword}
-                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all text-left"
                             >
-                                <Lock className="w-4 h-4 text-white/40" /> Alterar senha
+                                <Lock className="w-4 h-4 text-foreground/40" /> Alterar senha
                             </button>
 
                             {/* Preferences section */}
-                            <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Preferências</p>
+                            <p className="text-[10px] text-foreground/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Preferências</p>
 
-                            <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-white/70 hover:bg-white/5 transition-all">
+                            <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:bg-foreground/5 transition-all">
                                 <span className="flex items-center gap-3">
-                                    <Moon className="w-4 h-4 text-white/40" /> Modo noturno
+                                    <Moon className="w-4 h-4 text-foreground/40" /> Modo noturno
                                 </span>
                                 <button
                                     onClick={() => setDarkMode(!darkMode)}
-                                    className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${darkMode ? "bg-amber-500" : "bg-white/10"}`}
+                                    className={`w-9 h-5 rounded-full flex items-center px-0.5 transition-colors ${darkMode ? "bg-amber-500" : "bg-foreground/10"}`}
                                 >
-                                    <div className={`w-4 h-4 rounded-full bg-white transition-transform ${darkMode ? "translate-x-4" : "translate-x-0"}`} />
+                                    <div className={`w-4 h-4 rounded-full bg-foreground transition-transform ${darkMode ? "translate-x-4" : "translate-x-0"}`} />
                                 </button>
                             </div>
 
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
-                                <Bell className="w-4 h-4 text-white/40" /> Notificações
+                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all text-left">
+                                <Bell className="w-4 h-4 text-foreground/40" /> Notificações
                                 <span className="ml-auto text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Em breve</span>
                             </button>
 
                             {/* Admin section */}
                             {isAdmin && (
                                 <>
-                                    <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Administração</p>
+                                    <p className="text-[10px] text-foreground/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Administração</p>
                                     <button
                                         onClick={() => { setSettingsOpen(false); navigate("/admin") }}
                                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-all text-left"
@@ -180,18 +180,18 @@ export default function Dashboard() {
                             )}
 
                             {/* Support section */}
-                            <p className="text-[10px] text-white/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Suporte</p>
+                            <p className="text-[10px] text-foreground/30 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Suporte</p>
 
-                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
-                                <HelpCircle className="w-4 h-4 text-white/40" /> Central de ajuda
+                            <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all text-left">
+                                <HelpCircle className="w-4 h-4 text-foreground/40" /> Central de ajuda
                             </button>
 
-                            <button onClick={() => navigate('/privacidade')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left">
-                                <FileText className="w-4 h-4 text-white/40" /> Política de privacidade
+                            <button onClick={() => navigate('/privacidade')} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all text-left">
+                                <FileText className="w-4 h-4 text-foreground/40" /> Política de privacidade
                             </button>
                         </div>
 
-                        <div className="p-4 border-t border-white/5">
+                        <div className="p-4 border-t border-foreground/5">
                             <button
                                 onClick={handleSignOut}
                                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all text-left"
@@ -204,14 +204,14 @@ export default function Dashboard() {
             )}
 
             {/* ─── HEADER ─── */}
-            <header className="sticky top-0 z-40 w-full border-b border-white/5 bg-black/80 backdrop-blur-xl">
+            <header className="sticky top-0 z-40 w-full border-b border-foreground/5 bg-background/80 backdrop-blur-xl">
                 <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
                             <Zap className="w-4 h-4 text-black" />
                         </div>
-                        <span className="font-bold text-white tracking-tight">ZYRON</span>
+                        <span className="font-bold text-foreground tracking-tight">ZYRON</span>
                     </div>
 
                     {/* Right side: settings gear + user menu */}
@@ -219,48 +219,48 @@ export default function Dashboard() {
                         {/* Settings gear icon */}
                         <button
                             onClick={() => setSettingsOpen(true)}
-                            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all"
+                            className="w-9 h-9 flex items-center justify-center rounded-xl border border-foreground/10 hover:border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition-all"
                             title="Configurações"
                         >
-                            <Settings className="w-4 h-4 text-white/60" />
+                            <Settings className="w-4 h-4 text-foreground/60" />
                         </button>
 
                         {/* User avatar dropdown */}
                         <div className="relative">
                             <button
                                 onClick={() => setMenuOpen(!menuOpen)}
-                                className="flex items-center gap-2 py-1.5 px-2.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all"
+                                className="flex items-center gap-2 py-1.5 px-2.5 rounded-xl border border-foreground/10 hover:border-foreground/20 bg-foreground/5 hover:bg-foreground/10 transition-all"
                             >
                                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-xs font-bold text-black">
                                     {firstName.charAt(0).toUpperCase()}
                                 </div>
-                                <span className="text-sm text-white/80 max-w-[100px] truncate hidden sm:block">{firstName}</span>
-                                <ChevronDown className={`w-3.5 h-3.5 text-white/40 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
+                                <span className="text-sm text-foreground/80 max-w-[100px] truncate hidden sm:block">{firstName}</span>
+                                <ChevronDown className={`w-3.5 h-3.5 text-foreground/40 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
                             </button>
 
                             {menuOpen && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                                    <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
-                                        <div className="px-4 py-3 border-b border-white/5">
-                                            <p className="text-sm font-semibold text-white truncate">{displayName}</p>
-                                            <p className="text-xs text-white/40 truncate">{user?.email}</p>
+                                    <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-foreground/10 bg-popover/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden">
+                                        <div className="px-4 py-3 border-b border-foreground/5">
+                                            <p className="text-sm font-semibold text-foreground truncate">{displayName}</p>
+                                            <p className="text-xs text-foreground/40 truncate">{user?.email}</p>
                                         </div>
                                         <div className="p-2">
                                             <button
                                                 onClick={() => { setMenuOpen(false); navigate("/onboarding") }}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all text-left"
                                             >
                                                 <User className="w-4 h-4" /> Meu perfil
                                             </button>
                                             <button
                                                 onClick={() => { setMenuOpen(false); setSettingsOpen(true) }}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/5 transition-all text-left"
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-foreground/70 hover:text-foreground hover:bg-foreground/5 transition-all text-left"
                                             >
                                                 <Settings className="w-4 h-4" /> Configurações
                                             </button>
                                         </div>
-                                        <div className="p-2 border-t border-white/5">
+                                        <div className="p-2 border-t border-foreground/5">
                                             <button
                                                 onClick={handleSignOut}
                                                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all text-left"
@@ -286,10 +286,10 @@ export default function Dashboard() {
                     </div>
                     <h1 className="text-3xl md:text-6xl font-black leading-tight tracking-tight">
                         Olá, {firstName}.<br />
-                        <span className="text-white/30">Sua carreira</span>{" "}
+                        <span className="text-foreground/30">Sua carreira</span>{" "}
                         <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">começa aqui.</span>
                     </h1>
-                    <p className="text-base md:text-lg text-white/50 max-w-2xl leading-relaxed">
+                    <p className="text-base md:text-lg text-foreground/50 max-w-2xl leading-relaxed">
                         Você está acessando o ambiente de análise do Zyron. O que acontece a seguir vai determinar como o mercado enxerga o seu futebol.
                     </p>
                 </section>
@@ -300,13 +300,13 @@ export default function Dashboard() {
                         {STATS.map((stat) => {
                             const Icon = stat.icon
                             return (
-                                <div key={stat.label} className="rounded-2xl border border-white/5 bg-white/3 p-3 md:p-5 flex flex-col gap-2 md:gap-3 hover:border-white/10 transition-all">
+                                <div key={stat.label} className="rounded-2xl border border-foreground/5 bg-foreground/3 p-3 md:p-5 flex flex-col gap-2 md:gap-3 hover:border-foreground/10 transition-all">
                                     <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center`}>
-                                        <Icon className="w-4 h-4 text-white" />
+                                        <Icon className="w-4 h-4 text-foreground" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-black text-white">{stat.value}</p>
-                                        <p className="text-xs text-white/40 mt-0.5 leading-tight">{stat.label}</p>
+                                        <p className="text-2xl font-black text-foreground">{stat.value}</p>
+                                        <p className="text-xs text-foreground/40 mt-0.5 leading-tight">{stat.label}</p>
                                     </div>
                                 </div>
                             )
@@ -315,7 +315,7 @@ export default function Dashboard() {
                 </section>
 
                 {/* ─── COPY PSICOLÓGICO PRINCIPAL ─── */}
-                <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-5 md:p-12 space-y-6">
+                <section className="rounded-3xl border border-foreground/5 bg-gradient-to-br from-white/3 to-transparent p-5 md:p-12 space-y-6">
                     <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold tracking-widest uppercase">
                         <Shield className="w-3.5 h-3.5" />
                         O Futebol Mudou. A Avaliação Também.
@@ -326,15 +326,15 @@ export default function Dashboard() {
                             já não contratam mais pelo olhar.
                         </span>
                     </h2>
-                    <div className="space-y-4 text-white/60 leading-relaxed text-base">
+                    <div className="space-y-4 text-foreground/60 leading-relaxed text-base">
                         <p>
-                            <strong className="text-white">Brighton, Ajax, Bayer Leverkusen, Benfica.</strong> Clubes que estão no topo do futebol mundial hoje têm uma coisa em comum: eles encontram talentos que nenhum olheiro tradicional teria notado. E fazem isso através de dados, modelos preditivos e análise de vídeo com IA.
+                            <strong className="text-foreground">Brighton, Ajax, Bayer Leverkusen, Benfica.</strong> Clubes que estão no topo do futebol mundial hoje têm uma coisa em comum: eles encontram talentos que nenhum olheiro tradicional teria notado. E fazem isso através de dados, modelos preditivos e análise de vídeo com IA.
                         </p>
                         <p>
                             O problema é que essa tecnologia nunca esteve acessível para o atleta brasileiro que está no começo da carreira — aquele que vai bem num jogo, mas nunca tem quem grave, analise e apresente seu desempenho de forma profissional.
                         </p>
                         <p>
-                            <strong className="text-white">O Zyron encerra essa desigualdade.</strong> Nossa IA processa cada frame do seu jogo, identifica suas características únicas e gera um relatório técnico com o mesmo nível de profundidade usado pelos departamentos de scout internacionais.
+                            <strong className="text-foreground">O Zyron encerra essa desigualdade.</strong> Nossa IA processa cada frame do seu jogo, identifica suas características únicas e gera um relatório técnico com o mesmo nível de profundidade usado pelos departamentos de scout internacionais.
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
@@ -345,13 +345,13 @@ export default function Dashboard() {
                         ].map((item) => {
                             const Icon = item.icon
                             return (
-                                <div key={item.label} className="flex items-start gap-3 p-4 rounded-xl border border-white/5 bg-white/3">
+                                <div key={item.label} className="flex items-start gap-3 p-4 rounded-xl border border-foreground/5 bg-foreground/3">
                                     <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
                                         <Icon className="w-4 h-4 text-amber-400" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-white">{item.label}</p>
-                                        <p className="text-xs text-white/40 mt-0.5">{item.sub}</p>
+                                        <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                                        <p className="text-xs text-foreground/40 mt-0.5">{item.sub}</p>
                                     </div>
                                 </div>
                             )
@@ -362,8 +362,8 @@ export default function Dashboard() {
                 {/* ─── ESCUDOS DE CLUBES ─── */}
                 <section className="text-center space-y-8">
                     <div>
-                        <p className="text-xs text-white/30 font-semibold tracking-widest uppercase mb-3">Inspiração tecnológica</p>
-                        <h3 className="text-xl md:text-2xl font-bold text-white">
+                        <p className="text-xs text-foreground/30 font-semibold tracking-widest uppercase mb-3">Inspiração tecnológica</p>
+                        <h3 className="text-xl md:text-2xl font-bold text-foreground">
                             Tecnologia Inspirada em Padrões de Clubes Internacionais
                         </h3>
                     </div>
@@ -378,11 +378,11 @@ export default function Dashboard() {
                                         loading="lazy"
                                     />
                                 </div>
-                                <span className="text-[10px] text-white/25 font-medium tracking-wide">{club.country}</span>
+                                <span className="text-[10px] text-foreground/25 font-medium tracking-wide">{club.country}</span>
                             </div>
                         ))}
                     </div>
-                    <p className="text-xs text-white/20 max-w-xl mx-auto leading-relaxed">
+                    <p className="text-xs text-foreground/20 max-w-xl mx-auto leading-relaxed">
                         Modelos de análise de desempenho utilizados por clubes que investem fortemente em dados
                         e tecnologia no futebol moderno.
                     </p>
@@ -390,7 +390,7 @@ export default function Dashboard() {
 
                 {/* ─── BOTÃO PRINCIPAL ─── */}
                 <section className="flex flex-col items-center text-center space-y-5">
-                    <p className="text-sm text-white/30 uppercase tracking-widest font-semibold">Tudo pronto. É hora de dar o próximo passo.</p>
+                    <p className="text-sm text-foreground/30 uppercase tracking-widest font-semibold">Tudo pronto. É hora de dar o próximo passo.</p>
                     <button
                         onClick={() => navigate("/onboarding")}
                         className="group relative inline-flex items-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-lg px-10 py-5 rounded-2xl transition-all duration-200 shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] active:scale-95"
@@ -399,16 +399,16 @@ export default function Dashboard() {
                         INICIAR MINHA ANÁLISE
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
-                    <p className="text-xs text-white/20">Processo rápido. Resultado permanente.</p>
+                    <p className="text-xs text-foreground/20">Processo rápido. Resultado permanente.</p>
                 </section>
 
                 {/* ─── CONEXÃO EMOCIONAL ─── */}
-                <section className="rounded-3xl border border-white/5 bg-gradient-to-br from-white/3 to-transparent p-8 md:p-12 text-center space-y-4">
+                <section className="rounded-3xl border border-foreground/5 bg-gradient-to-br from-white/3 to-transparent p-8 md:p-12 text-center space-y-4">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto">
                         <Star className="w-5 h-5 text-black" />
                     </div>
                     <h3 className="text-2xl md:text-3xl font-black">Você Está Dando o Próximo Passo</h3>
-                    <p className="text-white/50 max-w-xl mx-auto leading-relaxed">
+                    <p className="text-foreground/50 max-w-xl mx-auto leading-relaxed">
                         Cada grande jogador começou com uma avaliação. O que separa atletas comuns dos que chegam ao alto nível é a decisão de evoluir com método, dados e direcionamento estratégico.
                     </p>
                 </section>
@@ -416,20 +416,20 @@ export default function Dashboard() {
                 {/* ─── DEPOIMENTOS ─── */}
                 <section className="space-y-8">
                     <div className="text-center">
-                        <p className="text-xs text-white/30 font-semibold tracking-widest uppercase mb-2">Resultados reais</p>
+                        <p className="text-xs text-foreground/30 font-semibold tracking-widest uppercase mb-2">Resultados reais</p>
                         <h3 className="text-xl md:text-2xl font-bold">Atletas Que Tomaram a Decisão</h3>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {TESTIMONIALS.map((t) => (
-                            <div key={t.name} className="rounded-2xl border border-white/5 bg-white/3 p-6 flex flex-col gap-5 hover:border-white/10 transition-all">
-                                <p className="text-sm text-white/70 leading-relaxed italic">"{t.text}"</p>
-                                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-white/5">
-                                    <div className={`w-10 h-10 rounded-full ${t.color} flex items-center justify-center text-white text-sm font-bold flex-shrink-0`}>
+                            <div key={t.name} className="rounded-2xl border border-foreground/5 bg-foreground/3 p-6 flex flex-col gap-5 hover:border-foreground/10 transition-all">
+                                <p className="text-sm text-foreground/70 leading-relaxed italic">"{t.text}"</p>
+                                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-foreground/5">
+                                    <div className={`w-10 h-10 rounded-full ${t.color} flex items-center justify-center text-foreground text-sm font-bold flex-shrink-0`}>
                                         {t.initials}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-white">{t.name}</p>
-                                        <p className="text-xs text-white/40">{t.position} · {t.club}</p>
+                                        <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                                        <p className="text-xs text-foreground/40">{t.position} · {t.club}</p>
                                     </div>
                                 </div>
                             </div>
@@ -438,9 +438,9 @@ export default function Dashboard() {
                 </section>
 
                 {/* ─── FOOTER ─── */}
-                <footer className="text-center py-8 border-t border-white/5 space-y-4">
-                    <p className="text-xs text-white/20">© 2026 Zyron. Todos os direitos reservados.</p>
-                    <div className="max-w-2xl mx-auto text-[10px] text-white/15 leading-relaxed space-y-2 text-left">
+                <footer className="text-center py-8 border-t border-foreground/5 space-y-4">
+                    <p className="text-xs text-foreground/20">© 2026 Zyron. Todos os direitos reservados.</p>
+                    <div className="max-w-2xl mx-auto text-[10px] text-foreground/15 leading-relaxed space-y-2 text-left">
                         <p>A Zyron é uma plataforma AI-Based de análise de performance esportiva. As avaliações, projeções, estimativas salariais e recomendações de clubes são geradas por modelos algorítmicos com base nas informações e vídeos fornecidos pelo próprio atleta.</p>
                         <p>A Zyron não representa, não garante contrato, aprovação, convocação, teste ou vínculo profissional com qualquer clube, federação ou entidade esportiva.</p>
                         <p>O desenvolvimento esportivo, evolução técnica, oportunidades e eventuais resultados dependem exclusivamente do desempenho, dedicação, condições individuais e decisões do próprio atleta.</p>
