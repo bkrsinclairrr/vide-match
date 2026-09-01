@@ -46,18 +46,6 @@ const STEPS = [
   { icon: MapPin, label: "Quase lá!", desc: "Localização" },
 ];
 
-// ── Color tokens ─────────────────────────────────────────────────────────────
-// BG: #0D0D0F (warm near-black, easier on eyes than pure #000)
-// Primary: amber-400 (#FBBF24) — action, selected, progress
-// Success: emerald-400 (#34D399) — completed steps
-// Surface: white/4 — card backgrounds
-// Border default: white/8
-// Border focus: amber-400/60
-// Text primary: white
-// Text secondary: white/60
-// Text hint: white/35
-
-// Input style — solid concrete dark bg so white text is always legible
 const inputStyle = {
   background: "#1E1E22",
   border: "1px solid rgba(255,255,255,0.10)",
@@ -70,11 +58,9 @@ const inputCls = [
   "transition-all duration-200"
 ].join(" ");
 
-// Select dropdown — same solid bg
 const selectTriggerCls = "h-12 rounded-xl text-base text-white focus:ring-amber-400/60 focus:border-amber-400/50";
 const selectTriggerStyle = { background: "#1E1E22", border: "1px solid rgba(255,255,255,0.10)" };
 
-// Required field label with amber dot
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center gap-1.5 mb-2">
     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
@@ -82,7 +68,6 @@ const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-// Pill selector button (Step 1 foot selection, used elsewhere)
 const PillBtn = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
   <button type="button" onClick={onClick}
     className={[
@@ -109,7 +94,6 @@ const Onboarding = () => {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Scroll to top whenever step changes (critical for mobile UX)
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
@@ -125,15 +109,41 @@ const Onboarding = () => {
         setIsLoading(false);
         return;
       }
-      const { error } = await supabase.from('Atletas').upsert([{
+
+      const payload = {
         user_id: user.id,
-        nome: playerData.name, idade: parseInt(playerData.age),
-        altura: parseFloat(playerData.height), peso: parseFloat(playerData.weight),
-        melhor_pe: playerData.preferredFoot, nacionalidade: playerData.nationality,
-        posicao: playerData.position, cidade: playerData.city,
-      }], { onConflict: 'user_id' });
+        nome: playerData.name,
+        idade: parseInt(playerData.age),
+        altura: parseFloat(playerData.height),
+        peso: parseFloat(playerData.weight),
+        melhor_pe: playerData.preferredFoot,
+        nacionalidade: playerData.nationality,
+        posicao: playerData.position,
+        cidade: playerData.city,
+      };
+
+      const { data: existingRows, error: fetchError } = await supabase
+        .from('Atletas')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (fetchError) {
+        console.error('Supabase fetch error:', fetchError);
+        toast({ title: "Erro ao verificar cadastro", description: fetchError.message, variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+
+      const existing = existingRows?.[0];
+
+      const { error } = existing
+        ? await supabase.from('Atletas').update(payload).eq('id', existing.id)
+        : await supabase.from('Atletas').insert([payload]);
+
       if (error) {
-        console.error('Supabase insert error:', error);
+        console.error('Supabase save error:', error);
         toast({ title: "Erro ao salvar dados", description: error.message, variant: "destructive" });
         setIsLoading(false);
         return;
@@ -176,7 +186,6 @@ const Onboarding = () => {
   return (
     <div className="text-white font-sans antialiased" style={{ background: "#0D0D0F", minHeight: "100svh" }}>
 
-      {/* ── Header ── */}
       <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-xl" style={{ background: "rgba(13,13,15,0.92)" }}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}
@@ -191,7 +200,6 @@ const Onboarding = () => {
             <span className="font-bold text-sm tracking-tight">ZYRON</span>
           </div>
 
-          {/* Step counter with semantic color */}
           <div className="flex items-center gap-1">
             {Array.from({ length: totalSteps }).map((_, i) => (
               <div key={i} className={[
@@ -204,7 +212,6 @@ const Onboarding = () => {
           </div>
         </div>
 
-        {/* Progress bar: amber → emerald gradient as you advance */}
         <div className="h-0.5 bg-white/5">
           <div
             className="h-full transition-all duration-700 ease-out"
@@ -218,10 +225,8 @@ const Onboarding = () => {
         </div>
       </header>
 
-      {/* ── Step indicator ── */}
       <div className="max-w-lg mx-auto w-full px-4 pt-5 pb-3">
         <div className="flex items-center gap-3">
-          {/* Icon badge — amber when active */}
           <div className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-[0_0_20px_rgba(251,191,36,0.2)]"
             style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.18), rgba(251,120,0,0.10))", border: "1px solid rgba(251,191,36,0.25)" }}>
             <StepIcon className="w-5 h-5 text-amber-400" />
@@ -230,7 +235,6 @@ const Onboarding = () => {
             <p className="text-[10px] text-white/35 uppercase tracking-widest font-semibold">{STEPS[step - 1].desc}</p>
             <h2 className="text-lg font-black leading-tight">{STEPS[step - 1].label}</h2>
           </div>
-          {/* Completed badge — emerald signals "done" semantically */}
           {completedSteps > 0 && (
             <div className="ml-auto flex items-center gap-1.5 border rounded-full px-2.5 py-1"
               style={{ background: "rgba(52,211,153,0.08)", borderColor: "rgba(52,211,153,0.25)" }}>
@@ -241,15 +245,12 @@ const Onboarding = () => {
         </div>
       </div>
 
-      {/* ── Form content ── */}
       <main className="max-w-lg mx-auto w-full px-4 pb-8">
         <div className="rounded-3xl p-6 space-y-5 animate-fade-in"
           style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}>
 
-          {/* ── STEP 1 — Optimized ── */}
           {step === 1 && (
             <>
-              {/* Photo upload — larger, prominent */}
               <div className="flex flex-col items-center pt-1 pb-2">
                 <button onClick={() => fileInputRef.current?.click()} className="relative group">
                   <div
@@ -284,14 +285,12 @@ const Onboarding = () => {
                 </p>
               </div>
 
-              {/* Subtle divider */}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
                 <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: "rgba(255,255,255,0.22)" }}>dados do atleta</span>
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
               </div>
 
-              {/* Name */}
               <div>
                 <FieldLabel>Nome completo</FieldLabel>
                 <input
@@ -303,7 +302,6 @@ const Onboarding = () => {
                 />
               </div>
 
-              {/* Age / Height / Weight — with floating unit label */}
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { label: "Idade", key: "age", placeholder: "22", unit: "anos" },
@@ -330,7 +328,6 @@ const Onboarding = () => {
                 ))}
               </div>
 
-              {/* Preferred foot */}
               <div>
                 <FieldLabel>Melhor pé</FieldLabel>
                 <div className="grid grid-cols-3 gap-2">
@@ -348,7 +345,6 @@ const Onboarding = () => {
             </>
           )}
 
-          {/* ── STEP 2 — Nationality ── */}
           {step === 2 && (
             <div className="space-y-5">
               <div>
@@ -392,7 +388,6 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* ── STEP 3 — Position ── */}
           {step === 3 && (
             <div>
               <FieldLabel>Posição principal</FieldLabel>
@@ -403,7 +398,6 @@ const Onboarding = () => {
                 </SelectContent>
               </Select>
 
-              {/* Visual confirmation when selected */}
               {playerData.position && (
                 <div className="mt-3 flex items-center gap-2 rounded-xl px-4 py-3 animate-fade-in"
                   style={{ background: "rgba(52,211,153,0.07)", border: "1px solid rgba(52,211,153,0.2)" }}>
@@ -414,7 +408,6 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* ── STEP 4 — Category ── */}
           {step === 4 && (
             <div className="space-y-4">
               <div>
@@ -427,11 +420,9 @@ const Onboarding = () => {
                 </Select>
               </div>
 
-              {/* Category info cards */}
               {playerData.category && (() => {
                 const cat = playerData.category;
 
-                // Sub 6–10: Formação inicial
                 if (["Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10"].includes(cat)) return (
                   <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
                     <p className="text-xs text-white/40 leading-relaxed">
@@ -441,7 +432,6 @@ const Onboarding = () => {
                   </div>
                 );
 
-                // Sub 11–13: Desenvolvimento
                 if (["Sub 11", "Sub 12", "Sub 13"].includes(cat)) return (
                   <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
                     <p className="text-xs text-white/40 leading-relaxed">
@@ -451,7 +441,6 @@ const Onboarding = () => {
                   </div>
                 );
 
-                // Sub 14–15: Pré-competitivo
                 if (["Sub 14", "Sub 15"].includes(cat)) return (
                   <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
                     <p className="text-xs text-white/40 leading-relaxed">
@@ -461,7 +450,6 @@ const Onboarding = () => {
                   </div>
                 );
 
-                // Sub 16–19: Base nacional com faixa salarial
                 if (["Sub 16", "Sub 17", "Sub 18", "Sub 19"].includes(cat)) return (
                   <div className="p-4 rounded-xl border border-amber-400/20 bg-amber-400/5 animate-fade-in">
                     <div className="space-y-2">
@@ -478,7 +466,6 @@ const Onboarding = () => {
                   </div>
                 );
 
-                // Sub 20: Transição profissional
                 if (cat === "Sub 20") return (
                   <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 animate-fade-in">
                     <div className="space-y-2">
@@ -498,8 +485,6 @@ const Onboarding = () => {
             </div>
           )}
 
-
-          {/* ── STEP 5 — Location ── */}
           {step === 5 && (
             <div className="space-y-4">
               <div>
@@ -523,7 +508,6 @@ const Onboarding = () => {
                 </div>
               )}
 
-              {/* Location context tip */}
               <div className="rounded-xl px-4 py-3 flex items-start gap-2"
                 style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.15)" }}>
                 <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
@@ -535,7 +519,6 @@ const Onboarding = () => {
           )}
         </div>
 
-        {/* ── CTA — directly below form, no floating ── */}
         <div className="mt-4 pb-4 space-y-2">
           <button
             onClick={handleNext}
