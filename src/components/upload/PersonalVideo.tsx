@@ -69,15 +69,13 @@ const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => 
             className="mt-0.5 shrink-0"
           />
           <Label htmlFor="consent" className="text-xs font-normal text-muted-foreground leading-relaxed cursor-pointer">
-            {isMinor ? (
+            {isMinor && (
               <>
                 Confirmo, como responsável legal por{" "}
-                <span className="text-foreground font-medium">{athleteName || "este atleta"}</span>, que autorizo o envio deste vídeo para análise pela Zyron.
+                <span className="text-foreground font-medium">{athleteName || "este atleta"}</span>, que autorizo o envio deste vídeo para análise pela Zyron.{" "}
               </>
-            ) : (
-              <>Confirmo que este vídeo é meu e autorizo sua análise pela Zyron.</>
-            )}{" "}
-            Declaro ainda que li e concordo com os{" "}
+            )}
+            Declaro que li e concordo com os{" "}
             <a href="/termos" target="_blank" rel="noopener noreferrer"
               className="underline underline-offset-4 hover:text-foreground transition-colors">Termos de Uso</a> e a{" "}
             <a href="/privacidade" target="_blank" rel="noopener noreferrer"
