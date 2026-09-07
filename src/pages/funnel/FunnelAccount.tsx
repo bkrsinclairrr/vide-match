@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Zap, Mail, Lock, User, ArrowRight, ArrowLeft, ShieldCheck,
-  CheckCircle2, BarChart3, Trophy, MailCheck,
+  CheckCircle2, BarChart3, Trophy,
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
@@ -26,7 +26,6 @@ export default function FunnelAccount() {
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const [pendingConfirmation, setPendingConfirmation] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList.add("dark")
@@ -64,16 +63,19 @@ export default function FunnelAccount() {
       return
     }
 
-    // Projeto sem confirmação obrigatória: a sessão já vem pronta.
+    // Fluxo esperado no funil: a sessão já vem pronta, sem passar por
+    // confirmação de e-mail (isso é configurado no projeto Supabase, em
+    // Authentication → Sign In / Up → "Confirm email" desativado).
     if (data.session) {
       setIsSubmitting(false)
       goToResult()
       return
     }
 
-    // Sem sessão: pode ser confirmação obrigatória. Tenta entrar direto —
-    // se o projeto não exigir confirmação, isso resolve na hora.
-    const { data: signInData } = await supabase.auth.signInWithPassword({ email, password })
+    // Tenta entrar direto mesmo assim — cobre o caso de o projeto ainda
+    // exigir confirmação: sem isso a pessoa ficaria numa conta criada mas
+    // sem sessão nenhuma, sem explicação.
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     setIsSubmitting(false)
 
     if (signInData?.session) {
@@ -81,7 +83,14 @@ export default function FunnelAccount() {
       return
     }
 
-    setPendingConfirmation(true)
+    // Continua bloqueado do lado do Supabase: deixa a pessoa na aba
+    // "Já tenho conta", pronta para tentar de novo, sem mencionar
+    // confirmação de e-mail nem prendê-la numa tela à parte.
+    setMode("login")
+    toast({
+      title: "Conta criada",
+      description: signInError?.message || "Use o e-mail e a senha para entrar.",
+    })
   }
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -106,49 +115,6 @@ export default function FunnelAccount() {
       setGoogleLoading(false)
       toast({ title: "Erro ao entrar com Google", description: error.message, variant: "destructive" })
     }
-  }
-
-  const retryAfterConfirmation = async () => {
-    setIsSubmitting(true)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    setIsSubmitting(false)
-    if (data?.session) {
-      goToResult()
-      return
-    }
-    toast({
-      title: "Ainda não confirmado",
-      description: error?.message || "Confirme o e-mail pelo link que enviamos e tente de novo.",
-      variant: "destructive",
-    })
-  }
-
-  /* ─── Estado: aguardando confirmação de e-mail ─── */
-  if (pendingConfirmation) {
-    return (
-      <div className="min-h-screen text-white font-sans antialiased flex flex-col items-center justify-center px-4" style={{ background: "#0D0D0F" }}>
-        <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center space-y-5">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center mx-auto">
-            <MailCheck className="w-7 h-7 text-black" />
-          </div>
-          <h1 className="text-2xl font-black">Confirme seu e-mail</h1>
-          <p className="text-sm text-white/75 leading-relaxed">
-            Enviamos um link de confirmação para <strong className="text-white">{email}</strong>. Abra o link e seu relatório de performance é liberado na hora.
-          </p>
-          <button
-            onClick={retryAfterConfirmation}
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 py-3.5 font-black text-black transition-all hover:from-amber-300 hover:to-amber-400 active:scale-[0.98] disabled:opacity-60"
-          >
-            {isSubmitting ? "Verificando..." : "Já confirmei, liberar resultado"}
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <p className="text-xs text-white/50">
-            Não recebeu? Verifique a caixa de spam. O link chega em até 2 minutos.
-          </p>
-        </div>
-      </div>
-    )
   }
 
   return (
