@@ -4,6 +4,23 @@ import { Trophy, Lock, Eye, EyeOff, ShieldCheck } from "lucide-react"
 const GATE_KEY = "zyron_access_granted"
 const ACCESS_PASSWORD = "@Zyron2025"
 
+/**
+ * Rotas do funil aberto (/avaliacao). Elas passam por fora do portão de
+ * beta de propósito: o funil existe para captar quem ainda não conhece a
+ * plataforma, então exigir a senha de influenciador ali anularia o
+ * objetivo dele. O resto do site continua fechado normalmente.
+ *
+ * A checagem é feita no window.location porque o GateKeeper roda por fora
+ * do Router — ele envolve a aplicação inteira.
+ */
+const OPEN_PATHS = ["/avaliacao", "/termos", "/privacidade"]
+
+const isOpenPath = () => {
+  if (typeof window === "undefined") return false
+  const path = window.location.pathname
+  return OPEN_PATHS.some((open) => path === open || path.startsWith(open + "/"))
+}
+
 interface GateKeeperProps {
   children: ReactNode
 }
@@ -45,7 +62,7 @@ export default function GateKeeper({ children }: GateKeeperProps) {
 
   if (checking) return null
 
-  if (granted) return <>{children}</>
+  if (granted || isOpenPath()) return <>{children}</>
 
   return (
     <div

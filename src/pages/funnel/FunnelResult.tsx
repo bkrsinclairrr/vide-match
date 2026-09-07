@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Zap, Trophy, Shield, Target, Activity, Flame, Users, Globe2, Cpu, Database,
-  Star, CheckCircle2, MessageCircle, ArrowRight, Sparkles,
+  CheckCircle2, MessageCircle, ArrowRight, Sparkles,
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
@@ -278,16 +278,6 @@ export default function FunnelResult() {
             <Sparkles className="w-3 h-3" />
             A mensagem já vai preenchida com os seus dados — é só enviar.
           </p>
-        </section>
-
-        <section className="text-center">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white/80 transition-all hover:border-amber-400/40 hover:text-white"
-          >
-            <Star className="w-4 h-4 text-amber-400" />
-            Acessar minha conta na plataforma
-          </button>
         </section>
 
         <footer className="text-center py-6 border-t border-white/10 space-y-3">

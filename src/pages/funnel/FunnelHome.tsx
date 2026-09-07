@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import {
     Zap, Globe2, BarChart3, Users, TrendingUp, ArrowRight,
-    Shield, Star, Activity, Target, Quote, MapPin, Heart, LogIn
+    Shield, Star, Activity, Target, Quote, MapPin, Heart
 } from "lucide-react"
 import { useScrollReveal, useSmoothScroll } from "@/hooks/useScrollAnimations"
 import {
@@ -182,13 +182,6 @@ export default function FunnelHome() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <Link
-                            to="/login"
-                            className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-foreground/12 bg-foreground/6 px-3.5 py-2 text-sm text-foreground/85 transition-all hover:border-amber-400/40 hover:bg-foreground/10"
-                        >
-                            <LogIn className="w-3.5 h-3.5" />
-                            Já tenho conta
-                        </Link>
                         <button
                             onClick={start}
                             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-sm font-bold text-black transition-all hover:from-amber-300 hover:to-amber-400 active:scale-95"
