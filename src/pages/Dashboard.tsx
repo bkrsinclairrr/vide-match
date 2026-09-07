@@ -19,8 +19,8 @@ const CLUBS = [
         country: "Inglaterra",
     },
     {
-        name: "Real Betis",
-        logo: "/clubs/real-betis.svg",
+        name: "Villarreal CF",
+        logo: "https://upload.wikimedia.org/wikipedia/en/b/b9/Villarreal_CF_logo-en.svg",
         country: "Espanha",
     },
     {

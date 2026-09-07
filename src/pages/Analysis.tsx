@@ -48,7 +48,7 @@ const BADGE_URLS = [
   "https://upload.wikimedia.org/wikipedia/en/thumb/c/c2/West_Ham_United_FC_logo.svg/100px-West_Ham_United_FC_logo.svg.png",
   "https://upload.wikimedia.org/wikipedia/en/thumb/3/3b/Sevilla_FC_logo.svg/100px-Sevilla_FC_logo.svg.png",
   "https://upload.wikimedia.org/wikipedia/en/thumb/f/f7/AS_Roma_logo_%282017%29.svg/100px-AS_Roma_logo_%282017%29.svg.png",
-  "/clubs/real-betis.svg",
+  "https://upload.wikimedia.org/wikipedia/en/b/b9/Villarreal_CF_logo-en.svg",
   "https://upload.wikimedia.org/wikipedia/en/thumb/d/d8/SL_Benfica_logo.svg/100px-SL_Benfica_logo.svg.png",
   "https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/FC_Porto.svg/100px-FC_Porto.svg.png",
   "https://upload.wikimedia.org/wikipedia/en/thumb/7/79/Ajax_Amsterdam.svg/100px-Ajax_Amsterdam.svg.png",
