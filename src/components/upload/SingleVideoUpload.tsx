@@ -19,12 +19,6 @@ const SingleVideoUpload = ({ onBack, onContinue, playerId }: SingleVideoUploadPr
           <ArrowLeft className="w-4 h-4 mr-1" />Voltar
         </Button>
         <h2 className="text-lg font-bold text-foreground">Envie seu vídeo compilado</h2>
-        <p className="text-xs text-muted-foreground mt-1">
-          O vídeo deve conter todos os fundamentos. Duração máxima de 10 minutos.
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Nomeie como: <code className="text-primary">{playerId}_compilado.mp4</code>
-        </p>
       </div>
 
       <div className="bg-muted/30 rounded-xl p-3 text-xs space-y-1 border border-border">
