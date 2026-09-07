@@ -86,17 +86,34 @@ const Onboarding = () => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [playerData, setPlayerData] = useState({
-    name: "", age: "", height: "", weight: "",
-    preferredFoot: "", nationality: "", position: "",
-    state: "", city: "", photo: "", category: "Sub 16",
-    hasDualCitizenship: "", dualCitizenshipCountry: ""
+  const [playerData, setPlayerData] = useState(() => {
+    const defaults = {
+      name: "", age: "", height: "", weight: "",
+      preferredFoot: "", nationality: "", position: "",
+      state: "", city: "", photo: "", category: "Sub 16",
+      hasDualCitizenship: "", dualCitizenshipCountry: ""
+    };
+    try {
+      const saved = JSON.parse(localStorage.getItem('playerData') || 'null');
+      return saved ? { ...defaults, ...saved } : defaults;
+    } catch {
+      return defaults;
+    }
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
+
+  // Mantém o localStorage sempre sincronizado com o valor atual de cada campo
+  // (idade incluída) — não espera o envio final do formulário para persistir,
+  // evitando que um valor desatualizado (ex: idade de um preenchimento anterior)
+  // sobreviva caso o fluxo seja interrompido antes da última etapa.
+  useEffect(() => {
+    localStorage.setItem('playerData', JSON.stringify(playerData));
+  }, [playerData]);
+
   const totalSteps = 5;
 
   const savePlayerData = async () => {
