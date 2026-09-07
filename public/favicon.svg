@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Zyron">
+  <defs>
+    <linearGradient id="zBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#26262E" />
+      <stop offset="100%" stop-color="#0C0C0F" />
+    </linearGradient>
+    <linearGradient id="zMark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#C9CBD2" />
+    </linearGradient>
+  </defs>
+
+  <!-- Placa: quadrado arredondado grafite, com aro claro para o contorno
+       não sumir quando a aba do navegador também for escura. -->
+  <rect x="1.5" y="1.5" width="61" height="61" rx="16" fill="url(#zBg)" />
+  <rect x="1.5" y="1.5" width="61" height="61" rx="16" fill="none"
+        stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="1.5" />
+
+  <!-- Z geométrico: a diagonal é cortada em ângulo para o traço ler
+       também como um raio, mantendo o gesto da marca sem cor. -->
+  <path
+    d="M18 16 L46 16 L46 25.5 L30.5 38.5 L46 38.5 L46 48 L18 48 L18 38.5 L33.5 25.5 L18 25.5 Z"
+    fill="url(#zMark)" />
+</svg>

@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag,
 import { useStepTransition } from "@/hooks/useScrollAnimations"
 import { CATEGORIES, POSITIONS, STATES, COUNTRIES } from "@/data/football"
 import { FUNNEL_ROUTES, loadPlayerData, savePlayerData, type PlayerData } from "@/lib/funnel"
+import FunnelLegalMenu from "./FunnelLegalMenu"
 
 const STEPS = [
   { icon: User, label: "Vamos te conhecer", desc: "Informações básicas" },
@@ -128,15 +129,18 @@ export default function FunnelProfile() {
             <span className="font-bold text-sm tracking-tight">ZYRON</span>
           </div>
 
-          <div className="flex items-center gap-1">
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <div key={i} className={[
-                "rounded-full transition-all duration-500",
-                i < completedSteps ? "w-2 h-2 bg-emerald-400" :
-                  i === step - 1 ? "w-2 h-2 bg-amber-400" :
-                    "w-1.5 h-1.5 bg-white/30",
-              ].join(" ")} />
-            ))}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+                <div key={i} className={[
+                  "rounded-full transition-all duration-500",
+                  i < completedSteps ? "w-2 h-2 bg-emerald-400" :
+                    i === step - 1 ? "w-2 h-2 bg-amber-400" :
+                      "w-1.5 h-1.5 bg-white/30",
+                ].join(" ")} />
+              ))}
+            </div>
+            <FunnelLegalMenu tone="white" />
           </div>
         </div>
 

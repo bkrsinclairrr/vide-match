@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { FUNNEL_ROUTES, loadPlayerData, isProfileComplete } from "@/lib/funnel"
+import FunnelLegalMenu from "./FunnelLegalMenu"
 
 type Mode = "signup" | "login"
 
@@ -164,7 +165,7 @@ export default function FunnelAccount() {
             </div>
             <span className="font-bold text-sm tracking-tight">ZYRON</span>
           </div>
-          <div className="w-9" />
+          <FunnelLegalMenu tone="white" />
         </div>
         <div className="h-0.5" style={{ background: "linear-gradient(to right, #FBBF24, #34D399)" }} />
       </header>

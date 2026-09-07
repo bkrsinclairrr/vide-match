@@ -1,55 +1,62 @@
 {
-  "name": "ScoutMatch - Análise Futebolística",
-  "short_name": "ScoutMatch",
-  "description": "Análise de performance futebolística com match automático de clubes",
+  "name": "Zyron — Análise de Performance",
+  "short_name": "Zyron",
+  "description": "Análise de performance futebolística com relatório técnico individual.",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#22c55e",
-  "background_color": "#ffffff",
+  "theme_color": "#0D0D0F",
+  "background_color": "#0D0D0F",
   "orientation": "portrait-primary",
   "categories": ["sports", "utilities"],
   "lang": "pt-BR",
   "icons": [
     {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
       "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
+      "sizes": "48x48 32x32 16x16",
       "type": "image/x-icon"
     },
     {
       "src": "/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
+      "name": "Avaliação gratuita",
+      "short_name": "Avaliação",
+      "url": "/avaliacao",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "Nova Análise",
       "short_name": "Análise",
       "url": "/upload",
-      "icons": [
-        {
-          "src": "/favicon.ico",
-          "sizes": "96x96"
-        }
-      ]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Histórico",
-      "short_name": "Histórico", 
+      "short_name": "Histórico",
       "url": "/history",
-      "icons": [
-        {
-          "src": "/favicon.ico",
-          "sizes": "96x96"
-        }
-      ]
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

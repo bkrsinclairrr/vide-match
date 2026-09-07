@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Zap, Trophy, Shield, Target, Activity, Flame, Users, Globe2, Cpu, Database,
-  CheckCircle2, MessageCircle, ArrowRight, Sparkles,
+  CheckCircle2, MessageCircle, ArrowRight, Sparkles, Lock,
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
@@ -10,6 +10,7 @@ import {
   FUNNEL_ROUTES, loadPlayerData, isProfileComplete,
   buildStats, overallFrom, buildWhatsAppLink, type PlayerData,
 } from "@/lib/funnel"
+import FunnelLegalMenu from "./FunnelLegalMenu"
 
 const STAT_ICONS: Record<string, typeof Flame> = {
   ataque: Flame, defesa: Shield, chute: Target, dominio: Activity, marcacao: Users,
@@ -115,7 +116,10 @@ export default function FunnelResult() {
     [user?.email, player.name]
   )
   const overall = useMemo(() => overallFrom(stats), [stats])
-  const whatsappLink = useMemo(() => buildWhatsAppLink(player, overall), [player, overall])
+
+  // A nota NÃO entra na mensagem: ela aparece borrada na tela, e mandá-la
+  // no texto do WhatsApp entregaria de graça justamente o que está velado.
+  const whatsappLink = useMemo(() => buildWhatsAppLink(player), [player])
 
   const firstName = player.name?.trim().split(" ")[0] || "Atleta"
   const avatarUrl = player.photo || user?.user_metadata?.avatar_url
@@ -162,9 +166,12 @@ export default function FunnelResult() {
             </div>
             <span className="font-bold text-sm tracking-tight">ZYRON</span>
           </div>
-          <span className="text-xs text-white/60 font-semibold uppercase tracking-widest hidden sm:block">
-            Relatório de Performance
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/60 font-semibold uppercase tracking-widest hidden sm:block">
+              Relatório de Performance
+            </span>
+            <FunnelLegalMenu tone="white" />
+          </div>
         </div>
       </header>
 
@@ -191,35 +198,67 @@ export default function FunnelResult() {
             </div>
           </div>
 
-          <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)] mb-4">
-            <span className="text-5xl font-black text-black leading-none">{overall}</span>
-            <span className="text-xs font-bold text-black/70 mt-1">GERAL</span>
+          {/* Nota geral: existe, está calculada, mas fica velada até o
+              contato com a equipe. O número real é renderizado borrado —
+              a silhueta do valor aparece, o dígito não se lê. */}
+          <div className="relative w-32 h-32 mb-4">
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)] overflow-hidden">
+              <span
+                aria-hidden="true"
+                className="text-5xl font-black text-black leading-none blur-[14px] select-none"
+              >
+                {overall}
+              </span>
+              <span className="text-xs font-bold text-black/70 mt-1">GERAL</span>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center pt-1">
+              <div className="w-11 h-11 rounded-2xl bg-black/55 backdrop-blur-[2px] flex items-center justify-center ring-1 ring-black/20">
+                <Lock className="w-5 h-5 text-amber-200" />
+              </div>
+            </div>
           </div>
-          <h1 className="text-2xl font-black mb-1">Performance Geral do Atleta</h1>
-          <p className="text-white/60 text-sm max-w-md">
-            Baseado nas informações individuais que você informou e na análise do seu perfil técnico.
+          <h1 className="text-2xl font-black mb-1">Sua análise está pronta</h1>
+          <p className="text-white/70 text-sm max-w-md">
+            Os {stats.length} indicadores já foram calculados a partir do seu perfil. A liberação do relatório é feita pela nossa equipe.
           </p>
         </section>
 
-        {/* Indicadores */}
+        {/* Indicadores — o QUE foi medido fica visível; QUANTO deu, não.
+            Rótulo e descrição nítidos dão a dimensão do relatório; a nota
+            e a barra saem borradas até a liberação. */}
         <section>
-          <h2 className="text-sm font-semibold text-white/60 uppercase tracking-widest mb-4">Indicadores Individuais</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white/60 uppercase tracking-widest">Indicadores Individuais</h2>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+              <Lock className="w-3 h-3" />
+              {stats.length} bloqueados
+            </span>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {stats.map((s) => {
               const Icon = STAT_ICONS[s.key] || Activity
               const pct = ((s.score - 76) / 19) * 100
               return (
-                <div key={s.key} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 flex items-start gap-4 transition-all hover:border-amber-400/30">
+                <div key={s.key} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-amber-500/12 flex items-center justify-center flex-shrink-0">
                     <Icon className="w-4 h-4 text-amber-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold">{s.label}</span>
-                      <span className="text-sm font-black text-amber-400">{s.score}</span>
+                      <span
+                        aria-hidden="true"
+                        className="text-sm font-black text-amber-400 blur-[5px] select-none tabular-nums"
+                      >
+                        {s.score}
+                      </span>
                     </div>
-                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-1.5">
-                      <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden mb-1.5">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-500/70 to-amber-300/70 rounded-full blur-[3px]"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                     <p className="text-xs text-white/55 leading-snug">{s.desc}</p>
                   </div>
@@ -227,6 +266,11 @@ export default function FunnelResult() {
               )
             })}
           </div>
+
+          <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-white/55">
+            <Lock className="w-3 h-3" />
+            Valores ocultos até a liberação do relatório
+          </p>
         </section>
 
         {/* Resumo do perfil informado */}
@@ -257,10 +301,10 @@ export default function FunnelResult() {
             <MessageCircle className="w-7 h-7 text-black" />
           </div>
           <h3 className="text-2xl md:text-3xl font-black tracking-tight">
-            Fale com a equipe Zyron
+            Libere seu relatório completo
           </h3>
           <p className="text-white/75 max-w-lg mx-auto leading-relaxed">
-            Seu relatório completo, com a leitura detalhada de cada indicador e o direcionamento de clubes compatíveis com o seu perfil, é entregue pela nossa equipe no WhatsApp.
+            A entrega é feita pela nossa equipe no WhatsApp: sua nota geral, os {stats.length} indicadores abertos, a leitura de cada um e o direcionamento de clubes compatíveis com o seu perfil.
           </p>
 
           <a
@@ -270,7 +314,7 @@ export default function FunnelResult() {
             className="group inline-flex w-full sm:w-auto items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-8 py-4 text-base font-black text-black shadow-[0_0_40px_-8px_rgba(52,211,153,0.7)] transition-all hover:from-emerald-300 hover:to-emerald-400 active:scale-95"
           >
             <MessageCircle className="w-5 h-5" />
-            RECEBER MEUS RESULTADOS
+            LIBERAR MEUS RESULTADOS
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </a>
 

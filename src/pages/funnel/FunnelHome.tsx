@@ -9,6 +9,7 @@ import {
     AvatarRosangela, AvatarMarcos, AvatarCleide, AvatarWagner, AvatarSimone,
 } from "@/components/ParentAvatars"
 import { FUNNEL_ROUTES } from "@/lib/funnel"
+import FunnelLegalMenu from "./FunnelLegalMenu"
 
 const PARENT_AVATARS = {
     rosangela: AvatarRosangela,
@@ -182,6 +183,7 @@ export default function FunnelHome() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <FunnelLegalMenu />
                         <button
                             onClick={start}
                             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-sm font-bold text-black transition-all hover:from-amber-300 hover:to-amber-400 active:scale-95"
