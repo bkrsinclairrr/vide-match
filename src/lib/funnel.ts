@@ -176,3 +176,37 @@ export function buildWhatsAppMessage(d: PlayerData, overall?: number): string {
 export function buildWhatsAppLink(d: PlayerData, overall?: number): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage(d, overall))}`
 }
+
+/* ------------------------------------------------------------------ */
+/* Mensagens de erro do Supabase Auth, traduzidas                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * O Supabase devolve erros em inglês, e alguns são bem técnicos pro
+ * público final (ex: "email rate limit exceeded" — o limite de 2 e-mails
+ * por hora do provedor embutido, que só sobe configurando SMTP próprio).
+ * Traduz os casos conhecidos; deixa passar os demais como vierem, porque
+ * ainda são mais úteis nítidos (ex: "User already registered") do que
+ * escondidos atrás de uma mensagem genérica.
+ */
+export function friendlyAuthError(message: string | undefined): string {
+  const m = (message || "").toLowerCase()
+
+  if (m.includes("email rate limit exceeded") || m.includes("over_email_send_rate_limit")) {
+    return "Muitos cadastros em pouco tempo. Espere alguns minutos e tente de novo."
+  }
+  if (m.includes("email not confirmed") || m.includes("email_not_confirmed")) {
+    return "Confirme seu cadastro para continuar. Toque em \"Já tenho conta\" e tente entrar novamente em instantes."
+  }
+  if (m.includes("already registered") || m.includes("user_already_exists")) {
+    return "Este e-mail já tem uma conta. Toque em \"Já tenho conta\" para entrar."
+  }
+  if (m.includes("invalid login credentials")) {
+    return "E-mail ou senha incorretos."
+  }
+  if (m.includes("password") && m.includes("6 character")) {
+    return "A senha precisa ter pelo menos 8 caracteres."
+  }
+
+  return message || "Algo deu errado. Tente novamente em instantes."
+}

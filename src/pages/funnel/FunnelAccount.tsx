@@ -7,7 +7,7 @@ import {
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
-import { FUNNEL_ROUTES, loadPlayerData, isProfileComplete } from "@/lib/funnel"
+import { FUNNEL_ROUTES, loadPlayerData, isProfileComplete, friendlyAuthError } from "@/lib/funnel"
 import FunnelLegalMenu from "./FunnelLegalMenu"
 
 type Mode = "signup" | "login"
@@ -59,7 +59,7 @@ export default function FunnelAccount() {
 
     if (error) {
       setIsSubmitting(false)
-      toast({ title: "Erro ao criar conta", description: error.message, variant: "destructive" })
+      toast({ title: "Erro ao criar conta", description: friendlyAuthError(error.message), variant: "destructive" })
       return
     }
 
@@ -89,7 +89,7 @@ export default function FunnelAccount() {
     setMode("login")
     toast({
       title: "Conta criada",
-      description: signInError?.message || "Use o e-mail e a senha para entrar.",
+      description: signInError ? friendlyAuthError(signInError.message) : "Use o e-mail e a senha para entrar.",
     })
   }
 
@@ -99,7 +99,7 @@ export default function FunnelAccount() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     setIsSubmitting(false)
     if (error) {
-      toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" })
+      toast({ title: "Erro ao entrar", description: friendlyAuthError(error.message), variant: "destructive" })
       return
     }
     goToResult()
