@@ -266,10 +266,10 @@ export default function FunnelResult() {
 
           {/* Nota geral: existe, está calculada, mas fica velada até o
               contato com a equipe. O número real é renderizado com um
-              borrão pesado — só a silhueta do valor aparece — e um brilho
-              varrendo por cima, pra ficar claro que é um dado pronto e
-              trancado, não um erro de carregamento. */}
-          <div className="zyron-locked relative w-32 h-32 mb-4">
+              borrão pesado — só a silhueta do valor aparece. Sem o brilho
+              animado aqui: nesse tamanho ele vazava para fora do cartão
+              arredondado (o wrapper não tem overflow-hidden). */}
+          <div className="relative w-32 h-32 mb-4">
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)] overflow-hidden">
               <span
                 aria-hidden="true"
