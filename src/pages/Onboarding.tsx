@@ -209,7 +209,7 @@ const Onboarding = () => {
   return (
     <div className="text-white font-sans antialiased" style={{ background: "#0D0D0F", minHeight: "100svh" }}>
 
-      <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-xl" style={{ background: "rgba(13,13,15,0.92)" }}>
+      <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-sm" style={{ background: "rgba(13,13,15,0.92)" }}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}
             className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/15 hover:border-white/30 bg-white/[0.06] hover:bg-white/10 transition-all">

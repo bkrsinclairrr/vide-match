@@ -391,7 +391,7 @@ export default function Dashboard() {
             <header
                 data-header-scrolled
                 data-scrolled="false"
-                className="group sticky top-0 z-40 w-full border-b border-foreground/8 bg-background/70 backdrop-blur-xl transition-colors duration-300 data-[scrolled=true]:border-foreground/14 data-[scrolled=true]:bg-background/92"
+                className="group sticky top-0 z-40 w-full border-b border-foreground/8 bg-background/70 backdrop-blur-sm transition-colors duration-300 data-[scrolled=true]:border-foreground/14 data-[scrolled=true]:bg-background/92 data-[scrolled=true]:backdrop-blur-none"
             >
                 <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
                     {/* Logo */}
@@ -429,7 +429,7 @@ export default function Dashboard() {
                             {menuOpen && (
                                 <>
                                     <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                                    <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-foreground/12 bg-popover/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden animate-fade-in">
+                                    <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-foreground/12 bg-popover/95 backdrop-blur-sm shadow-2xl z-50 overflow-hidden animate-fade-in">
                                         <div className="px-4 py-3 border-b border-foreground/10">
                                             <p className="text-sm font-semibold text-foreground truncate">{displayName}</p>
                                             <p className="text-xs text-foreground/60 truncate">{user?.email}</p>

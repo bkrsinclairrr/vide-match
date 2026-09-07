@@ -29,6 +29,19 @@ export const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
+/**
+ * Ponteiro grosso (touch) como entrada primária — celular/tablet.
+ * Nesses aparelhos o scroll nativo já é suave e otimizado pelo sistema;
+ * a interpolação do Lenis existe pra emular esse mesmo efeito no mouse/
+ * trackpad, então ligá-la também no touch só soma trabalho de JS em
+ * segundo plano (raf contínuo) sem ganho perceptível — o toque já
+ * ignora o Lenis via `syncTouch:false`, então a instância ficaria rodando
+ * à toa. Pulamos a criação inteira do Lenis nesses aparelhos.
+ */
+const isCoarsePointer = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(pointer: coarse)").matches
+
 /* ------------------------------------------------------------------ */
 /* Lenis — scroll suave sincronizado com o ticker do GSAP              */
 /* ------------------------------------------------------------------ */
@@ -37,10 +50,10 @@ export function useSmoothScroll(enabled = true) {
   const lenisRef = useRef<Lenis | null>(null)
 
   useEffect(() => {
-    if (!enabled || prefersReducedMotion()) return
+    if (!enabled || prefersReducedMotion() || isCoarsePointer()) return
 
     const lenis = new Lenis({
-      duration: 1.05,
+      duration: 0.9,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       wheelMultiplier: 1,
@@ -71,7 +84,7 @@ export function useSmoothScroll(enabled = true) {
     (target: number | string | HTMLElement, options?: { offset?: number; duration?: number }) => {
       const lenis = lenisRef.current
       if (lenis) {
-        lenis.scrollTo(target, { duration: 1.1, ...options })
+        lenis.scrollTo(target, { duration: 0.9, ...options })
         return
       }
       if (typeof target === "number") {
@@ -168,8 +181,19 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
       const animEls = q("[data-anim]")
       const groups = q("[data-anim-group]")
       const groupChildren = groups.map((g) => Array.from(g.children) as HTMLElement[])
+      const allChildren = groupChildren.flat()
 
       // ---- FASE 1: escritas, agrupadas por tipo para minimizar chamadas ----
+
+      // Avisa o navegador com antecedência que estes elementos vão animar
+      // opacidade/transform, para promover a camada de GPU deles ANTES da
+      // revelação — sem isso, a primeira vez que cada um começa a animar
+      // (bem no instante em que entra na viewport) é quando o navegador
+      // decide promover a camada, o que pode custar um quadro inteiro
+      // exatamente no momento em que o usuário está olhando.
+      const willAnimate = [...heroItems, ...animEls, ...allChildren]
+      if (willAnimate.length) gsap.set(willAnimate, { willChange: "opacity, transform" })
+
       if (heroItems.length) gsap.set(heroItems, { y: 26, autoAlpha: 0 })
 
       const byType = new Map<string, HTMLElement[]>()
@@ -210,7 +234,7 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
             ease: "power3.out",
             stagger: 0.08,
             delay: 0.05,
-            clearProps: "transform,opacity,visibility",
+            clearProps: "transform,opacity,visibility,willChange",
           })
         }
 
@@ -227,7 +251,7 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
                   duration: 0.85,
                   ease: "power3.out",
                   delay: num((el as HTMLElement).dataset.animDelay, 0),
-                  clearProps: "transform,opacity,visibility",
+                  clearProps: "transform,opacity,visibility,willChange",
                 })
               )
             },
@@ -244,7 +268,7 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
               duration: 0.8,
               ease: "power3.out",
               stagger: num(group.dataset.animGroup, 0.09),
-              clearProps: "transform,opacity,visibility",
+              clearProps: "transform,opacity,visibility,willChange",
             })
           )
         })
@@ -372,7 +396,26 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
     }, root)
 
     // Imagens e fontes alteram a altura da página: remede depois que assentam.
-    const refresh = () => ScrollTrigger.refresh()
+    // ScrollTrigger.refresh() remede a posição de TODOS os triggers — é
+    // uma operação relativamente cara. Se ela cair bem no meio de um
+    // scroll ativo (ex: o usuário já começou a rolar antes dos 450ms),
+    // pode gerar uma travadinha perceptível. Espera a rolagem assentar.
+    let userScrolling = false
+    let idleTimer = 0
+    const markScrolling = () => {
+      userScrolling = true
+      window.clearTimeout(idleTimer)
+      idleTimer = window.setTimeout(() => { userScrolling = false }, 150)
+    }
+    window.addEventListener("scroll", markScrolling, { passive: true })
+
+    const refresh = () => {
+      if (userScrolling) {
+        window.setTimeout(refresh, 200)
+        return
+      }
+      ScrollTrigger.refresh()
+    }
     window.addEventListener("load", refresh)
     const timer = window.setTimeout(refresh, 450)
     const fonts = (document as Document & { fonts?: FontFaceSet }).fonts
@@ -380,7 +423,9 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
 
     return () => {
       window.removeEventListener("load", refresh)
+      window.removeEventListener("scroll", markScrolling)
       window.clearTimeout(timer)
+      window.clearTimeout(idleTimer)
       cancelAnimationFrame(rafId)
       mm.revert()
       ctx.revert()
