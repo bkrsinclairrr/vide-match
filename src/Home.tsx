@@ -36,6 +36,7 @@ const NotFound = lazy(() => import("./pages/NotFound"))
  */
 const FunnelHome = lazy(() => import("./pages/funnel/FunnelHome"))
 const FunnelProfile = lazy(() => import("./pages/funnel/FunnelProfile"))
+const FunnelUpload = lazy(() => import("./pages/funnel/FunnelUpload"))
 const FunnelAccount = lazy(() => import("./pages/funnel/FunnelAccount"))
 const FunnelResult = lazy(() => import("./pages/funnel/FunnelResult"))
 
@@ -92,6 +93,7 @@ const Home = () => {
               {/* Funil aberto — entrada sem login, conta só no final */}
               <Route path="/avaliacao" element={<FunnelHome />} />
               <Route path="/avaliacao/perfil" element={<FunnelProfile />} />
+              <Route path="/avaliacao/upload" element={<FunnelUpload />} />
               <Route path="/avaliacao/conta" element={<FunnelAccount />} />
               <Route path="/avaliacao/resultado" element={<FunnelResult />} />
 

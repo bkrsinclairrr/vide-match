@@ -9,6 +9,12 @@ interface UploadCompleteProps {
   completedVideos: number;
   totalVideos: number;
   hasPersonalVideo: boolean;
+  /**
+   * Para onde ir ao concluir. Omitido, mantém o comportamento original
+   * (`/analysis`, fluxo tradicional). O funil aberto passa aqui a rota da
+   * conta, já que nele o cadastro só acontece depois do upload.
+   */
+  onComplete?: () => void;
 }
 
 const CATEGORIES = [
@@ -16,8 +22,9 @@ const CATEGORIES = [
   "Passe e Visão", "Drible 1x1", "Posicionamento", "Trecho de Partida"
 ];
 
-const UploadComplete = ({ format, completedVideos, totalVideos, hasPersonalVideo }: UploadCompleteProps) => {
+const UploadComplete = ({ format, completedVideos, totalVideos, hasPersonalVideo, onComplete }: UploadCompleteProps) => {
   const navigate = useNavigate();
+  const goNext = onComplete ?? (() => navigate('/analysis'));
   const completionPercent = format === 'single'
     ? (hasPersonalVideo ? 100 : 80)
     : Math.round(((completedVideos + (hasPersonalVideo ? 1 : 0)) / (totalVideos + 1)) * 100);
@@ -74,12 +81,12 @@ const UploadComplete = ({ format, completedVideos, totalVideos, hasPersonalVideo
         <button
           className="w-full h-16 rounded-2xl font-black text-lg text-black flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_32px_rgba(251,191,36,0.4)] hover:shadow-[0_0_48px_rgba(251,191,36,0.55)]"
           style={{ background: "linear-gradient(135deg,#FBBF24,#F97316)" }}
-          onClick={() => navigate('/analysis')}
+          onClick={goNext}
         >
           <Send className="w-5 h-5" />
           Enviar para análise
         </button>
-        <Button variant="outline" className="w-full text-xs border-border" onClick={() => navigate('/analysis')}>
+        <Button variant="outline" className="w-full text-xs border-border" onClick={goNext}>
           <Save className="w-3.5 h-3.5 mr-1.5" />
           Salvar e enviar depois
         </Button>

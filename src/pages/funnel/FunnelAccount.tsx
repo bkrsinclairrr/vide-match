@@ -121,7 +121,7 @@ export default function FunnelAccount() {
     <div className="min-h-screen text-white font-sans antialiased" style={{ background: "#0D0D0F" }}>
       <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-sm" style={{ background: "rgba(13,13,15,0.92)" }}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <button onClick={() => navigate(FUNNEL_ROUTES.profile)}
+          <button onClick={() => navigate(FUNNEL_ROUTES.upload)}
             className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/15 hover:border-white/30 bg-white/[0.06] hover:bg-white/10 transition-all">
             <ArrowLeft className="w-4 h-4 text-white/75" />
           </button>

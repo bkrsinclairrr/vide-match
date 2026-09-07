@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CityAutocomplete } from "@/components/ui/city-autocomplete"
-import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag, User, Lock } from "lucide-react"
+import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag, User } from "lucide-react"
 import { useStepTransition } from "@/hooks/useScrollAnimations"
 import { CATEGORIES, POSITIONS, STATES, COUNTRIES } from "@/data/football"
 import { FUNNEL_ROUTES, loadPlayerData, savePlayerData, type PlayerData } from "@/lib/funnel"
@@ -80,9 +80,11 @@ export default function FunnelProfile() {
       setStep(step + 1)
       return
     }
-    // Fim do formulário público → porta de criação de conta
+    // Fim do formulário público → envio de vídeo (ainda sem login),
+    // igual ao fluxo tradicional (Onboarding → Upload). A conta só é
+    // criada depois, na saída do upload.
     savePlayerData(playerData)
-    navigate(FUNNEL_ROUTES.account)
+    navigate(FUNNEL_ROUTES.upload)
   }
 
   const handleBack = () => {
@@ -465,7 +467,7 @@ export default function FunnelProfile() {
               : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }
             }
           >
-            {step === TOTAL_STEPS ? "Ver meu resultado" : "Continuar"}
+            {step === TOTAL_STEPS ? "Enviar meu vídeo" : "Continuar"}
             <ArrowRight className="w-5 h-5" />
           </button>
 
@@ -474,9 +476,8 @@ export default function FunnelProfile() {
               {TOTAL_STEPS - step} etapa{TOTAL_STEPS - step !== 1 ? "s" : ""} restante{TOTAL_STEPS - step !== 1 ? "s" : ""}
             </p>
           ) : (
-            <p className="flex items-center justify-center gap-1.5 text-center text-[11px] font-semibold text-white/55">
-              <Lock className="w-3 h-3" />
-              Última etapa: criar conta para liberar o resultado
+            <p className="text-center text-[11px] font-semibold text-white/55">
+              Próximo passo: enviar o vídeo de performance
             </p>
           )}
         </div>

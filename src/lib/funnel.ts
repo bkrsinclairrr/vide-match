@@ -14,6 +14,7 @@
 export const FUNNEL_ROUTES = {
   home: "/avaliacao",
   profile: "/avaliacao/perfil",
+  upload: "/avaliacao/upload",
   account: "/avaliacao/conta",
   result: "/avaliacao/resultado",
 } as const

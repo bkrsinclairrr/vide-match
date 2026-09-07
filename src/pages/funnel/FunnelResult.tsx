@@ -17,13 +17,26 @@ const STAT_ICONS: Record<string, typeof Flame> = {
   finalizacao: Trophy, drible: Zap, passe: Globe2, velocidade: Cpu, leitura: Database,
 }
 
-const REVEAL_MESSAGES = [
-  "Cruzando seu perfil técnico com a base de atletas...",
-  "Calculando indicadores individuais de performance...",
-  "Consolidando nota geral e assinando o relatório...",
+/**
+ * Idêntica à tela de carregamento do fluxo tradicional (Analysis.tsx,
+ * fase 1) — mesmo texto, mesmos 38 segundos, mesmo visual. Duplicada de
+ * propósito em vez de importada de lá: mantém os dois fluxos
+ * independentes, sem um puxar o outro.
+ */
+const LOADING_MESSAGES = [
+  { t: 0, text: "Inicializando módulo de análise de vídeo biométrico..." },
+  { t: 4, text: "Extraindo frames e isolando ações técnicas individuais..." },
+  { t: 8, text: "Mapeando biomecânica de aceleração e domínio sob pressão..." },
+  { t: 12, text: "Cruzando dados com banco de 12.400 perfis de atletas catalogados..." },
+  { t: 16, text: "Aplicando modelos de análise tática e leitura de jogo em espaços curtos..." },
+  { t: 20, text: "Calculando índices de finalização, velocidade e explosão física..." },
+  { t: 24, text: "Encaminhando perfil técnico-físico para revisão da equipe de Scout Zyron..." },
+  { t: 28, text: "Scout especializado com 14 anos de mercado validando os dados..." },
+  { t: 32, text: "Gerando relatório individualizado com 10 indicadores de performance..." },
+  { t: 35, text: "Assinando e finalizando relatório — quase pronto..." },
 ]
 
-const REVEAL_SECONDS = 4
+const LOADING_SECONDS = 38
 
 export default function FunnelResult() {
   const navigate = useNavigate()
@@ -32,6 +45,7 @@ export default function FunnelResult() {
   const [player] = useState<PlayerData>(() => loadPlayerData())
   const [revealed, setRevealed] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  const [currentMsg, setCurrentMsg] = useState(0)
   const savedRef = useRef(false)
 
   useEffect(() => {
@@ -50,17 +64,23 @@ export default function FunnelResult() {
     }
   }, [loading, session, player, navigate])
 
-  // Contagem da revelação
+  // Contagem da revelação — mesma lógica e duração da fase 1 de Analysis.tsx.
   useEffect(() => {
     if (loading || !session || revealed) return
     const id = setInterval(() => {
       setElapsed((e) => {
-        if (e + 1 >= REVEAL_SECONDS) {
+        const next = e + 1
+        if (next >= LOADING_SECONDS) {
           clearInterval(id)
           setRevealed(true)
-          return REVEAL_SECONDS
+          return LOADING_SECONDS
         }
-        return e + 1
+        let msgIdx = 0
+        for (let i = 0; i < LOADING_MESSAGES.length; i++) {
+          if (LOADING_MESSAGES[i].t <= next) msgIdx = i
+        }
+        setCurrentMsg(msgIdx)
+        return next
       })
     }, 1000)
     return () => clearInterval(id)
@@ -132,24 +152,47 @@ export default function FunnelResult() {
     )
   }
 
-  /* ─── Revelação curta antes do resultado ─── */
+  /* ─── Carregamento — idêntico à fase 1 de Analysis.tsx ─── */
   if (!revealed) {
-    const progress = Math.min((elapsed / REVEAL_SECONDS) * 100, 100)
-    const msgIndex = Math.min(Math.floor((elapsed / REVEAL_SECONDS) * REVEAL_MESSAGES.length), REVEAL_MESSAGES.length - 1)
+    const progress = Math.min((elapsed / LOADING_SECONDS) * 100, 100)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-white" style={{ background: "#0D0D0F" }}>
-        <div className="relative mb-8">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_70px_rgba(251,191,36,0.45)] animate-pulse">
-            <Cpu className="w-10 h-10 text-black" />
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
+        <div className="relative mb-10">
+          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_80px_rgba(251,191,36,0.5)] animate-pulse">
+            <Cpu className="w-12 h-12 text-black" />
           </div>
           <div className="absolute inset-0 rounded-full border-2 border-amber-400/20 animate-ping" />
         </div>
-        <h2 className="text-xl font-black mb-1 text-center">Liberando seu relatório, {firstName}</h2>
-        <p className="text-white/60 text-sm mb-8 text-center max-w-xs">{REVEAL_MESSAGES[msgIndex]}</p>
-        <div className="w-full max-w-sm">
-          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-1000" style={{ width: `${progress}%` }} />
+
+        <h2 className="text-xl font-black mb-1 tracking-tight">Análise de Performance em Andamento</h2>
+        <p className="text-white/40 text-sm mb-10 text-center max-w-xs">
+          Nossa IA processa o que nenhum olheiro humano conseguiria em uma peneira
+        </p>
+
+        <div className="w-full max-w-md mb-4">
+          <div className="flex justify-between text-xs text-white/40 mb-2">
+            <span>Processando</span>
+            <span>{Math.round(progress)}%</span>
           </div>
+          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-1000"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="w-full max-w-md space-y-2 mt-6 px-2">
+          {LOADING_MESSAGES.slice(0, currentMsg + 1).map((m, i) => (
+            <div
+              key={i}
+              className={`flex items-start gap-3 text-xs transition-all duration-500 ${i === currentMsg ? "text-amber-400 opacity-100" : "text-white/25 opacity-60"
+                }`}
+            >
+              <CheckCircle2 className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${i === currentMsg ? "text-amber-400" : "text-white/20"}`} />
+              <span className="leading-relaxed">{m.text}</span>
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -158,6 +201,29 @@ export default function FunnelResult() {
   /* ─── Conclusão ─── */
   return (
     <div className="min-h-screen text-white font-sans antialiased" style={{ background: "#0D0D0F" }}>
+      {/*
+        Brilho que varre a área bloqueada — o mesmo recurso usado por
+        LinkedIn e por telas de métrica "premium" (Robinhood, Webull) pra
+        sinalizar "isto já foi calculado, só está oculto", em vez de um
+        borrão estático que pode parecer simplesmente quebrado.
+      */}
+      <style>{`
+        @keyframes zyron-locked-sweep {
+          0%   { transform: translateX(-130%); }
+          100% { transform: translateX(230%); }
+        }
+        .zyron-locked::after {
+          content: "";
+          position: absolute; inset: 0;
+          background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+          animation: zyron-locked-sweep 2.8s ease-in-out infinite;
+          pointer-events: none;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .zyron-locked::after { animation: none; }
+        }
+      `}</style>
+
       <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-sm" style={{ background: "rgba(13,13,15,0.92)" }}>
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -199,20 +265,22 @@ export default function FunnelResult() {
           </div>
 
           {/* Nota geral: existe, está calculada, mas fica velada até o
-              contato com a equipe. O número real é renderizado borrado —
-              a silhueta do valor aparece, o dígito não se lê. */}
-          <div className="relative w-32 h-32 mb-4">
+              contato com a equipe. O número real é renderizado com um
+              borrão pesado — só a silhueta do valor aparece — e um brilho
+              varrendo por cima, pra ficar claro que é um dado pronto e
+              trancado, não um erro de carregamento. */}
+          <div className="zyron-locked relative w-32 h-32 mb-4">
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-amber-400 to-amber-600 flex flex-col items-center justify-center shadow-[0_0_60px_rgba(251,191,36,0.4)] overflow-hidden">
               <span
                 aria-hidden="true"
-                className="text-5xl font-black text-black leading-none blur-[14px] select-none"
+                className="text-5xl font-black text-black leading-none blur-[22px] select-none"
               >
                 {overall}
               </span>
               <span className="text-xs font-bold text-black/70 mt-1">GERAL</span>
             </div>
             <div className="absolute inset-0 flex items-center justify-center pt-1">
-              <div className="w-11 h-11 rounded-2xl bg-black/55 backdrop-blur-[2px] flex items-center justify-center ring-1 ring-black/20">
+              <div className="w-11 h-11 rounded-2xl bg-black/60 backdrop-blur-[2px] flex items-center justify-center ring-1 ring-white/10">
                 <Lock className="w-5 h-5 text-amber-200" />
               </div>
             </div>
@@ -247,16 +315,19 @@ export default function FunnelResult() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-semibold">{s.label}</span>
-                      <span
-                        aria-hidden="true"
-                        className="text-sm font-black text-amber-400 blur-[5px] select-none tabular-nums"
-                      >
-                        {s.score}
+                      <span className="zyron-locked relative inline-flex items-center gap-1 overflow-hidden rounded-md px-1">
+                        <span
+                          aria-hidden="true"
+                          className="text-sm font-black text-amber-400 blur-[9px] select-none tabular-nums"
+                        >
+                          {s.score}
+                        </span>
+                        <Lock className="w-2.5 h-2.5 text-amber-400/70 flex-shrink-0" />
                       </span>
                     </div>
                     <div className="relative h-1.5 bg-white/10 rounded-full overflow-hidden mb-1.5">
                       <div
-                        className="h-full bg-gradient-to-r from-amber-500/70 to-amber-300/70 rounded-full blur-[3px]"
+                        className="h-full bg-gradient-to-r from-amber-500/70 to-amber-300/70 rounded-full blur-[6px]"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
