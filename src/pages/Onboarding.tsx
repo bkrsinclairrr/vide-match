@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSmoothScroll, useStepTransition } from "@/hooks/useScrollAnimations";
 
 const CATEGORIES = [
   "Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10",
@@ -48,23 +49,23 @@ const STEPS = [
 
 const inputStyle = {
   background: "#1E1E22",
-  border: "1px solid rgba(255,255,255,0.10)",
+  border: "1px solid rgba(255,255,255,0.14)",
   color: "#fff",
 };
 const inputCls = [
   "w-full rounded-xl px-4 h-12 text-base",
-  "placeholder:text-white/30",
+  "placeholder:text-white/45",
   "focus:outline-none focus:ring-2 focus:ring-amber-400/60",
   "transition-all duration-200"
 ].join(" ");
 
 const selectTriggerCls = "h-12 rounded-xl text-base text-white focus:ring-amber-400/60 focus:border-amber-400/50";
-const selectTriggerStyle = { background: "#1E1E22", border: "1px solid rgba(255,255,255,0.10)" };
+const selectTriggerStyle = { background: "#1E1E22", border: "1px solid rgba(255,255,255,0.14)" };
 
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center gap-1.5 mb-2">
     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
-    <span className="text-xs font-semibold text-white/60 uppercase tracking-widest">{children}</span>
+    <span className="text-xs font-semibold text-white/75 uppercase tracking-widest">{children}</span>
   </div>
 );
 
@@ -74,7 +75,7 @@ const PillBtn = ({ active, onClick, children }: { active: boolean; onClick: () =
       "h-11 rounded-xl border text-sm font-semibold transition-all duration-200",
       active
         ? "border-amber-400 bg-amber-400/12 text-amber-300 shadow-[0_0_16px_rgba(251,191,36,0.25)]"
-        : "border-white/8 bg-white/3 text-white/45 hover:border-white/20 hover:text-white/80 hover:bg-white/6"
+        : "border-white/15 bg-white/[0.06] text-white/70 hover:border-amber-400/40 hover:text-white hover:bg-white/10"
     ].join(" ")}
   >
     {children}
@@ -101,10 +102,15 @@ const Onboarding = () => {
     }
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Scroll suave (Lenis) + transição animada a cada troca de etapa
+  const { scrollTo } = useSmoothScroll(true);
+  useStepTransition(cardRef, step);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [step]);
+    scrollTo(0, { duration: 0.8 });
+  }, [step, scrollTo]);
 
   // Mantém o localStorage sempre sincronizado com o valor atual de cada campo
   // (idade incluída) — não espera o envio final do formulário para persistir,
@@ -206,8 +212,8 @@ const Onboarding = () => {
       <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-xl" style={{ background: "rgba(13,13,15,0.92)" }}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
           <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}
-            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/8 hover:border-white/18 bg-white/4 hover:bg-white/8 transition-all">
-            <ArrowLeft className="w-4 h-4 text-white/50" />
+            className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/15 hover:border-white/30 bg-white/[0.06] hover:bg-white/10 transition-all">
+            <ArrowLeft className="w-4 h-4 text-white/75" />
           </button>
 
           <div className="flex items-center gap-2">
@@ -223,13 +229,13 @@ const Onboarding = () => {
                 "rounded-full transition-all duration-500",
                 i < completedSteps ? "w-2 h-2 bg-emerald-400" :
                   i === step - 1 ? "w-2 h-2 bg-amber-400" :
-                    "w-1.5 h-1.5 bg-white/15"
+                    "w-1.5 h-1.5 bg-white/30"
               ].join(" ")} />
             ))}
           </div>
         </div>
 
-        <div className="h-0.5 bg-white/5">
+        <div className="h-0.5 bg-white/10">
           <div
             className="h-full transition-all duration-700 ease-out"
             style={{
@@ -249,7 +255,7 @@ const Onboarding = () => {
             <StepIcon className="w-5 h-5 text-amber-400" />
           </div>
           <div>
-            <p className="text-[10px] text-white/35 uppercase tracking-widest font-semibold">{STEPS[step - 1].desc}</p>
+            <p className="text-[10px] text-white/60 uppercase tracking-widest font-semibold">{STEPS[step - 1].desc}</p>
             <h2 className="text-lg font-black leading-tight">{STEPS[step - 1].label}</h2>
           </div>
           {completedSteps > 0 && (
@@ -263,8 +269,8 @@ const Onboarding = () => {
       </div>
 
       <main className="max-w-lg mx-auto w-full px-4 pb-8">
-        <div className="rounded-3xl p-6 space-y-5 animate-fade-in"
-          style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}>
+        <div ref={cardRef} className="rounded-3xl p-6 space-y-5"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.10)" }}>
 
           {step === 1 && (
             <>
@@ -275,7 +281,7 @@ const Onboarding = () => {
                       "w-28 h-28 rounded-full border-2 border-dashed transition-all duration-300 flex items-center justify-center overflow-hidden",
                       playerData.photo
                         ? "border-amber-400 shadow-[0_0_32px_rgba(251,191,36,0.30)]"
-                        : "border-white/20 group-hover:border-amber-400/50 group-hover:shadow-[0_0_20px_rgba(251,191,36,0.15)]"
+                        : "border-white/35 group-hover:border-amber-400/70 group-hover:shadow-[0_0_24px_rgba(251,191,36,0.25)]"
                     ].join(" ")}
                     style={{ background: "#1A1A1E" }}
                   >
@@ -283,7 +289,7 @@ const Onboarding = () => {
                       <img src={playerData.photo} alt="Foto" className="w-full h-full object-cover" />
                     ) : (
                       <div className="flex flex-col items-center gap-2 transition-colors"
-                        style={{ color: playerData.photo ? "transparent" : "rgba(255,255,255,0.28)" }}>
+                        style={{ color: playerData.photo ? "transparent" : "rgba(255,255,255,0.5)" }}>
                         <Camera className="w-7 h-7 group-hover:text-amber-400 transition-colors" />
                         <span className="text-[10px] font-bold uppercase tracking-widest group-hover:text-amber-400 transition-colors">Foto</span>
                       </div>
@@ -297,14 +303,14 @@ const Onboarding = () => {
                   )}
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                <p className="text-xs mt-3 font-medium" style={{ color: "rgba(255,255,255,0.28)" }}>
+                <p className="text-xs mt-3 font-medium" style={{ color: "rgba(255,255,255,0.55)" }}>
                   {playerData.photo ? "Toque para trocar" : "Foto de perfil — opcional"}
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
-                <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: "rgba(255,255,255,0.22)" }}>dados do atleta</span>
+                <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>dados do atleta</span>
                 <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.06)" }} />
               </div>
 
@@ -339,7 +345,7 @@ const Onboarding = () => {
                         placeholder={placeholder}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold pointer-events-none"
-                        style={{ color: "rgba(255,255,255,0.28)" }}>{unit}</span>
+                        style={{ color: "rgba(255,255,255,0.55)" }}>{unit}</span>
                     </div>
                   </div>
                 ))}
@@ -374,12 +380,12 @@ const Onboarding = () => {
                 </Select>
               </div>
 
-              <div className="rounded-2xl p-4 space-y-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div className="rounded-2xl p-4 space-y-3" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)" }}>
                 <div className="flex items-center gap-2">
                   <Globe className="w-4 h-4 text-amber-400" />
                   <FieldLabel>Dupla cidadania?</FieldLabel>
                 </div>
-                <p className="text-xs text-white/40 -mt-2">Amplia oportunidades em clubes internacionais.</p>
+                <p className="text-xs text-white/65 -mt-2">Amplia oportunidades em clubes internacionais.</p>
                 <div className="grid grid-cols-2 gap-2">
                   {["Sim", "Não"].map((opt) => (
                     <PillBtn key={opt}
@@ -441,27 +447,27 @@ const Onboarding = () => {
                 const cat = playerData.category;
 
                 if (["Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10"].includes(cat)) return (
-                  <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
-                    <p className="text-xs text-white/40 leading-relaxed">
-                      <span className="text-white/60 font-semibold">Formação Inicial.</span>{" "}
+                  <div className="p-3 rounded-xl border border-white/14 animate-fade-in" style={{ background: "rgba(255,255,255,0.05)" }}>
+                    <p className="text-xs text-white/70 leading-relaxed">
+                      <span className="text-white/90 font-semibold">Formação Inicial.</span>{" "}
                       Foco em fundamentos técnicos e coordenação motora. A análise identifica clubes com programas de base estruturados para esse perfil.
                     </p>
                   </div>
                 );
 
                 if (["Sub 11", "Sub 12", "Sub 13"].includes(cat)) return (
-                  <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
-                    <p className="text-xs text-white/40 leading-relaxed">
-                      <span className="text-white/60 font-semibold">Desenvolvimento Técnico.</span>{" "}
+                  <div className="p-3 rounded-xl border border-white/14 animate-fade-in" style={{ background: "rgba(255,255,255,0.05)" }}>
+                    <p className="text-xs text-white/70 leading-relaxed">
+                      <span className="text-white/90 font-semibold">Desenvolvimento Técnico.</span>{" "}
                       Fase de especialização tática e aprimoramento por posição. Identificamos clubes com academias reconhecidas para essa faixa.
                     </p>
                   </div>
                 );
 
                 if (["Sub 14", "Sub 15"].includes(cat)) return (
-                  <div className="p-3 rounded-xl border border-white/8 animate-fade-in" style={{ background: "rgba(255,255,255,0.03)" }}>
-                    <p className="text-xs text-white/40 leading-relaxed">
-                      <span className="text-white/60 font-semibold">Base Competitiva.</span>{" "}
+                  <div className="p-3 rounded-xl border border-white/14 animate-fade-in" style={{ background: "rgba(255,255,255,0.05)" }}>
+                    <p className="text-xs text-white/70 leading-relaxed">
+                      <span className="text-white/90 font-semibold">Base Competitiva.</span>{" "}
                       Transição para competições regionais e estaduais. Boa janela para ser visto por olheiros de clubes profissionais.
                     </p>
                   </div>
@@ -474,11 +480,11 @@ const Onboarding = () => {
                         <div className="w-2 h-2 rounded-full bg-amber-400" />
                         <span className="text-sm font-semibold text-amber-300">Base Nacional</span>
                       </div>
-                      <p className="text-xs text-white/50 leading-relaxed">
+                      <p className="text-xs text-white/75 leading-relaxed">
                         Clubes brasileiros — Série A e B. Faixa salarial estimada:{" "}
                         <span className="text-amber-400 font-semibold">R$ 8.000 a R$ 23.000</span>.
                       </p>
-                      <p className="text-xs text-white/30">Projeção média de mercado, não promessa contratual.</p>
+                      <p className="text-xs text-white/60">Projeção média de mercado, não promessa contratual.</p>
                     </div>
                   </div>
                 );
@@ -490,8 +496,8 @@ const Onboarding = () => {
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                         <span className="text-sm font-semibold text-emerald-400">Transição Profissional</span>
                       </div>
-                      <p className="text-xs text-white/50 leading-relaxed">
-                        Acesso a clubes brasileiros <strong className="text-white/70">e internacionais</strong>. Projeção salarial individualizada, estimativa de valorização e potencial de transferência.
+                      <p className="text-xs text-white/75 leading-relaxed">
+                        Acesso a clubes brasileiros <strong className="text-white/95">e internacionais</strong>. Projeção salarial individualizada, estimativa de valorização e potencial de transferência.
                       </p>
                     </div>
                   </div>
@@ -528,7 +534,7 @@ const Onboarding = () => {
               <div className="rounded-xl px-4 py-3 flex items-start gap-2"
                 style={{ background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.15)" }}>
                 <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-400/70 leading-relaxed">
+                <p className="text-xs text-amber-400/90 leading-relaxed">
                   Sua localização ajuda o algoritmo a identificar clubes na sua região e avaliar mobilidade geográfica.
                 </p>
               </div>
@@ -544,7 +550,7 @@ const Onboarding = () => {
               "w-full flex items-center justify-center gap-3 font-black text-base rounded-2xl py-3.5 transition-all duration-200",
               canProceed() && !isLoading
                 ? "text-black shadow-[0_0_32px_rgba(251,191,36,0.3)] hover:shadow-[0_0_48px_rgba(251,191,36,0.45)] active:scale-[0.98]"
-                : "text-white/30 cursor-not-allowed"
+                : "text-white/45 cursor-not-allowed"
             ].join(" ")}
             style={canProceed() && !isLoading
               ? { background: "linear-gradient(135deg, #FBBF24, #F97316)" }
@@ -562,11 +568,11 @@ const Onboarding = () => {
           </button>
 
           {step < totalSteps ? (
-            <p className="text-center text-[11px] text-white/25 font-medium">
+            <p className="text-center text-[11px] text-white/55 font-medium">
               {totalSteps - step} etapa{totalSteps - step !== 1 ? 's' : ''} restante{totalSteps - step !== 1 ? 's' : ''}
             </p>
           ) : (
-            <p className="text-center text-[11px] font-semibold" style={{ color: "rgba(52,211,153,0.6)" }}>
+            <p className="text-center text-[11px] font-semibold" style={{ color: "rgba(52,211,153,0.9)" }}>
               ✓ Tudo preenchido — pronto para análise
             </p>
           )}
