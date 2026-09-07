@@ -20,7 +20,7 @@ const CLUBS = [
     },
     {
         name: "Real Betis",
-        logo: "https://upload.wikimedia.org/wikipedia/en/1/13/Real_betis_logo.svg",
+        logo: "/clubs/real-betis.svg",
         country: "Espanha",
     },
     {
