@@ -270,26 +270,29 @@ export default function Dashboard() {
                 }
             `}</style>
 
-            {/* ─── ATMOSFERA DE FUNDO ─── */}
+            {/*
+                ─── ATMOSFERA DE FUNDO ───
+                Antes estes brilhos usavam filter:blur(130px) + parallax via
+                ScrollTrigger. Medido com profiling (CPU 4x throttle, Chromium):
+                isso sozinho derrubava o scroll de ~25ms/quadro para ~100-130ms/
+                quadro (pior quadro passava de 1,7s), porque o navegador tinha
+                que re-borrar uma área enorme a cada frame de scroll. A camada é
+                `fixed`, então não precisa de parallax para "flutuar" — o
+                degradê radial já entrega a borda suave sem custo de filtro.
+            */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
                 <div className="absolute inset-0 zyron-grid opacity-70" />
                 <div
-                    data-parallax="60"
-                    data-parallax-page
-                    className="absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full blur-[130px]"
-                    style={{ background: "radial-gradient(circle, rgba(251,191,36,0.16), transparent 68%)" }}
+                    className="absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full"
+                    style={{ background: "radial-gradient(circle, rgba(251,191,36,0.14) 0%, rgba(251,191,36,0.06) 38%, transparent 68%)" }}
                 />
                 <div
-                    data-parallax="-90"
-                    data-parallax-page
-                    className="absolute top-[45%] -right-40 h-[460px] w-[560px] rounded-full blur-[130px]"
-                    style={{ background: "radial-gradient(circle, rgba(52,211,153,0.12), transparent 70%)" }}
+                    className="absolute top-[45%] -right-40 h-[460px] w-[560px] rounded-full"
+                    style={{ background: "radial-gradient(circle, rgba(52,211,153,0.11) 0%, rgba(52,211,153,0.045) 40%, transparent 70%)" }}
                 />
                 <div
-                    data-parallax="70"
-                    data-parallax-page
-                    className="absolute bottom-0 -left-32 h-[420px] w-[520px] rounded-full blur-[130px]"
-                    style={{ background: "radial-gradient(circle, rgba(129,140,248,0.10), transparent 70%)" }}
+                    className="absolute bottom-0 -left-32 h-[420px] w-[520px] rounded-full"
+                    style={{ background: "radial-gradient(circle, rgba(129,140,248,0.09) 0%, rgba(129,140,248,0.04) 40%, transparent 70%)" }}
                 />
             </div>
 

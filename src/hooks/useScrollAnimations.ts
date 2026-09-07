@@ -143,180 +143,232 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
 
     const q = (selector: string) => Array.from(root.querySelectorAll<HTMLElement>(selector))
     const mm = gsap.matchMedia()
+    let rafId = 0
 
     const ctx = gsap.context(() => {
-      /* Entrada imediata do herói ------------------------------------- */
+      /*
+       * FASE 1 (síncrona, antes da pintura) — só ESCRITAS de estilo
+       * (gsap.set em lote), pra nada "piscar" visível antes de esconder.
+       *
+       * FASE 2 (adiada pro próximo frame, depois da 1ª pintura) — as
+       * LEITURAS (ScrollTrigger.create/batch, que medem
+       * getBoundingClientRect/getComputedStyle de cada elemento).
+       *
+       * Por quê: medido com CPU profiling, alternar escrita→leitura→
+       * escrita→leitura elemento por elemento força o navegador a
+       * recalcular layout do zero a cada iteração ("layout thrashing").
+       * Só a função interna do GSAP que lê estilo computado (getStyle)
+       * respondia por ~830ms de 1,5s de amostragem no carregamento
+       * inicial — mais caro que qualquer animação em si. Separar
+       * escrita e leitura em duas fases, e mandar a fase de leitura pro
+       * frame seguinte, tira esse custo do caminho síncrono que bloqueia
+       * a primeira pintura e a resposta a cliques logo após abrir.
+       */
       const heroItems = q("[data-hero-item]")
-      if (heroItems.length) {
-        gsap.set(heroItems, { y: 26, autoAlpha: 0 })
-        gsap.to(heroItems, {
-          ...RESET,
-          duration: 0.95,
-          ease: "power3.out",
-          stagger: 0.08,
-          delay: 0.05,
-          clearProps: "transform,opacity,visibility",
-        })
-      }
+      const animEls = q("[data-anim]")
+      const groups = q("[data-anim-group]")
+      const groupChildren = groups.map((g) => Array.from(g.children) as HTMLElement[])
 
-      /* Revelações individuais ---------------------------------------- */
-      q("[data-anim]").forEach((el) => {
-        const vars = ENTER[el.dataset.anim || "up"] ?? ENTER.up
-        gsap.set(el, vars)
-        onceInView(el, "top 88%", () =>
-          gsap.to(el, {
-            ...RESET,
-            duration: 0.85,
-            ease: "power3.out",
-            delay: num(el.dataset.animDelay, 0),
-            clearProps: "transform,opacity,visibility",
-          })
-        )
+      // ---- FASE 1: escritas, agrupadas por tipo para minimizar chamadas ----
+      if (heroItems.length) gsap.set(heroItems, { y: 26, autoAlpha: 0 })
+
+      const byType = new Map<string, HTMLElement[]>()
+      animEls.forEach((el) => {
+        const type = el.dataset.anim || "up"
+        const list = byType.get(type) ?? []
+        list.push(el)
+        byType.set(type, list)
+      })
+      byType.forEach((els, type) => gsap.set(els, ENTER[type] ?? ENTER.up))
+
+      groupChildren.forEach((children) => {
+        if (children.length) gsap.set(children, { y: 30, autoAlpha: 0 })
       })
 
-      /* Grupos escalonados -------------------------------------------- */
-      q("[data-anim-group]").forEach((group) => {
-        const children = Array.from(group.children) as HTMLElement[]
-        if (!children.length) return
-        gsap.set(children, { y: 30, autoAlpha: 0 })
-        onceInView(group, "top 86%", () =>
-          gsap.to(children, {
-            ...RESET,
-            duration: 0.8,
-            ease: "power3.out",
-            stagger: num(group.dataset.animGroup, 0.09),
-            clearProps: "transform,opacity,visibility",
-          })
-        )
-      })
-
-      /* Parallax atmosférico ------------------------------------------ */
-      q("[data-parallax]").forEach((el) => {
-        const distance = num(el.dataset.parallax, 40)
-        // Camadas fixas (brilhos de fundo) não "passam" pela viewport: elas
-        // acompanham a página inteira. As demais usam a própria travessia.
-        const pageWide = el.dataset.parallaxPage !== undefined
-        gsap.fromTo(
-          el,
-          { y: -distance },
-          {
-            y: distance,
-            ease: "none",
-            scrollTrigger: pageWide
-              ? {
-                  trigger: document.documentElement,
-                  start: "top top",
-                  end: "bottom bottom",
-                  scrub: true,
-                  invalidateOnRefresh: true,
-                }
-              : {
-                  trigger: el,
-                  start: "top bottom",
-                  end: "bottom top",
-                  scrub: true,
-                  invalidateOnRefresh: true,
-                },
-          }
-        )
-      })
-
-      /* Contadores ----------------------------------------------------- */
-      q("[data-count]").forEach((el) => {
+      const counterEls = q("[data-count]")
+      const counterFormatters = counterEls.map((el) => {
         const end = num(el.dataset.count, 0)
         const decimals = num(el.dataset.countDecimals, 0)
         const prefix = el.dataset.countPrefix ?? ""
         const suffix = el.dataset.countSuffix ?? ""
-        const format = (v: number) =>
-          prefix +
-          (decimals > 0 ? v.toFixed(decimals) : Math.round(v).toLocaleString("pt-BR")) +
-          suffix
+        return {
+          end,
+          format: (v: number) =>
+            prefix +
+            (decimals > 0 ? v.toFixed(decimals) : Math.round(v).toLocaleString("pt-BR")) +
+            suffix,
+        }
+      })
+      counterEls.forEach((el, i) => { el.textContent = counterFormatters[i].format(0) })
 
-        const counter = { value: 0 }
-        el.textContent = format(0)
-        onceInView(el, "top 90%", () =>
-          gsap.to(counter, {
-            value: end,
-            duration: 1.7,
-            ease: "power2.out",
-            onUpdate: () => {
-              el.textContent = format(counter.value)
+      // ---- FASE 2: leituras, adiadas pro frame seguinte ----
+      rafId = requestAnimationFrame(() => ctx.add(() => {
+        if (heroItems.length) {
+          gsap.to(heroItems, {
+            ...RESET,
+            duration: 0.95,
+            ease: "power3.out",
+            stagger: 0.08,
+            delay: 0.05,
+            clearProps: "transform,opacity,visibility",
+          })
+        }
+
+        /* Revelações individuais — um único ScrollTrigger.batch para todas,
+           em vez de um ScrollTrigger por elemento. */
+        if (animEls.length) {
+          ScrollTrigger.batch(animEls, {
+            start: "top 88%",
+            once: true,
+            onEnter: (batch) => {
+              batch.forEach((el) =>
+                gsap.to(el, {
+                  ...RESET,
+                  duration: 0.85,
+                  ease: "power3.out",
+                  delay: num((el as HTMLElement).dataset.animDelay, 0),
+                  clearProps: "transform,opacity,visibility",
+                })
+              )
             },
           })
-        )
-      })
+        }
 
-      /* Barra de progresso de leitura ---------------------------------- */
-      q("[data-progress]").forEach((bar) => {
-        gsap.fromTo(
-          bar,
-          { scaleX: 0 },
-          {
-            scaleX: 1,
-            ease: "none",
-            scrollTrigger: {
-              trigger: document.documentElement,
-              start: "top top",
-              end: "bottom bottom",
-              scrub: 0.3,
-              invalidateOnRefresh: true,
-            },
-          }
-        )
-      })
-
-      /* Header compacta ao descolar do topo ---------------------------- */
-      q("[data-header-scrolled]").forEach((header) => {
-        ScrollTrigger.create({
-          start: "top -8",
-          end: 99999,
-          onToggle: (self) => header.setAttribute("data-scrolled", String(self.isActive)),
+        /* Grupos escalonados -------------------------------------------- */
+        groups.forEach((group, i) => {
+          const children = groupChildren[i]
+          if (!children.length) return
+          onceInView(group, "top 86%", () =>
+            gsap.to(children, {
+              ...RESET,
+              duration: 0.8,
+              ease: "power3.out",
+              stagger: num(group.dataset.animGroup, 0.09),
+              clearProps: "transform,opacity,visibility",
+            })
+          )
         })
-      })
 
-      /* Galeria horizontal fixada (apenas desktop) --------------------- */
-      mm.add("(min-width: 1024px)", () => {
-        q("[data-track-wrapper]").forEach((wrapper) => {
-          const track = wrapper.querySelector<HTMLElement>("[data-track]")
-          if (!track) return
-          const distance = () => Math.max(0, track.scrollWidth - wrapper.clientWidth)
-          if (distance() <= 0) return
+        /* Parallax atmosférico ------------------------------------------ */
+        q("[data-parallax]").forEach((el) => {
+          const distance = num(el.dataset.parallax, 40)
+          // Camadas fixas (brilhos de fundo) não "passam" pela viewport: elas
+          // acompanham a página inteira. As demais usam a própria travessia.
+          const pageWide = el.dataset.parallaxPage !== undefined
+          gsap.fromTo(
+            el,
+            { y: -distance },
+            {
+              y: distance,
+              ease: "none",
+              scrollTrigger: pageWide
+                ? {
+                    trigger: document.documentElement,
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: true,
+                    invalidateOnRefresh: true,
+                  }
+                : {
+                    trigger: el,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: true,
+                    invalidateOnRefresh: true,
+                  },
+            }
+          )
+        })
 
-          gsap.to(track, {
-            x: () => -distance(),
-            ease: "none",
-            scrollTrigger: {
-              trigger: wrapper,
-              start: "center center",
-              end: () => "+=" + distance(),
-              pin: true,
-              pinSpacing: true,
-              scrub: 1,
-              anticipatePin: 1,
-              invalidateOnRefresh: true,
-            },
+        /* Contadores — o texto inicial já foi zerado na fase 1; aqui só
+           criamos os triggers que disparam a contagem ao entrar em vista. */
+        counterEls.forEach((el, i) => {
+          const { end, format } = counterFormatters[i]
+          const counter = { value: 0 }
+          onceInView(el, "top 90%", () =>
+            gsap.to(counter, {
+              value: end,
+              duration: 1.7,
+              ease: "power2.out",
+              onUpdate: () => {
+                el.textContent = format(counter.value)
+              },
+            })
+          )
+        })
+
+        /* Barra de progresso de leitura ---------------------------------- */
+        q("[data-progress]").forEach((bar) => {
+          gsap.fromTo(
+            bar,
+            { scaleX: 0 },
+            {
+              scaleX: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: document.documentElement,
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.3,
+                invalidateOnRefresh: true,
+              },
+            }
+          )
+        })
+
+        /* Header compacta ao descolar do topo ---------------------------- */
+        q("[data-header-scrolled]").forEach((header) => {
+          ScrollTrigger.create({
+            start: "top -8",
+            end: 99999,
+            onToggle: (self) => header.setAttribute("data-scrolled", String(self.isActive)),
           })
-
-          const bar = wrapper.querySelector<HTMLElement>("[data-track-progress]")
-          if (bar) {
-            gsap.fromTo(
-              bar,
-              { scaleX: 0.04 },
-              {
-                scaleX: 1,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: wrapper,
-                  start: "center center",
-                  end: () => "+=" + distance(),
-                  scrub: 0.4,
-                  invalidateOnRefresh: true,
-                },
-              }
-            )
-          }
         })
-      })
+
+        /* Galeria horizontal fixada (apenas desktop) --------------------- */
+        mm.add("(min-width: 1024px)", () => {
+          q("[data-track-wrapper]").forEach((wrapper) => {
+            const track = wrapper.querySelector<HTMLElement>("[data-track]")
+            if (!track) return
+            const distance = () => Math.max(0, track.scrollWidth - wrapper.clientWidth)
+            if (distance() <= 0) return
+
+            gsap.to(track, {
+              x: () => -distance(),
+              ease: "none",
+              scrollTrigger: {
+                trigger: wrapper,
+                start: "center center",
+                end: () => "+=" + distance(),
+                pin: true,
+                pinSpacing: true,
+                scrub: 1,
+                anticipatePin: 1,
+                invalidateOnRefresh: true,
+              },
+            })
+
+            const bar = wrapper.querySelector<HTMLElement>("[data-track-progress]")
+            if (bar) {
+              gsap.fromTo(
+                bar,
+                { scaleX: 0.04 },
+                {
+                  scaleX: 1,
+                  ease: "none",
+                  scrollTrigger: {
+                    trigger: wrapper,
+                    start: "center center",
+                    end: () => "+=" + distance(),
+                    scrub: 0.4,
+                    invalidateOnRefresh: true,
+                  },
+                }
+              )
+            }
+          })
+        })
+      })) // fecha ctx.add() e requestAnimationFrame() da fase 2
     }, root)
 
     // Imagens e fontes alteram a altura da página: remede depois que assentam.
@@ -329,6 +381,7 @@ export function useScrollReveal(scope: RefObject<HTMLElement | null>, deps: unkn
     return () => {
       window.removeEventListener("load", refresh)
       window.clearTimeout(timer)
+      cancelAnimationFrame(rafId)
       mm.revert()
       ctx.revert()
     }
