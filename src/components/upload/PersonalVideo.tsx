@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, SkipForward } from "lucide-react";
 import VideoUploadCard, { VideoFile } from "./VideoUploadCard";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface PersonalVideoProps {
   onBack: () => void;
@@ -11,6 +13,21 @@ interface PersonalVideoProps {
 
 const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => {
   const [video, setVideo] = useState<VideoFile>({ file: null, status: 'empty' });
+  const [consent, setConsent] = useState(false);
+
+  // Nome e idade do atleta — mesma origem usada em Upload.tsx
+  const { athleteName, isMinor } = useMemo(() => {
+    try {
+      const data = JSON.parse(localStorage.getItem('playerData') || '{}');
+      const age = parseInt(data.age);
+      return {
+        athleteName: (data.name || '').trim(),
+        isMinor: Number.isFinite(age) && age < 18,
+      };
+    } catch {
+      return { athleteName: '', isMinor: false };
+    }
+  }, []);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -43,17 +60,48 @@ const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => 
         showCapture={true}
       />
 
+      <div className="bg-muted/30 rounded-xl p-3 border border-border">
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="consent"
+            checked={consent}
+            onCheckedChange={(checked) => setConsent(checked === true)}
+            className="mt-0.5 shrink-0"
+          />
+          <Label htmlFor="consent" className="text-xs font-normal text-muted-foreground leading-relaxed cursor-pointer">
+            {isMinor ? (
+              <>
+                Confirmo, como responsável legal por{" "}
+                <span className="text-foreground font-medium">{athleteName || "este atleta"}</span>, que autorizo o envio deste vídeo para análise pela Zyron.
+              </>
+            ) : (
+              <>Confirmo que este vídeo é meu e autorizo sua análise pela Zyron.</>
+            )}{" "}
+            Declaro ainda que li e concordo com os{" "}
+            <a href="/termos" target="_blank" rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-foreground transition-colors">Termos de Uso</a> e a{" "}
+            <a href="/privacidade" target="_blank" rel="noopener noreferrer"
+              className="underline underline-offset-4 hover:text-foreground transition-colors">Política de Privacidade</a>.
+          </Label>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Button className="w-full bg-gradient-golden text-background font-semibold h-11 rounded-xl"
           onClick={() => onContinue(video.status === 'ok')}
-          disabled={video.status === 'uploading' || video.status === 'validating'}>
+          disabled={!consent || video.status === 'uploading' || video.status === 'validating'}>
           {video.status === 'ok' ? 'Continuar com apresentação' : 'Enviar para análise'}
         </Button>
         {video.status !== 'ok' && (
-          <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => onContinue(false)}>
+          <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => onContinue(false)} disabled={!consent}>
             <SkipForward className="w-3.5 h-3.5 mr-1.5" />
             Pular — enviar sem apresentação
           </Button>
+        )}
+        {!consent && (
+          <p className="text-xs text-muted-foreground text-center">
+            Marque a confirmação acima para enviar.
+          </p>
         )}
       </div>
     </div>
