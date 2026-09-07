@@ -146,14 +146,6 @@ export function buildWhatsAppMessage(d: PlayerData, overall?: number): string {
     d.preferredFoot && `pé ${d.preferredFoot}`,
   ].filter(Boolean).join(", ")
 
-  const nacionalidade = d.nationality
-    ? `Nacionalidade: ${d.nationality}${
-        d.hasDualCitizenship === "Sim" && d.dualCitizenshipCountry
-          ? ` (dupla cidadania: ${d.dualCitizenshipCountry})`
-          : ""
-      }.`
-    : ""
-
   // Cada bloco é um parágrafo; linhas vazias são descartadas dentro do bloco.
   const apresentacao = [
     `Olá! Aqui é ${nome}.`,
@@ -161,14 +153,13 @@ export function buildWhatsAppMessage(d: PlayerData, overall?: number): string {
     posicao,
     local ? `Moro em ${local}.` : "",
     fisico ? `Dados físicos: ${fisico}.` : "",
-    nacionalidade,
   ].filter(Boolean).join("\n")
 
   const avaliacao = overall
     ? `Acabei de concluir minha avaliação de performance no Zyron e recebi nota geral ${overall}.`
     : "Acabei de concluir minha avaliação de performance no Zyron."
 
-  const pedido = "Gostaria de receber os resultados completos da avaliação e entender os próximos passos. Obrigado!"
+  const pedido = "Gostaria de receber os resultados completos da avaliação e entender os próximos passos."
 
   const texto = [apresentacao, avaliacao, pedido].filter(Boolean).join("\n\n").trim()
   return texto || `Olá! Aqui é ${primeiroNome}. Gostaria de receber os resultados da minha avaliação no Zyron.`
