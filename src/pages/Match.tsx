@@ -17,6 +17,14 @@ const LOADING_MESSAGES = [
   "Validando dados com parâmetros de mercado...",
 ];
 
+interface PlayerData {
+  age?: string;
+  category?: string;
+  dualCitizenshipCountry?: string;
+  name?: string;
+  position?: string;
+}
+
 const Match = () => {
   const navigate = useNavigate();
   const [matchedClub, setMatchedClub] = useState<Club | null>(null);
@@ -24,11 +32,13 @@ const Match = () => {
   const [compatibility, setCompatibility] = useState(0);
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState(0);
-  const [playerData, setPlayerData] = useState<any>(null);
+  const [playerData, setPlayerData] = useState<PlayerData | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('playerData');
-    if (saved) setPlayerData(JSON.parse(saved));
+    const saved = sessionStorage.getItem('playerData');
+    if (saved) {
+      try { setPlayerData(JSON.parse(saved) as PlayerData); } catch { setPlayerData(null); }
+    }
   }, []);
 
   useEffect(() => {

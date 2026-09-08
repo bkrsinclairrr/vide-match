@@ -18,7 +18,7 @@ const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => 
   // Nome e idade do atleta — mesma origem usada em Upload.tsx
   const { athleteName, isMinor } = useMemo(() => {
     try {
-      const data = JSON.parse(localStorage.getItem('playerData') || '{}');
+      const data = JSON.parse(sessionStorage.getItem('playerData') || '{}');
       const age = parseInt(data.age);
       return {
         athleteName: (data.name || '').trim(),

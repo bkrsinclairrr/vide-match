@@ -118,7 +118,9 @@ CREATE POLICY "Only admins can delete roles"
 
 -- 10. Assign admin to fecass1507@icloud.com
 INSERT INTO public.user_roles (user_id, role)
-VALUES ('db776a87-e79a-472a-a7a0-fdab1838a2d2', 'admin')
+SELECT id, 'admin'
+FROM auth.users
+WHERE id = 'db776a87-e79a-472a-a7a0-fdab1838a2d2'
 ON CONFLICT (user_id, role) DO NOTHING;
 
 -- 11. Create profiles for existing users who don't have one

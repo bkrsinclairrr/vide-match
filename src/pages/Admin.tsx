@@ -16,6 +16,8 @@ interface UserInfo {
   roles: string[]
 }
 
+const errorMessage = (error: unknown) => error instanceof Error ? error.message : "Tente novamente.";
+
 export default function Admin() {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -53,8 +55,8 @@ export default function Admin() {
       setLoading(true)
       const data = await callAdmin("list_users")
       setUsers(data.users || [])
-    } catch (err: any) {
-      toast({ title: "Erro ao carregar usuários", description: err.message, variant: "destructive" })
+    } catch (err: unknown) {
+      toast({ title: "Erro ao carregar usuários", description: errorMessage(err), variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -67,8 +69,8 @@ export default function Admin() {
       await callAdmin(action, targetId)
       toast({ title: "Sucesso", description: `Ação "${label}" executada.` })
       await fetchUsers()
-    } catch (err: any) {
-      toast({ title: "Erro", description: err.message, variant: "destructive" })
+    } catch (err: unknown) {
+      toast({ title: "Erro", description: errorMessage(err), variant: "destructive" })
     } finally {
       setActionLoading(null)
     }

@@ -15,7 +15,7 @@ import { FUNNEL_ROUTES } from "@/lib/funnel"
  * Envio de vídeo do funil aberto — MESMOS componentes do fluxo tradicional
  * (src/pages/Upload.tsx), reaproveitados tal como são: FormatSelection,
  * SingleVideoUpload, MultiVideoUpload, PersonalVideo e UploadComplete já
- * leem o `playerData` diretamente do localStorage e não dependem de
+ * leem o `playerData` diretamente do sessionStorage e não dependem de
  * autenticação, então funcionam de forma idêntica aqui, sem duplicar
  * nenhuma linha. Inclusive o checkpoint de consentimento do responsável
  * legal em PersonalVideo, que só aparece para o atleta menor de idade
@@ -38,7 +38,7 @@ const FunnelUpload = () => {
 
   const playerId = (() => {
     try {
-      const data = JSON.parse(localStorage.getItem('playerData') || '{}')
+      const data = JSON.parse(sessionStorage.getItem('playerData') || '{}')
       return data.name?.replace(/\s+/g, '_').toLowerCase() || 'jogador'
     } catch { return 'jogador' }
   })()

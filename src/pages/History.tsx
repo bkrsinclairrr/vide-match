@@ -3,11 +3,19 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, Calendar, Star, MapPin, Eye, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+interface AnalysisHistoryItem {
+  id: string;
+  videoTitle: string;
+  date: string;
+  overallScore: number;
+  clubMatch: { logo: string; name: string; location: string; compatibility: number };
+}
+
 const History = () => {
   const navigate = useNavigate();
 
-  const getUserHistory = () => {
-    try { return JSON.parse(localStorage.getItem('userAnalysisHistory') || '[]'); }
+  const getUserHistory = (): AnalysisHistoryItem[] => {
+    try { return JSON.parse(localStorage.getItem('userAnalysisHistory') || '[]') as AnalysisHistoryItem[]; }
     catch { return []; }
   };
 
@@ -41,7 +49,7 @@ const History = () => {
 
         <div className="space-y-3 mb-6">
           {analysisHistory.length > 0 ? (
-            analysisHistory.map((analysis: any, index: number) => (
+            analysisHistory.map((analysis, index) => (
               <Card key={analysis.id} className="p-4 bg-card border-border animate-fade-in" style={{ animationDelay: `${index * 0.08}s` }}>
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">

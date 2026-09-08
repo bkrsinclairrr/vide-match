@@ -42,7 +42,7 @@ const VideoUploadCard = ({
       return { status: 'error', errorMessage: 'Formato inválido. Aceitos: MP4, MOV, MKV.' };
     }
     if (file.size > maxSizeMB * 1024 * 1024) {
-      return { status: 'warning', warningMessage: `Este arquivo excede ${maxSizeMB} MB. Podemos comprimir automaticamente para você.` };
+      return { status: 'error', errorMessage: `Este arquivo excede o limite de ${maxSizeMB} MB.` };
     }
     return { status: 'ok' };
   };
@@ -53,13 +53,37 @@ const VideoUploadCard = ({
     setUploading(true);
     const previewUrl = URL.createObjectURL(file);
     const validation = validateFile(file);
-    // Imediatamente mostra "uploading" — usa valores locais, sem spread de video
-    onChange({ file, previewUrl, status: 'uploading' });
-    setTimeout(() => {
-      // Usa variáveis locais capturadas — sem stale closure de video
-      onChange({ file, previewUrl, status: validation.status, errorMessage: validation.errorMessage, warningMessage: validation.warningMessage });
+    if (validation.status === 'error') {
+      URL.revokeObjectURL(previewUrl);
+      onChange({ file, status: 'error', errorMessage: validation.errorMessage });
       setUploading(false);
-    }, 1500);
+      e.target.value = '';
+      return;
+    }
+
+    onChange({ file, previewUrl, status: 'uploading' });
+
+    const media = document.createElement('video');
+    media.preload = 'metadata';
+    media.onloadedmetadata = () => {
+      media.removeAttribute('src');
+      media.load();
+      if (!Number.isFinite(media.duration) || media.duration > maxDurationSec) {
+        URL.revokeObjectURL(previewUrl);
+        onChange({ file, status: 'error', errorMessage: `Este vídeo excede o limite de ${duration}.` });
+      } else {
+        onChange({ file, previewUrl, status: validation.status, errorMessage: validation.errorMessage, warningMessage: validation.warningMessage });
+      }
+      setUploading(false);
+    };
+    media.onerror = () => {
+      URL.revokeObjectURL(media.src);
+      URL.revokeObjectURL(previewUrl);
+      onChange({ file, status: 'error', errorMessage: 'Não foi possível ler este vídeo.' });
+      setUploading(false);
+    };
+    media.src = previewUrl;
+    e.target.value = '';
   };
 
   const statusBadge = () => {
@@ -145,7 +169,7 @@ const VideoUploadCard = ({
               </>
             )}
           </div>
-          <input ref={fileRef} type="file" accept="video/*,.mkv" onChange={handleFileChange} className="hidden" />
+          <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/x-matroska,video/webm" capture={showCapture ? "environment" : undefined} onChange={handleFileChange} className="hidden" />
           {showCapture && (
             <Button variant="outline" className="w-full text-xs border-border" onClick={() => fileRef.current?.click()}>
               <Camera className="w-3.5 h-3.5 mr-1.5" />Gravar agora

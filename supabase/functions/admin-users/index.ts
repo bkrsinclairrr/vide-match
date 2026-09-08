@@ -1,9 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
+const allowedOrigin = Deno.env.get("APP_ORIGIN") ?? "https://www.aizyron.site";
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": allowedOrigin,
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+  "Vary": "Origin",
 };
 
 Deno.serve(async (req) => {
@@ -52,7 +55,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { action, targetUserId } = await req.json();
+    const contentLength = Number(req.headers.get("content-length") ?? 0);
+    if (contentLength > 10_000) {
+      return new Response(JSON.stringify({ error: "Request too large" }), {
+        status: 413,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json();
+    const action = body?.action;
+    const targetUserId = body?.targetUserId;
+    const allowedActions = ["list_users", "disable_user", "enable_user", "delete_user"];
+    if (!allowedActions.includes(action) || (targetUserId !== undefined && typeof targetUserId !== "string")) {
+      return new Response(JSON.stringify({ error: "Invalid request" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     switch (action) {
       case "list_users": {
@@ -64,15 +84,15 @@ Deno.serve(async (req) => {
           .from("user_roles")
           .select("user_id, role");
 
-        const enriched = users.map((u: any) => ({
+        const enriched = users.map((u) => ({
           id: u.id,
           email: u.email,
           created_at: u.created_at,
           last_sign_in_at: u.last_sign_in_at,
           full_name: u.user_metadata?.full_name || "",
           roles: (allRoles || [])
-            .filter((r: any) => r.user_id === u.id)
-            .map((r: any) => r.role),
+            .filter((r) => r.user_id === u.id)
+            .map((r) => r.role),
         }));
 
         return new Response(JSON.stringify({ users: enriched }), {
@@ -119,14 +139,15 @@ Deno.serve(async (req) => {
         });
       }
 
-      default:
-        return new Response(JSON.stringify({ error: `Unknown action: ${action}` }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        default:
+          return new Response(JSON.stringify({ error: "Invalid request" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
     }
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
+    console.error("admin-users request failed", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -189,7 +189,7 @@ const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId }: M
       </div>
 
       <Button variant="ghost" className="w-full text-muted-foreground text-xs" onClick={() => {
-        localStorage.setItem('videoUploadDraft', JSON.stringify({ step: currentStep, completedCount }));
+        sessionStorage.setItem('videoUploadDraft', JSON.stringify({ step: currentStep, completedCount }));
       }}>
         <Save className="w-3.5 h-3.5 mr-1.5" />
         Salvar rascunho

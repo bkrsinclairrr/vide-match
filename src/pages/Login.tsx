@@ -7,6 +7,7 @@ import { Trophy, Mail, Lock, User, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
+import { nameSchema, validateCredentials } from "@/lib/security"
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
@@ -21,8 +22,13 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    const credentials = validateCredentials(email, password)
+    if (!credentials) {
+      toast({ title: "Dados inválidos", description: "Informe um e-mail válido e uma senha de 12 a 128 caracteres.", variant: "destructive" })
+      return
+    }
     setIsLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword(credentials)
     setIsLoading(false)
     if (error) {
       toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" })
@@ -33,20 +39,27 @@ export default function Login() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
+    const credentials = validateCredentials(regEmail, regPassword)
+    const validName = nameSchema.safeParse(name.trim())
+    if (!credentials || !validName.success) {
+      toast({ title: "Dados inválidos", description: "Informe nome válido, e-mail válido e uma senha de 12 a 128 caracteres.", variant: "destructive" })
+      return
+    }
     setIsLoading(true)
-    const { error } = await supabase.auth.signUp({
-      email: regEmail,
-      password: regPassword,
-      options: { data: { full_name: name } }
+    const { data, error } = await supabase.auth.signUp({
+      email: credentials.email,
+      password: credentials.password,
+      options: { data: { full_name: validName.data } }
     })
     setIsLoading(false)
     if (error) {
       toast({ title: "Erro ao criar conta", description: error.message, variant: "destructive" })
-    } else {
+    } else if (!data.session) {
       toast({
-        title: "Conta criada! Confirme seu e-mail. ✅",
-        description: "Verifique sua caixa de entrada e clique no link de confirmação.",
+        title: "Conta criada! Confirme seu e-mail.",
+        description: "Verifique sua caixa de entrada e entre após confirmar o endereço.",
       })
+    } else {
       navigate("/dashboard")
     }
   }

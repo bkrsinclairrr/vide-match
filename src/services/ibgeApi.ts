@@ -18,6 +18,13 @@ interface IBGECity {
   };
 }
 
+interface CityRecord {
+  nome?: string;
+  Nome?: string;
+  estado?: string;
+  microrregiao?: IBGECity["microrregiao"];
+}
+
 let brazilianCities: string[] = [];
 let citiesLoaded = false;
 
@@ -50,7 +57,7 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
   }
 
   // Formatting helper
-  const formatCities = (cityList: any[]) => {
+  const formatCities = (cityList: CityRecord[]) => {
     // Handle different JSON structures from different sources
     return cityList.map(city => {
       if (city.microrregiao) { // IBGE format
@@ -58,7 +65,7 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
       } else if (city.estado) { // Alternative format
         return `${city.nome} - ${city.estado}`;
       }
-      return city.nome || city;
+      return city.nome || "";
     }).sort();
   };
 
@@ -66,7 +73,7 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
     // Primary: Official IBGE API
     const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/municipios');
     if (!response.ok) throw new Error("IBGE API unavailable");
-    const cities = await response.json();
+    const cities = await response.json() as CityRecord[];
     brazilianCities = formatCities(cities);
   } catch (primaryError) {
     console.warn('IBGE API failed, trying secondary source...', primaryError);
@@ -74,10 +81,10 @@ export const loadBrazilianCities = async (): Promise<string[]> => {
     try {
       // Secondary fallback: Reliable GitHub raw list of BR cities
       const fallbackResponse = await fetch('https://raw.githubusercontent.com/felipefdl/cidades-estados-brasil-json/master/Cidades.json');
-      const fallbackCitiesData = await fallbackResponse.json();
+      const fallbackCitiesData = await fallbackResponse.json() as CityRecord[];
 
       // This specific gist just returns an array of objects with {Nome: string, Estado: string}
-      brazilianCities = fallbackCitiesData.map((c: any) => `${c.Nome || c.nome}`).sort();
+      brazilianCities = fallbackCitiesData.map((c) => `${c.Nome || c.nome || ""}`).filter(Boolean).sort();
     } catch (secondaryError) {
       console.error('All APIs failed. Using emergency fallback.', secondaryError);
       // Emergency standard fallback just so it doesn't break

@@ -20,7 +20,7 @@ const Upload = () => {
 
   const playerId = (() => {
     try {
-      const data = JSON.parse(localStorage.getItem('playerData') || '{}');
+      const data = JSON.parse(sessionStorage.getItem('playerData') || '{}');
       return data.name?.replace(/\s+/g, '_').toLowerCase() || 'jogador';
     } catch { return 'jogador'; }
   })();

@@ -108,6 +108,12 @@ const STAT_DEFINITIONS = [
 ]
 
 type Phase = "loading" | "report" | "club-loading" | "club"
+interface PlayerData {
+  category?: string
+  name?: string
+  photo?: string
+  position?: string
+}
 
 export default function Analysis() {
   const { user } = useAuth()
@@ -118,12 +124,12 @@ export default function Analysis() {
   const [clubElapsed, setClubElapsed] = useState(0)
   const [currentMsg, setCurrentMsg] = useState(0)
   const [currentClubMsg, setCurrentClubMsg] = useState(0)
-  const [playerData, setPlayerData] = useState<any>(null)
+  const [playerData, setPlayerData] = useState<PlayerData | null>(null)
   const [badgeIdx, setBadgeIdx] = useState(0)
 
-  // Load saved playerData from localStorage
+  // Load saved playerData from sessionStorage
   useEffect(() => {
-    const saved = localStorage.getItem("playerData")
+    const saved = sessionStorage.getItem("playerData")
     if (saved) {
       try { setPlayerData(JSON.parse(saved)) } catch { /* ignore */ }
     }

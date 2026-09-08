@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSmoothScroll, useStepTransition } from "@/hooks/useScrollAnimations";
+import { z } from "zod";
 
 const CATEGORIES = [
   "Sub 6", "Sub 7", "Sub 8", "Sub 9", "Sub 10",
@@ -61,6 +62,16 @@ const inputCls = [
 
 const selectTriggerCls = "h-12 rounded-xl text-base text-white focus:ring-amber-400/60 focus:border-amber-400/50";
 const selectTriggerStyle = { background: "#1E1E22", border: "1px solid rgba(255,255,255,0.14)" };
+const profileSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  age: z.coerce.number().int().min(4).max(100),
+  height: z.coerce.number().positive().max(250),
+  weight: z.coerce.number().positive().max(300),
+  preferredFoot: z.string().trim().min(1).max(30),
+  nationality: z.string().trim().min(2).max(80),
+  position: z.string().trim().min(2).max(80),
+  city: z.string().trim().max(120),
+});
 
 const FieldLabel = ({ children }: { children: React.ReactNode }) => (
   <div className="flex items-center gap-1.5 mb-2">
@@ -95,7 +106,7 @@ const Onboarding = () => {
       hasDualCitizenship: "", dualCitizenshipCountry: ""
     };
     try {
-      const saved = JSON.parse(localStorage.getItem('playerData') || 'null');
+      const saved = JSON.parse(sessionStorage.getItem('playerData') || 'null');
       return saved ? { ...defaults, ...saved } : defaults;
     } catch {
       return defaults;
@@ -112,19 +123,19 @@ const Onboarding = () => {
     scrollTo(0, { duration: 0.8 });
   }, [step, scrollTo]);
 
-  // Mantém o localStorage sempre sincronizado com o valor atual de cada campo
+  // Mantém o sessionStorage sempre sincronizado com o valor atual de cada campo
   // (idade incluída) — não espera o envio final do formulário para persistir,
   // evitando que um valor desatualizado (ex: idade de um preenchimento anterior)
   // sobreviva caso o fluxo seja interrompido antes da última etapa.
   useEffect(() => {
-    localStorage.setItem('playerData', JSON.stringify(playerData));
+    sessionStorage.setItem('playerData', JSON.stringify(playerData));
   }, [playerData]);
 
   const totalSteps = 5;
 
   const savePlayerData = async () => {
     setIsLoading(true);
-    localStorage.setItem('playerData', JSON.stringify(playerData));
+    sessionStorage.setItem('playerData', JSON.stringify(playerData));
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -133,16 +144,23 @@ const Onboarding = () => {
         return;
       }
 
+      const validated = profileSchema.safeParse(playerData);
+      if (!validated.success) {
+        toast({ title: "Dados inválidos", description: "Revise os campos do perfil antes de continuar.", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+
       const payload = {
         user_id: user.id,
-        nome: playerData.name,
-        idade: parseInt(playerData.age),
-        altura: parseFloat(playerData.height),
-        peso: parseFloat(playerData.weight),
-        melhor_pe: playerData.preferredFoot,
-        nacionalidade: playerData.nationality,
-        posicao: playerData.position,
-        cidade: playerData.city,
+        nome: validated.data.name,
+        idade: validated.data.age,
+        altura: validated.data.height,
+        peso: validated.data.weight,
+        melhor_pe: validated.data.preferredFoot,
+        nacionalidade: validated.data.nationality,
+        posicao: validated.data.position,
+        cidade: validated.data.city,
       };
 
       const { data: existingRows, error: fetchError } = await supabase
@@ -171,9 +189,9 @@ const Onboarding = () => {
         setIsLoading(false);
         return;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Unexpected error:', err);
-      toast({ title: "Erro inesperado", description: err.message, variant: "destructive" });
+      toast({ title: "Erro inesperado", description: err instanceof Error ? err.message : "Tente novamente.", variant: "destructive" });
       setIsLoading(false);
       return;
     }
