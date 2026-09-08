@@ -2,7 +2,7 @@
 
 ## Required deployment configuration
 
-- Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in Vercel. Only the publishable/anon key may use the `VITE_` prefix. Never expose `SUPABASE_SERVICE_ROLE_KEY` to Vite or commit it.
+- `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` override the project the client talks to (preview, staging). They are optional: `src/integrations/supabase/client.ts` falls back to the production project's URL and publishable key, because both are public identifiers that ship inside the browser bundle either way — RLS is what protects the data, not their secrecy. Treating them as required once took the whole site down when a production build was made without them. Only the publishable/anon key may use the `VITE_` prefix. Never expose `SUPABASE_SERVICE_ROLE_KEY` to Vite or commit it.
 - Set `APP_ORIGIN=https://www.aizyron.site` on the `admin-users` Edge Function. Keep the service-role key only in Supabase Edge Function secrets.
 - Use Cloudflare Turnstile as the CAPTCHA provider. Configure its site key and secret key in Supabase Authentication > Protection; do not commit either value.
 - Rate-limit policy targets: maximum 5 failed password logins per IP in 15 minutes, maximum 3 password-reset requests per account/IP per hour, and maximum 5 signups per IP per hour. Configure the closest supported Supabase Auth limits and monitor rejected requests.
