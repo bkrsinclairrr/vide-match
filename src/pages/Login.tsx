@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { nameSchema, validateCredentials } from "@/lib/security"
+import { friendlyAuthError } from "@/lib/funnel"
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
@@ -31,7 +32,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithPassword(credentials)
     setIsLoading(false)
     if (error) {
-      toast({ title: "Erro ao entrar", description: error.message, variant: "destructive" })
+      toast({ title: "Erro ao entrar", description: friendlyAuthError(error.message), variant: "destructive" })
     } else {
       navigate("/dashboard")
     }
@@ -53,7 +54,7 @@ export default function Login() {
     })
     setIsLoading(false)
     if (error) {
-      toast({ title: "Erro ao criar conta", description: error.message, variant: "destructive" })
+      toast({ title: "Erro ao criar conta", description: friendlyAuthError(error.message), variant: "destructive" })
     } else if (!data.session) {
       toast({
         title: "Conta criada! Confirme seu e-mail.",
@@ -263,10 +264,10 @@ export default function Login() {
                       onChange={(e) => setRegPassword(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
                       required
-                      minLength={8}
+                      minLength={12}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">A senha deve ter pelo menos 8 caracteres.</p>
+                  <p className="text-xs text-muted-foreground mt-1">A senha deve ter pelo menos 12 caracteres.</p>
                 </div>
 
                 <Button type="submit" disabled={isLoading} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-base transition-all hover:scale-[1.02] active:scale-[0.98] mt-2">

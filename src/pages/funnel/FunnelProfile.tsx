@@ -91,11 +91,13 @@ export default function FunnelProfile() {
     try {
       await syncFunnelLead(playerData)
       leadSynced.current = true
-    } catch {
+    } catch (err) {
       leadSynced.current = false
       toast({
         title: "Não conseguimos salvar seu contato agora",
-        description: "Você pode continuar — vamos tentar de novo automaticamente.",
+        description: err instanceof Error && err.message
+          ? err.message
+          : "Você pode continuar — vamos tentar de novo automaticamente.",
         variant: "destructive",
       })
     }

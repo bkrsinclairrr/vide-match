@@ -245,8 +245,8 @@ export function friendlyAuthError(message: string | undefined): string {
   if (m.includes("invalid login credentials")) {
     return "E-mail ou senha incorretos."
   }
-  if (m.includes("password") && m.includes("6 character")) {
-    return "A senha precisa ter pelo menos 8 caracteres."
+  if (m.includes("password") && m.includes("character")) {
+    return "A senha precisa ter pelo menos 12 caracteres."
   }
 
   return message || "Algo deu errado. Tente novamente em instantes."

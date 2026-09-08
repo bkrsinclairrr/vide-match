@@ -217,7 +217,7 @@ export default function FunnelAccount() {
               <input
                 type="password"
                 required
-                minLength={mode === "signup" ? 8 : undefined}
+                minLength={mode === "signup" ? 12 : undefined}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -226,7 +226,7 @@ export default function FunnelAccount() {
               />
             </div>
             {mode === "signup" && (
-              <p className="mt-1.5 text-xs text-white/55">Mínimo de 8 caracteres.</p>
+              <p className="mt-1.5 text-xs text-white/55">Mínimo de 12 caracteres.</p>
             )}
           </div>
 
