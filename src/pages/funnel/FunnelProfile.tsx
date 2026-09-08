@@ -2,14 +2,19 @@ import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CityAutocomplete } from "@/components/ui/city-autocomplete"
-import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag, User } from "lucide-react"
+import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag, User, Mail, Phone, ShieldCheck } from "lucide-react"
 import { useStepTransition } from "@/hooks/useScrollAnimations"
+import { useToast } from "@/hooks/use-toast"
 import { CATEGORIES, POSITIONS, STATES, COUNTRIES } from "@/data/football"
-import { FUNNEL_ROUTES, loadPlayerData, savePlayerData, type PlayerData } from "@/lib/funnel"
+import {
+  FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead,
+  formatPhoneBR, isValidEmail, isValidPhone, type PlayerData,
+} from "@/lib/funnel"
 import FunnelLegalMenu from "./FunnelLegalMenu"
 
 const STEPS = [
   { icon: User, label: "Vamos te conhecer", desc: "Informações básicas" },
+  { icon: Mail, label: "Como falamos com você", desc: "E-mail e telefone" },
   { icon: Flag, label: "Sua nacionalidade", desc: "Origem e cidadania" },
   { icon: Layers, label: "Sua posição", desc: "Onde você joga" },
   { icon: Zap, label: "Sua categoria", desc: "Faixa etária" },
@@ -51,12 +56,16 @@ const PillBtn = ({ active, onClick, children }: { active: boolean; onClick: () =
   </button>
 )
 
-const TOTAL_STEPS = 5
+const TOTAL_STEPS = 6
+const CONTACT_STEP = 2
 
 export default function FunnelProfile() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [step, setStep] = useState(1)
   const [playerData, setPlayerData] = useState<PlayerData>(() => loadPlayerData())
+  const [isSyncing, setIsSyncing] = useState(false)
+  const leadSynced = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -75,11 +84,37 @@ export default function FunnelProfile() {
     savePlayerData(playerData)
   }, [playerData])
 
-  const handleNext = () => {
+  // Um lead só existe depois do contato: grava assim que ele é informado,
+  // sem esperar o fim do funil. Uma falha de rede não trava a pessoa — a
+  // última etapa tenta de novo antes do upload.
+  const pushLead = async () => {
+    try {
+      await syncFunnelLead(playerData)
+      leadSynced.current = true
+    } catch {
+      leadSynced.current = false
+      toast({
+        title: "Não conseguimos salvar seu contato agora",
+        description: "Você pode continuar — vamos tentar de novo automaticamente.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleNext = async () => {
+    if (step === CONTACT_STEP) {
+      setIsSyncing(true)
+      await pushLead()
+      setIsSyncing(false)
+    }
+
     if (step < TOTAL_STEPS) {
       setStep(step + 1)
       return
     }
+
+    if (!leadSynced.current) void pushLead()
+
     // Fim do formulário público → envio de vídeo (ainda sem login),
     // igual ao fluxo tradicional (Onboarding → Upload). A conta só é
     // criada depois, na saída do upload.
@@ -103,10 +138,11 @@ export default function FunnelProfile() {
   const canProceed = () => {
     switch (step) {
       case 1: return Boolean(playerData.name && playerData.age && playerData.height && playerData.weight && playerData.preferredFoot)
-      case 2: return Boolean(playerData.nationality && (playerData.hasDualCitizenship === "Não" || (playerData.hasDualCitizenship === "Sim" && playerData.dualCitizenshipCountry)))
-      case 3: return Boolean(playerData.position)
-      case 4: return Boolean(playerData.category)
-      case 5: return Boolean(playerData.city && playerData.state)
+      case 2: return isValidEmail(playerData.email) && isValidPhone(playerData.phone)
+      case 3: return Boolean(playerData.nationality && (playerData.hasDualCitizenship === "Não" || (playerData.hasDualCitizenship === "Sim" && playerData.dualCitizenshipCountry)))
+      case 4: return Boolean(playerData.position)
+      case 5: return Boolean(playerData.category)
+      case 6: return Boolean(playerData.city && playerData.state)
       default: return false
     }
   }
@@ -278,7 +314,57 @@ export default function FunnelProfile() {
             </>
           )}
 
-          {step === 2 && (
+          {step === CONTACT_STEP && (
+            <div className="space-y-5">
+              <p className="text-sm text-white/70 leading-relaxed">
+                É por aqui que o relatório de performance e o retorno dos olheiros chegam até você.
+              </p>
+
+              <div>
+                <FieldLabel>E-mail</FieldLabel>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+                  <input
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    className={inputCls + " pl-10"}
+                    style={inputStyle}
+                    value={playerData.email}
+                    onChange={(e) => setPlayerData({ ...playerData, email: e.target.value })}
+                    placeholder="nome@exemplo.com"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <FieldLabel>WhatsApp</FieldLabel>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    className={inputCls + " pl-10"}
+                    style={inputStyle}
+                    value={playerData.phone}
+                    onChange={(e) => setPlayerData({ ...playerData, phone: formatPhoneBR(e.target.value) })}
+                    placeholder="(11) 91234-5678"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-xl px-4 py-3 flex items-start gap-2"
+                style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.18)" }}>
+                <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-emerald-300/85 leading-relaxed">
+                  Usamos seu contato apenas para entregar a avaliação. Sem spam, sem repasse a terceiros.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
             <div className="space-y-5">
               <div>
                 <FieldLabel>Nacionalidade</FieldLabel>
@@ -321,7 +407,7 @@ export default function FunnelProfile() {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div>
               <FieldLabel>Posição principal</FieldLabel>
               <Select value={playerData.position} onValueChange={(v) => setPlayerData({ ...playerData, position: v })}>
@@ -341,7 +427,7 @@ export default function FunnelProfile() {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="space-y-4">
               <div>
                 <FieldLabel>Categoria / Faixa etária</FieldLabel>
@@ -418,7 +504,7 @@ export default function FunnelProfile() {
             </div>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <div className="space-y-4">
               <div>
                 <FieldLabel>Estado</FieldLabel>
@@ -455,7 +541,7 @@ export default function FunnelProfile() {
         <div className="mt-4 pb-4 space-y-2">
           <button
             onClick={handleNext}
-            disabled={!canProceed()}
+            disabled={!canProceed() || isSyncing}
             className={[
               "w-full flex items-center justify-center gap-3 font-black text-base rounded-2xl py-3.5 transition-all duration-200",
               canProceed()
@@ -467,8 +553,17 @@ export default function FunnelProfile() {
               : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }
             }
           >
-            {step === TOTAL_STEPS ? "Enviar meu vídeo" : "Continuar"}
-            <ArrowRight className="w-5 h-5" />
+            {isSyncing ? (
+              <>
+                <div className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
+                Salvando contato...
+              </>
+            ) : (
+              <>
+                {step === TOTAL_STEPS ? "Enviar meu vídeo" : "Continuar"}
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
           </button>
 
           {step < TOTAL_STEPS ? (

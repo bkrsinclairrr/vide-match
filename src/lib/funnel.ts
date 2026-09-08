@@ -6,10 +6,13 @@
  * conta na hora de ver o resultado. Depois de criar a conta, volta para a
  * conclusão (tela de performance + contato no WhatsApp).
  *
- * Os dados ficam em localStorage sob a MESMA chave usada pelo onboarding
+ * Os dados ficam em sessionStorage sob a MESMA chave usada pelo onboarding
  * tradicional ('playerData'), de propósito: quem passa por um funil e
  * depois cai no outro não perde o que já preencheu.
  */
+
+import { supabase } from "@/integrations/supabase/client"
+import { emailSchema } from "@/lib/security"
 
 export const FUNNEL_ROUTES = {
   home: "/avaliacao",
@@ -30,6 +33,8 @@ export type PlayerData = {
   height: string
   weight: string
   preferredFoot: string
+  email: string
+  phone: string
   nationality: string
   position: string
   state: string
@@ -42,14 +47,15 @@ export type PlayerData = {
 
 export const EMPTY_PLAYER: PlayerData = {
   name: "", age: "", height: "", weight: "",
-  preferredFoot: "", nationality: "", position: "",
+  preferredFoot: "", email: "", phone: "",
+  nationality: "", position: "",
   state: "", city: "", photo: "", category: "Sub 16",
   hasDualCitizenship: "", dualCitizenshipCountry: "",
 }
 
 export function loadPlayerData(): PlayerData {
   try {
-    const saved = JSON.parse(localStorage.getItem(PLAYER_DATA_KEY) || "null")
+    const saved = JSON.parse(sessionStorage.getItem(PLAYER_DATA_KEY) || "null")
     return saved ? { ...EMPTY_PLAYER, ...saved } : EMPTY_PLAYER
   } catch {
     return EMPTY_PLAYER
@@ -58,7 +64,7 @@ export function loadPlayerData(): PlayerData {
 
 export function savePlayerData(data: PlayerData) {
   try {
-    localStorage.setItem(PLAYER_DATA_KEY, JSON.stringify(data))
+    sessionStorage.setItem(PLAYER_DATA_KEY, JSON.stringify(data))
   } catch {
     /* storage cheio ou bloqueado — o fluxo continua com o estado em memória */
   }
@@ -68,8 +74,51 @@ export function savePlayerData(data: PlayerData) {
 export function isProfileComplete(d: PlayerData) {
   return Boolean(
     d.name && d.age && d.height && d.weight && d.preferredFoot &&
+    isValidEmail(d.email) && isValidPhone(d.phone) &&
     d.nationality && d.position && d.category && d.state && d.city
   )
+}
+
+/* ------------------------------------------------------------------ */
+/* Contato: validação, máscara e envio imediato ao Supabase            */
+/* ------------------------------------------------------------------ */
+
+export function onlyDigits(value: string): string {
+  return (value || "").replace(/\D/g, "")
+}
+
+export function isValidEmail(value: string): boolean {
+  return emailSchema.safeParse(value || "").success
+}
+
+/** Celular ou fixo brasileiro: DDD + 8 ou 9 dígitos. */
+export function isValidPhone(value: string): boolean {
+  const digits = onlyDigits(value).length
+  return digits === 10 || digits === 11
+}
+
+export function formatPhoneBR(value: string): string {
+  const d = onlyDigits(value).slice(0, 11)
+  if (d.length <= 2) return d
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
+
+/**
+ * Grava o lead assim que a pessoa informa contato — antes do vídeo e antes
+ * da conta. O e-mail é a chave: refazer o funil atualiza o mesmo registro.
+ * A escrita passa por uma função SECURITY DEFINER porque quem envia ainda
+ * é um cliente anônimo, sem acesso direto à tabela.
+ */
+export async function syncFunnelLead(d: PlayerData): Promise<string> {
+  const { data, error } = await supabase.rpc("capture_funnel_lead", {
+    p_name: d.name.trim(),
+    p_email: d.email.trim().toLowerCase(),
+    p_phone: onlyDigits(d.phone),
+  })
+  if (error) throw new Error(error.message)
+  return data
 }
 
 /* ------------------------------------------------------------------ */

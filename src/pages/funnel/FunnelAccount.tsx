@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
 import { FUNNEL_ROUTES, loadPlayerData, isProfileComplete, friendlyAuthError } from "@/lib/funnel"
+import { nameSchema, validateCredentials } from "@/lib/security"
 import FunnelLegalMenu from "./FunnelLegalMenu"
 
 type Mode = "signup" | "login"
@@ -22,7 +23,7 @@ export default function FunnelAccount() {
 
   const [mode, setMode] = useState<Mode>("signup")
   const [name, setName] = useState(player.name || "")
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(player.email || "")
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
@@ -46,13 +47,19 @@ export default function FunnelAccount() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+    const credentials = validateCredentials(email, password)
+    const validName = nameSchema.safeParse(name.trim())
+    if (!credentials || !validName.success) {
+      toast({ title: "Dados inválidos", description: "Informe nome válido, e-mail válido e uma senha de 12 a 128 caracteres.", variant: "destructive" })
+      return
+    }
     setIsSubmitting(true)
 
     const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: credentials.email,
+      password: credentials.password,
       options: {
-        data: { full_name: name },
+        data: { full_name: validName.data },
         emailRedirectTo: `${window.location.origin}${FUNNEL_ROUTES.result}`,
       },
     })
@@ -72,31 +79,23 @@ export default function FunnelAccount() {
       return
     }
 
-    // Tenta entrar direto mesmo assim — cobre o caso de o projeto ainda
-    // exigir confirmação: sem isso a pessoa ficaria numa conta criada mas
-    // sem sessão nenhuma, sem explicação.
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
     setIsSubmitting(false)
-
-    if (signInData?.session) {
-      goToResult()
-      return
-    }
-
-    // Continua bloqueado do lado do Supabase: deixa a pessoa na aba
-    // "Já tenho conta", pronta para tentar de novo, sem mencionar
-    // confirmação de e-mail nem prendê-la numa tela à parte.
     setMode("login")
     toast({
-      title: "Conta criada",
-      description: signInError ? friendlyAuthError(signInError.message) : "Use o e-mail e a senha para entrar.",
+      title: "Conta criada! Confirme seu e-mail.",
+      description: "Verifique sua caixa de entrada e entre após confirmar o endereço.",
     })
   }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    const credentials = validateCredentials(email, password)
+    if (!credentials) {
+      toast({ title: "Dados inválidos", description: "Informe um e-mail válido e uma senha de 12 a 128 caracteres.", variant: "destructive" })
+      return
+    }
     setIsSubmitting(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithPassword(credentials)
     setIsSubmitting(false)
     if (error) {
       toast({ title: "Erro ao entrar", description: friendlyAuthError(error.message), variant: "destructive" })

@@ -59,6 +59,33 @@ export type Database = {
         }
         Relationships: []
       }
+      funnel_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -109,6 +136,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      capture_funnel_lead: {
+        Args: {
+          p_email: string
+          p_name: string
+          p_phone: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
