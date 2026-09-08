@@ -38,8 +38,8 @@ const VideoUploadCard = ({
 
   const validateFile = (file: File): { status: VideoFile['status']; errorMessage?: string; warningMessage?: string } => {
     const validTypes = ['video/mp4', 'video/quicktime', 'video/x-matroska', 'video/webm'];
-    if (!validTypes.includes(file.type) && !file.name.match(/\.(mp4|mov|mkv)$/i)) {
-      return { status: 'error', errorMessage: 'Formato inválido. Aceitos: MP4, MOV, MKV.' };
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(mp4|mov|mkv|webm)$/i)) {
+      return { status: 'error', errorMessage: 'Formato inválido. Aceitos: MP4, MOV, MKV, WEBM.' };
     }
     if (file.size > maxSizeMB * 1024 * 1024) {
       return { status: 'error', errorMessage: `Este arquivo excede o limite de ${maxSizeMB} MB.` };
@@ -65,16 +65,48 @@ const VideoUploadCard = ({
 
     const media = document.createElement('video');
     media.preload = 'metadata';
-    media.onloadedmetadata = () => {
+    media.muted = true;
+
+    const finish = (finalDuration: number) => {
       media.removeAttribute('src');
       media.load();
-      if (!Number.isFinite(media.duration) || media.duration > maxDurationSec) {
+      // Duração ainda não confirmada mesmo após o truque do seek: alguns
+      // containers (MP4 fragmentado, WebM sem Cues) nunca resolvem isso no
+      // navegador. Aceitar sem bloquear é melhor do que recusar um vídeo
+      // válido por não conseguirmos medi-lo.
+      if (Number.isFinite(finalDuration) && finalDuration > maxDurationSec) {
         URL.revokeObjectURL(previewUrl);
         onChange({ file, status: 'error', errorMessage: `Este vídeo excede o limite de ${duration}.` });
       } else {
         onChange({ file, previewUrl, status: validation.status, errorMessage: validation.errorMessage, warningMessage: validation.warningMessage });
       }
       setUploading(false);
+    };
+
+    media.onloadedmetadata = () => {
+      if (Number.isFinite(media.duration)) {
+        finish(media.duration);
+        return;
+      }
+
+      // Bug conhecido: alguns arquivos reportam duration=Infinity até um
+      // seek forçar o navegador a recalcular a partir do bitrate. Chrome
+      // sinaliza isso via 'timeupdate', outros via 'durationchange' — o
+      // primeiro que disparar resolve.
+      let resolved = false;
+      const resolveDuration = () => {
+        if (resolved) return;
+        resolved = true;
+        window.clearTimeout(fallback);
+        media.ontimeupdate = null;
+        media.ondurationchange = null;
+        media.currentTime = 0;
+        finish(media.duration);
+      };
+      const fallback = window.setTimeout(resolveDuration, 2000);
+      media.ontimeupdate = resolveDuration;
+      media.ondurationchange = resolveDuration;
+      media.currentTime = 1e101;
     };
     media.onerror = () => {
       URL.revokeObjectURL(media.src);
