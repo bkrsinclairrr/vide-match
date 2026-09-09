@@ -33,7 +33,8 @@ const VideoUploadCard = ({
   title, subtitle, description, duration, example, maxDurationSec, maxSizeMB,
   suggestedName, video, onChange, showCapture = true
 }: VideoUploadCardProps) => {
-  const fileRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const validateFile = (file: File): { status: VideoFile['status']; errorMessage?: string; warningMessage?: string } => {
@@ -187,7 +188,7 @@ const VideoUploadCard = ({
       ) : (
         <div className="space-y-2">
           <div className="border border-dashed border-border rounded-lg p-6 text-center hover:border-primary/40 transition-colors cursor-pointer"
-            onClick={() => fileRef.current?.click()}>
+            onClick={() => galleryInputRef.current?.click()}>
             {uploading ? (
               <div className="flex flex-col items-center gap-2">
                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
@@ -201,11 +202,32 @@ const VideoUploadCard = ({
               </>
             )}
           </div>
-          <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/x-matroska,video/webm" capture={showCapture ? "environment" : undefined} onChange={handleFileChange} className="hidden" />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="video/mp4,video/quicktime,video/x-matroska,video/webm,.mp4,.mov,.mkv,.webm"
+            onChange={handleFileChange}
+            className="hidden"
+          />
           {showCapture && (
-            <Button variant="outline" className="w-full text-xs border-border" onClick={() => fileRef.current?.click()}>
-              <Camera className="w-3.5 h-3.5 mr-1.5" />Gravar agora
-            </Button>
+            <>
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="video/*"
+                capture="environment"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full text-xs border-border"
+                onClick={() => cameraInputRef.current?.click()}
+              >
+                <Camera className="w-3.5 h-3.5 mr-1.5" />Gravar agora
+              </Button>
+            </>
           )}
         </div>
       )}
