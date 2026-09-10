@@ -22,7 +22,6 @@ export default function FunnelAccount() {
   const firstName = player.name?.trim().split(" ")[0] || "Atleta"
 
   const [mode, setMode] = useState<Mode>("signup")
-  const [name, setName] = useState(player.name || "")
   const [email, setEmail] = useState(player.email || "")
   const [password, setPassword] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -47,8 +46,12 @@ export default function FunnelAccount() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
-    const credentials = validateCredentials(email, password)
-    const validName = nameSchema.safeParse(name.trim())
+    // Nome e e-mail já foram confirmados no formulário do funil — não são
+    // reeditados aqui. Continuam vindo de `player` (não do estado `email`,
+    // que pertence só ao modo "login") para a conta nascer com o mesmo
+    // e-mail já gravado como lead.
+    const credentials = validateCredentials(player.email, password)
+    const validName = nameSchema.safeParse(player.name.trim())
     if (!credentials || !validName.success) {
       toast({ title: "Dados inválidos", description: "Informe nome válido, e-mail válido e uma senha de 12 a 128 caracteres.", variant: "destructive" })
       return
@@ -174,39 +177,36 @@ export default function FunnelAccount() {
         </div>
 
         <form onSubmit={mode === "signup" ? handleSignup : handleLogin} className="space-y-4">
-          {mode === "signup" && (
+          {mode === "signup" ? (
+            // Nome e e-mail já foram informados no formulário — mostrar de
+            // novo como campos editáveis faria a pessoa preencher os mesmos
+            // dados duas vezes. Só a senha é realmente nova aqui.
+            <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3.5">
+              <div className="w-9 h-9 rounded-full bg-amber-400/15 flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-white truncate">{player.name}</p>
+                <p className="text-xs text-white/55 truncate">{player.email}</p>
+              </div>
+            </div>
+          ) : (
             <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-white/75">Nome completo</label>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-white/75">E-mail</label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="João Silva"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nome@exemplo.com"
                   className="w-full rounded-xl h-12 pl-10 pr-4 text-base text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-amber-400/60 transition-all"
                   style={{ background: "#1E1E22", border: "1px solid rgba(255,255,255,0.14)" }}
                 />
               </div>
             </div>
           )}
-
-          <div>
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-white/75">E-mail</label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="nome@exemplo.com"
-                className="w-full rounded-xl h-12 pl-10 pr-4 text-base text-white placeholder:text-white/45 focus:outline-none focus:ring-2 focus:ring-amber-400/60 transition-all"
-                style={{ background: "#1E1E22", border: "1px solid rgba(255,255,255,0.14)" }}
-              />
-            </div>
-          </div>
 
           <div>
             <label className="mb-2 block text-xs font-semibold uppercase tracking-widest text-white/75">

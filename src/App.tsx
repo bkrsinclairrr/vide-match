@@ -1,11 +1,14 @@
 import Home from "./Home"
 import GateKeeper from "./components/GateKeeper"
+import ErrorBoundary from "./components/ErrorBoundary"
 
 function App() {
   return (
-    <GateKeeper>
-      <Home />
-    </GateKeeper>
+    <ErrorBoundary>
+      <GateKeeper>
+        <Home />
+      </GateKeeper>
+    </ErrorBoundary>
   )
 }
 

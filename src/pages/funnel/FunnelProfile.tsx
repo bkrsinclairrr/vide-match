@@ -10,6 +10,7 @@ import {
   FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead,
   formatPhoneBR, isValidEmail, isValidPhone, type PlayerData,
 } from "@/lib/funnel"
+import { nameSchema } from "@/lib/security"
 import FunnelLegalMenu from "./FunnelLegalMenu"
 
 const STEPS = [
@@ -139,7 +140,7 @@ export default function FunnelProfile() {
 
   const canProceed = () => {
     switch (step) {
-      case 1: return Boolean(playerData.name && playerData.age && playerData.height && playerData.weight && playerData.preferredFoot)
+      case 1: return nameSchema.safeParse(playerData.name).success && Boolean(playerData.age && playerData.height && playerData.weight && playerData.preferredFoot)
       case 2: return isValidEmail(playerData.email) && isValidPhone(playerData.phone)
       case 3: return Boolean(playerData.nationality && (playerData.hasDualCitizenship === "Não" || (playerData.hasDualCitizenship === "Sim" && playerData.dualCitizenshipCountry)))
       case 4: return Boolean(playerData.position)

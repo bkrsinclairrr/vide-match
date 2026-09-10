@@ -12,7 +12,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client"
-import { emailSchema } from "@/lib/security"
+import { emailSchema, nameSchema } from "@/lib/security"
 
 export const FUNNEL_ROUTES = {
   home: "/avaliacao",
@@ -73,7 +73,7 @@ export function savePlayerData(data: PlayerData) {
 /** Já dá para gerar um resultado? (mesma validação das etapas do formulário) */
 export function isProfileComplete(d: PlayerData) {
   return Boolean(
-    d.name && d.age && d.height && d.weight && d.preferredFoot &&
+    nameSchema.safeParse(d.name).success && d.age && d.height && d.weight && d.preferredFoot &&
     isValidEmail(d.email) && isValidPhone(d.phone) &&
     d.nationality && d.position && d.category && d.state && d.city
   )
