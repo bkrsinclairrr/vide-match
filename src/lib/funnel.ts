@@ -23,7 +23,7 @@ export const FUNNEL_ROUTES = {
 } as const
 
 /** Número de contato do time Zyron (formato E.164, sem símbolos). */
-export const WHATSAPP_NUMBER = "5561999767417"
+export const WHATSAPP_NUMBER = "5551982690162"
 
 export const PLAYER_DATA_KEY = "playerData"
 

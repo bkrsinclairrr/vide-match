@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
+import { WHATSAPP_NUMBER } from "@/lib/funnel"
 import {
   Zap, Trophy, Shield, Target, Activity, Flame,
   ArrowRight, CheckCircle2, Cpu, Database, Globe2, Users, Star,
@@ -537,7 +538,7 @@ export default function Analysis() {
         <section className="flex flex-col items-center text-center space-y-4">
           <p className="text-xs text-white/30 uppercase tracking-widest font-semibold">Próximo passo</p>
           <button
-            onClick={() => window.open("https://wa.me/5511999999999?text=Ol%C3%A1%2C+quero+entrar+em+contato+com+a+equipe+de+Scout+do+Zyron.", "_blank")}
+            onClick={() => window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Olá, quero entrar em contato com a equipe de Scout do Zyron.")}`, "_blank")}
             className="group inline-flex items-center gap-3 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-base px-9 py-4 rounded-2xl transition-all shadow-[0_0_40px_rgba(251,191,36,0.3)] hover:shadow-[0_0_60px_rgba(251,191,36,0.5)] active:scale-95"
           >
             <Users className="w-5 h-5" />
