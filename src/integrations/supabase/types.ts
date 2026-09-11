@@ -63,26 +63,50 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          fbclid: string | null
+          gclid: string | null
           id: string
           name: string | null
           phone: string
+          ttclid: string | null
           updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
         }
         Insert: {
           created_at?: string
           email: string
+          fbclid?: string | null
+          gclid?: string | null
           id?: string
           name?: string | null
           phone: string
+          ttclid?: string | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Update: {
           created_at?: string
           email?: string
+          fbclid?: string | null
+          gclid?: string | null
           id?: string
           name?: string | null
           phone?: string
+          ttclid?: string | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
@@ -139,8 +163,16 @@ export type Database = {
       capture_funnel_lead: {
         Args: {
           p_email: string
+          p_fbclid?: string | null
+          p_gclid?: string | null
           p_name: string
           p_phone: string
+          p_ttclid?: string | null
+          p_utm_campaign?: string | null
+          p_utm_content?: string | null
+          p_utm_medium?: string | null
+          p_utm_source?: string | null
+          p_utm_term?: string | null
         }
         Returns: string
       }

@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+DESIGN.md.lnk
+dist
+supabase/.temp

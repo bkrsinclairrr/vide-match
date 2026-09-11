@@ -266,6 +266,7 @@ export default function FunnelProfile() {
               <div>
                 <FieldLabel>Nome completo</FieldLabel>
                 <input
+                  name="name"
                   className={inputCls}
                   style={inputStyle}
                   value={playerData.name}
@@ -328,6 +329,7 @@ export default function FunnelProfile() {
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
                   <input
+                    name="email"
                     type="email"
                     inputMode="email"
                     autoComplete="email"
@@ -345,6 +347,7 @@ export default function FunnelProfile() {
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
                   <input
+                    name="phone"
                     type="tel"
                     inputMode="tel"
                     autoComplete="tel"

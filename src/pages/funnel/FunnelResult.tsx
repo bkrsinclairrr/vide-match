@@ -378,7 +378,9 @@ export default function FunnelResult() {
             A entrega é feita pela nossa equipe no WhatsApp: sua nota geral, os {stats.length} indicadores abertos, a leitura de cada um e o direcionamento de clubes compatíveis com o seu perfil.
           </p>
 
+          {/* Configurar InitiateCheckout no painel da Utmify usando este CTA. */}
           <a
+            id="utmify-initiate-checkout-cta"
             href={whatsappLink}
             target="_blank"
             rel="noopener noreferrer"

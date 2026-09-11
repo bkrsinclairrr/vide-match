@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 
 import { AuthProvider } from "@/contexts/AuthContext"
 import ProtectedRoute from "@/components/ProtectedRoute"
+import UtmifyPixel from "@/components/UtmifyPixel"
 
 import { lazy, Suspense, useEffect } from "react"
 import { useLocation } from "react-router-dom"
@@ -82,6 +83,7 @@ const Home = () => {
       <TooltipProvider>
         <Toaster />
         <BrowserRouter>
+          <UtmifyPixel />
           <ScrollToTop />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
