@@ -32,7 +32,7 @@ export default function Terms() {
                 </div>
 
                 <Section title="1. Definições">
-                    <p><strong className="text-white/80">Plataforma:</strong> o sistema digital Zyron, acessível via aizyron.site, composto por funcionalidades de análise algorítmica de performance atlética.</p>
+                    <p><strong className="text-white/80">Plataforma:</strong> o sistema digital Zyron, acessível via aizyron.com, composto por funcionalidades de análise algorítmica de performance atlética.</p>
                     <p><strong className="text-white/80">Usuário:</strong> qualquer pessoa que realize cadastro e utilize a plataforma.</p>
                     <p><strong className="text-white/80">Análise:</strong> relatório gerado algoritmicamente com base nas informações fornecidas pelo usuário.</p>
                     <p><strong className="text-white/80">Match:</strong> recomendação algorítmica de clube ou oportunidade, gerada com base no perfil do atleta.</p>
@@ -102,12 +102,12 @@ export default function Terms() {
                 </Section>
 
                 <Section title="11. Contato">
-                    <p>Para dúvidas, reclamações ou exercício de direitos, entre em contato: <strong className="text-white">contato@aizyron.site</strong></p>
+                    <p>Para dúvidas, reclamações ou exercício de direitos, entre em contato: <strong className="text-white">contato@aizyron.com</strong></p>
                 </Section>
 
                 <div className="rounded-2xl border border-white/5 bg-white/3 p-4 text-center">
                     <p className="text-xs text-white/30">Zyron © 2026 — Todos os direitos reservados</p>
-                    <p className="text-xs text-white/20 mt-1">contato@aizyron.site</p>
+                    <p className="text-xs text-white/20 mt-1">contato@aizyron.com</p>
                 </div>
             </main>
         </div>

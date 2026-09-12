@@ -32,8 +32,8 @@ export default function Privacy() {
                 </div>
 
                 <Section title="1. Quem somos">
-                    <p>A <strong className="text-white">Zyron</strong> é uma plataforma digital de análise de performance esportiva e recomendação de oportunidades para atletas amadores e profissionais. Operamos exclusivamente por meio do domínio <strong className="text-white">aizyron.site</strong>.</p>
-                    <p>Para dúvidas sobre privacidade, entre em contato: <strong className="text-white">contato@aizyron.site</strong></p>
+                    <p>A <strong className="text-white">Zyron</strong> é uma plataforma digital de análise de performance esportiva e recomendação de oportunidades para atletas amadores e profissionais. Operamos exclusivamente por meio do domínio <strong className="text-white">aizyron.com</strong>.</p>
+                    <p>Para dúvidas sobre privacidade, entre em contato: <strong className="text-white">contato@aizyron.com</strong></p>
                 </Section>
 
                 <Section title="2. Dados coletados">
@@ -88,7 +88,7 @@ export default function Privacy() {
                         <li>Revogar o consentimento a qualquer momento;</li>
                         <li>Portabilidade dos dados a outro fornecedor.</li>
                     </ul>
-                    <p className="mt-2">Para exercer seus direitos, entre em contato: <strong className="text-white">contato@aizyron.site</strong></p>
+                    <p className="mt-2">Para exercer seus direitos, entre em contato: <strong className="text-white">contato@aizyron.com</strong></p>
                 </Section>
 
                 <Section title="8. Cookies e rastreamento">
@@ -105,7 +105,7 @@ export default function Privacy() {
 
                 <div className="rounded-2xl border border-white/5 bg-white/3 p-4 text-center">
                     <p className="text-xs text-white/30">Zyron © 2026 — Todos os direitos reservados</p>
-                    <p className="text-xs text-white/20 mt-1">contato@aizyron.site</p>
+                    <p className="text-xs text-white/20 mt-1">contato@aizyron.com</p>
                 </div>
             </main>
         </div>

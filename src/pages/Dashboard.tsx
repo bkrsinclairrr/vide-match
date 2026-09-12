@@ -223,7 +223,7 @@ export default function Dashboard() {
         setMenuOpen(false)
         setSettingsOpen(false)
         const { error } = await supabase.auth.resetPasswordForEmail(user?.email || "", {
-            redirectTo: "https://www.aizyron.site/reset-password",
+            redirectTo: "https://aizyron.com/reset-password",
         })
         if (!error) {
             toast({

@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
-const allowedOrigin = Deno.env.get("APP_ORIGIN") ?? "https://www.aizyron.site";
+const allowedOrigin = Deno.env.get("APP_ORIGIN") ?? "https://aizyron.com";
 const corsHeaders = {
   "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
