@@ -8,7 +8,7 @@
                 { "key": "X-Frame-Options", "value": "DENY" },
                 { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
                 { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
-                { "key": "Content-Security-Policy", "value": "default-src 'self'; connect-src 'self' https://*.supabase.co https://servicodados.ibge.gov.br https://raw.githubusercontent.com https://*.wistia.com https://*.wistia.net https://*.utmify.com.br; img-src 'self' data: https:; media-src 'self' blob: https://*.wistia.com https://*.wistia.net https://embedwistia-a.akamaihd.net; script-src 'self' https://fast.wistia.com https://fast.wistia.net https://cdn.utmify.com.br; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self' https://fast.wistia.com https://fast.wistia.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
+                { "key": "Content-Security-Policy", "value": "default-src 'self'; connect-src 'self' https://*.supabase.co https://servicodados.ibge.gov.br https://raw.githubusercontent.com https://*.wistia.com https://*.wistia.net https://*.utmify.com.br https://*.facebook.com https://*.facebook.net; img-src 'self' data: https:; media-src 'self' blob: https://*.wistia.com https://*.wistia.net https://embedwistia-a.akamaihd.net; script-src 'self' https://fast.wistia.com https://fast.wistia.net https://cdn.utmify.com.br https://connect.facebook.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; frame-src 'self' https://fast.wistia.com https://fast.wistia.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" }
             ]
         }
     ],
