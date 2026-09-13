@@ -10,6 +10,7 @@ import {
 } from "@/components/ParentAvatars"
 import { FUNNEL_ROUTES } from "@/lib/funnel"
 import FunnelLegalMenu from "./FunnelLegalMenu"
+import FunnelTestimonialVideo from "./FunnelTestimonialVideo"
 
 const PARENT_AVATARS = {
     rosangela: AvatarRosangela,
@@ -21,16 +22,16 @@ const PARENT_AVATARS = {
 
 const CLUBS = [
     { name: "West Ham United", logo: "https://upload.wikimedia.org/wikipedia/en/c/c2/West_Ham_United_FC_logo.svg", country: "Inglaterra" },
-    { name: "Villarreal CF", logo: "https://upload.wikimedia.org/wikipedia/en/b/b9/Villarreal_CF_logo-en.svg", country: "Espanha" },
+    { name: "Villarreal FC", logo: "https://upload.wikimedia.org/wikipedia/en/b/b9/Villarreal_CF_logo-en.svg", country: "Espanha" },
     { name: "Olympique de Marseille", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg", country: "França" },
-    { name: "AS Roma", logo: "https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg", country: "Itália" },
-    { name: "Sevilla FC", logo: "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg", country: "Espanha" },
+    { name: "Roma", logo: "https://upload.wikimedia.org/wikipedia/en/f/f7/AS_Roma_logo_%282017%29.svg", country: "Itália" },
+    { name: "Sevilla", logo: "https://upload.wikimedia.org/wikipedia/en/3/3b/Sevilla_FC_logo.svg", country: "Espanha" },
 ]
 
 const STATS = [
     { value: "345+", count: "345", suffix: "+", decimals: "0", label: "Atletas encaminhados", icon: Users, color: "from-amber-400 to-amber-600" },
     { value: "23", count: "23", suffix: "", decimals: "0", label: "Países com oportunidades", icon: Globe2, color: "from-blue-400 to-blue-600" },
-    { value: "91%", count: "91", suffix: "%", decimals: "0", label: "Taxa de compatibilidade", icon: Target, color: "from-emerald-400 to-emerald-600" },
+    { value: "98%", count: "98", suffix: "%", decimals: "0", label: "Taxa de compatibilidade", icon: Target, color: "from-emerald-400 to-emerald-600" },
     { value: "4.8x", count: "4.8", suffix: "x", decimals: "1", label: "Mais rápido que peneiras", icon: TrendingUp, color: "from-purple-400 to-purple-600" },
 ]
 
@@ -312,16 +313,19 @@ export default function FunnelHome() {
                     <div data-anim="up">
                         <p className="text-xs text-foreground/55 font-semibold tracking-widest uppercase mb-3">Inspiração tecnológica</p>
                         <h3 className="text-xl md:text-2xl font-bold text-foreground">
-                            Tecnologia Inspirada em Padrões de Clubes Internacionais
+                            Clubes que já utilizam Inteligência Artificial
                         </h3>
                     </div>
                     <div data-anim-group="0.07" className="flex items-center justify-center gap-8 md:gap-16 flex-wrap">
                         {CLUBS.map((club) => (
-                            <div key={club.name} className="flex flex-col items-center gap-2 group">
+                            <div key={club.name} className="flex w-24 flex-col items-center gap-2 group md:w-28">
                                 <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center opacity-70 transition-all duration-300 group-hover:opacity-100 group-hover:-translate-y-1">
                                     <img src={club.logo} alt={club.name} className="w-full h-full object-contain grayscale transition-all duration-300 group-hover:grayscale-0" loading="lazy" />
                                 </div>
-                                <span className="text-[11px] text-foreground/55 font-medium tracking-wide">{club.country}</span>
+                                <div className="flex flex-col items-center gap-0.5">
+                                    <span className="text-xs font-semibold leading-snug text-foreground/80 text-center">{club.name}</span>
+                                    <span className="text-[11px] text-foreground/55 font-medium tracking-wide">{club.country}</span>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -409,6 +413,10 @@ export default function FunnelHome() {
                                 Role para ver os 5 relatos
                             </span>
                         </div>
+                    </div>
+
+                    <div className="mt-10 md:mt-14 lg:mx-auto lg:max-w-5xl lg:px-4">
+                        <FunnelTestimonialVideo />
                     </div>
                 </section>
 
