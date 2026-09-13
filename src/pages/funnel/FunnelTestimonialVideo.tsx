@@ -4,20 +4,19 @@ import { Play, Pause, Volume2, VolumeX } from "lucide-react"
 /**
  * Player de depoimento da /avaliacao. Exclusivo desta página.
  *
- * O vídeo não pode ser adiantado: o controle de progresso do Wistia fica
- * desligado, a UI abaixo não expõe seek e um laço de vigilância devolve o
- * relógio para trás caso algum caminho residual (API, atalho, retomada de
- * sessão) empurre o tempo para frente.
+ * O vídeo não pode ser adiantado porque não existe controle que faça isso: sem
+ * barra de progresso, sem capítulos, sem atalhos de teclado, sem PiP e com os
+ * cliques interceptados antes de chegarem ao player.
+ *
+ * Não tente reforçar isso vigiando `currentTime` e empurrando o relógio para
+ * trás: em conexão instável o buffering avança o tempo sozinho, a correção
+ * vira um seek, o seek provoca mais buffering e o vídeo trava em loop.
  */
 
 // Ponto único de troca do vídeo.
 const WISTIA_MEDIA_ID = "pr8vrpryrr"
 
 const SWATCH_URL = `https://fast.wistia.com/embed/medias/${WISTIA_MEDIA_ID}/swatch`
-
-// Buffering e variação de frame movem o relógio alguns décimos sem que tenha
-// havido salto, então só tempos acima desta folga contam como seek.
-const SEEK_TOLERANCE_SECONDS = 0.75
 
 type WistiaPlayer = HTMLElement & {
     play?: () => void
@@ -114,7 +113,6 @@ function hideChaptersControl(host: HTMLElement) {
 
 export default function FunnelTestimonialVideo() {
     const playerRef = useRef<WistiaPlayer>(null)
-    const maxWatchedRef = useRef(0)
 
     const [started, setStarted] = useState(false)
     const [playing, setPlaying] = useState(false)
@@ -123,17 +121,20 @@ export default function FunnelTestimonialVideo() {
 
     useEffect(loadWistiaScripts, [])
 
-    // Sincroniza a UI lendo o player e reverte qualquer avanço de tempo. Ler a
-    // cada frame mantém a trava eficaz sem depender dos nomes de evento do
-    // Wistia, que variam entre versões do web component.
+    // Espelha o estado do player na UI. Ler a cada frame evita depender dos
+    // nomes de evento do Wistia, que variam entre versões do web component.
     useEffect(() => {
         let frame = 0
         let hardened: HTMLVideoElement | null = null
+        let chaptersHidden = false
 
         const tick = () => {
             frame = requestAnimationFrame(tick)
 
-            if (playerRef.current) hideChaptersControl(playerRef.current)
+            if (!chaptersHidden && playerRef.current) {
+                hideChaptersControl(playerRef.current)
+                chaptersHidden = !!playerRef.current.shadowRoot
+            }
 
             const media = getMedia(playerRef.current)
             if (!media) {
@@ -146,12 +147,6 @@ export default function FunnelTestimonialVideo() {
             if (hardened !== media) {
                 hardenNativeVideo(media)
                 hardened = media
-            }
-
-            if (media.currentTime > maxWatchedRef.current + SEEK_TOLERANCE_SECONDS) {
-                media.currentTime = maxWatchedRef.current
-            } else if (media.currentTime > maxWatchedRef.current) {
-                maxWatchedRef.current = media.currentTime
             }
 
             setPlaying(!media.paused)
