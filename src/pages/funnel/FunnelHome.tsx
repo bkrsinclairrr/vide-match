@@ -369,6 +369,10 @@ export default function FunnelHome() {
                         </div>
                     </div>
 
+                    <div className="mb-8 md:mb-12 lg:mx-auto lg:max-w-5xl lg:px-4">
+                        <FunnelTestimonialVideo />
+                    </div>
+
                     <div className="lg:mx-auto lg:max-w-5xl lg:px-4">
                         <div data-track className="flex flex-col gap-4 lg:flex-row lg:gap-6 lg:will-change-transform">
                             {PARENT_TESTIMONIALS.map((parent) => {
@@ -413,10 +417,6 @@ export default function FunnelHome() {
                                 Role para ver os 5 relatos
                             </span>
                         </div>
-                    </div>
-
-                    <div className="mt-10 md:mt-14 lg:mx-auto lg:max-w-5xl lg:px-4">
-                        <FunnelTestimonialVideo />
                     </div>
                 </section>
 

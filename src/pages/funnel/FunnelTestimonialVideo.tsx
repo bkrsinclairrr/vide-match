@@ -13,7 +13,8 @@ import { Play, Pause, Volume2, VolumeX } from "lucide-react"
 // Ponto único de troca do vídeo.
 const WISTIA_MEDIA_ID = "pr8vrpryrr"
 
-const SWATCH_URL = `https://fast.wistia.com/embed/medias/${WISTIA_MEDIA_ID}/swatch`
+// Quadro de ~2,6s do próprio vídeo. Ver o <img> do poster no JSX.
+const POSTER_URL = "/depoimento-capa.jpg"
 
 // Buffering e variação de frame movem o relógio alguns décimos sem que tenha
 // havido salto, então só tempos acima desta folga contam como seek.
@@ -199,15 +200,7 @@ export default function FunnelTestimonialVideo() {
             data-anim="up"
             className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-foreground/[0.045] transition-all duration-300 hover:border-amber-400/30"
         >
-            <div
-                className="relative w-full bg-black/40"
-                style={{
-                    aspectRatio: "16 / 9",
-                    backgroundImage: started ? undefined : `url('${SWATCH_URL}')`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                }}
-            >
+            <div className="relative w-full bg-black/40" style={{ aspectRatio: "16 / 9" }}>
                 <wistia-player
                     ref={playerRef}
                     media-id={WISTIA_MEDIA_ID}
@@ -229,6 +222,19 @@ export default function FunnelTestimonialVideo() {
                     do-not-track="true"
                     class="block h-full w-full"
                 />
+
+                {/* A capa do Wistia é um quadro do fim do vídeo, onde a barrinha
+                    de áudio gravada na imagem aparece cheia e parada — passa a
+                    impressão de vídeo travado. Esta cobre com um quadro do
+                    começo até o play. */}
+                {!started && (
+                    <img
+                        src={POSTER_URL}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full object-cover"
+                    />
+                )}
 
                 {/* Captura o clique antes do player: sem duplo-toque, sem menu
                     de contexto e sem gesto que devolva o seek nativo. */}
