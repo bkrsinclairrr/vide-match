@@ -10,14 +10,14 @@ export default function MysteryClubOpportunity({ player, compact = false }: {
     <div data-club-opportunity={compact ? "summary" : "full"}
       className={`w-full rounded-2xl border border-border bg-muted/40 text-left ${compact ? 'p-4' : 'p-5 sm:p-6'}`}>
       <div className="flex items-center gap-4">
-        <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-accent/15" role="img" aria-label="Clube misterioso: escudo verde e dourado com interrogação">
+        <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-accent/15" role="img" aria-label="Clube censurado: escudo verde e dourado com interrogação">
           <Shield className="h-14 w-14 fill-primary/25 text-primary" strokeWidth={1.5} />
           <HelpCircle className="absolute h-6 w-6 text-accent" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-primary">Oportunidades</p>
           <h3 className="font-bold text-foreground">{compact ? 'Oportunidade de clube identificada' : 'Time em potencial encontrado'}</h3>
-          <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3 shrink-0" />Clube misterioso · detalhes reservados</p>
+          <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground"><Lock className="h-3 w-3 shrink-0" />Clube Censurado - Detalhes Reservados.</p>
         </div>
       </div>
       {!compact && (
