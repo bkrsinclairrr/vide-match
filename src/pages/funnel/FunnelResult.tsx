@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Zap, Trophy, Shield, Target, Activity, Flame, Users, Globe2, Cpu, Database,
-  CheckCircle2, ArrowRight, Lock,
+  CheckCircle2, ArrowRight, Lock, Home,
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
@@ -388,6 +388,16 @@ export default function FunnelResult() {
         </section>
 
         <footer className="text-center py-6 border-t border-border space-y-3">
+          {/* Leva ao início do funil, não a "/": a raiz cai no dashboard, que é
+              protegido, e o visitante do funil não está autenticado. */}
+          <button
+            type="button"
+            onClick={() => navigate(FUNNEL_ROUTES.home)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
+          >
+            <Home className="h-3.5 w-3.5" />
+            Home
+          </button>
           <p className="text-xs text-muted-foreground">© 2026 Zyron. Todos os direitos reservados.</p>
           <p className="max-w-2xl mx-auto text-[11px] text-muted-foreground leading-relaxed">
             As avaliações e projeções são geradas por modelos algorítmicos com base nas informações fornecidas pelo próprio atleta. A Zyron não representa, não garante contrato, aprovação, convocação, teste ou vínculo profissional com qualquer clube, federação ou entidade esportiva. As análises possuem caráter informativo e de direcionamento estratégico.
