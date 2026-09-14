@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Send, Save, Share2, Sparkles, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Send, Save, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface UploadCompleteProps {
@@ -11,8 +11,7 @@ interface UploadCompleteProps {
   hasPersonalVideo: boolean;
   /**
    * Para onde ir ao concluir. Omitido, mantém o comportamento original
-   * (`/analysis`, fluxo tradicional). O funil aberto passa aqui a rota da
-   * conta, já que nele o cadastro só acontece depois do upload.
+   * (`/analysis`, fluxo tradicional). O funil aberto vai direto ao resultado.
    */
   onComplete?: () => void;
 }
@@ -69,13 +68,6 @@ const UploadComplete = ({ format, completedVideos, totalVideos, hasPersonalVideo
           </p>
         )}
       </Card>
-
-      {format === 'multiple' && (
-        <Button variant="outline" className="w-full text-xs border-border">
-          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-          Gerar compilado automático
-        </Button>
-      )}
 
       <div className="space-y-3 pt-1">
         <button

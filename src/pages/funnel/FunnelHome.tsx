@@ -175,8 +175,8 @@ export default function FunnelHome() {
                 data-scrolled="false"
                 className="sticky top-0 z-40 w-full border-b border-foreground/8 bg-background/70 backdrop-blur-sm transition-colors duration-300 data-[scrolled=true]:border-foreground/14 data-[scrolled=true]:bg-background/92 data-[scrolled=true]:backdrop-blur-none"
             >
-                <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                <div className="max-w-5xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-[0_0_18px_-4px_rgba(251,191,36,0.7)]">
                             <Zap className="w-4 h-4 text-black" />
                         </div>
@@ -187,9 +187,11 @@ export default function FunnelHome() {
                         <FunnelLegalMenu />
                         <button
                             onClick={start}
-                            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 py-2 text-sm font-bold text-black transition-all hover:from-amber-300 hover:to-amber-400 active:scale-95"
+                            aria-label="Começar avaliação grátis"
+                            className="inline-flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 px-3 sm:px-4 py-2 text-sm font-bold text-black transition-all hover:from-amber-300 hover:to-amber-400 active:scale-95"
                         >
-                            Avaliação grátis
+                            <span className="sm:hidden">Avaliar grátis</span>
+                            <span className="hidden sm:inline">Avaliação grátis</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                     </div>
@@ -200,43 +202,51 @@ export default function FunnelHome() {
                 </div>
             </header>
 
-            <main className="relative z-10 max-w-5xl mx-auto px-4 py-10 md:py-16 space-y-20 md:space-y-32">
+            <main className="relative z-10 max-w-5xl mx-auto px-4 py-6 sm:py-10 md:py-14 space-y-16 md:space-y-28">
 
                 {/* ─── HERO ─── */}
-                <section className="space-y-7">
-                    <div data-hero-item className="inline-flex items-center gap-2 bg-amber-500/12 border border-amber-500/30 text-amber-400 text-xs font-semibold px-3 py-1.5 rounded-full">
-                        <span className="zyron-dot w-1.5 h-1.5 rounded-full bg-amber-400" />
-                        <Activity className="w-3.5 h-3.5" />
-                        AVALIAÇÃO ABERTA — SEM CADASTRO PARA COMEÇAR
-                    </div>
-                    <h1 data-hero-item className="text-4xl md:text-6xl font-black leading-[1.05] tracking-tight">
-                        Descubra o nível real<br />
-                        <span className="text-foreground/45">do seu futebol.</span>{" "}
-                        <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">Comece agora.</span>
-                    </h1>
-                    <p data-hero-item className="text-base md:text-lg text-foreground/75 max-w-2xl leading-relaxed">
-                        Responda algumas perguntas sobre o seu perfil e receba um relatório técnico de performance com 10 indicadores. Sem pagar nada, sem precisar de contato dentro de clube.
-                    </p>
-
-                    <div data-hero-item className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
-                        <button
-                            onClick={start}
-                            className="zyron-sheen group relative inline-flex items-center gap-2.5 overflow-hidden rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-7 py-3.5 text-base font-black text-black shadow-[0_0_36px_-8px_rgba(251,191,36,0.75)] transition-all duration-200 hover:from-amber-300 hover:to-amber-400 hover:shadow-[0_0_52px_-8px_rgba(251,191,36,0.95)] active:scale-[0.98]"
-                        >
-                            <Zap className="relative z-10 w-4 h-4" />
-                            <span className="relative z-10">Começar minha avaliação</span>
-                            <ArrowRight className="relative z-10 w-4 h-4 transition-transform group-hover:translate-x-1" />
-                        </button>
-                        <div className="flex items-center gap-2.5">
-                            <Stars />
-                            <span className="text-sm text-foreground/70">
-                                <strong className="font-semibold text-foreground">4,9/5</strong> — famílias atendidas
-                            </span>
+                <section aria-labelledby="evaluation-intro" className="grid gap-5 sm:gap-6 lg:grid-cols-[1.1fr_1fr] lg:gap-x-10 lg:gap-y-5">
+                    <div className="space-y-4 lg:col-start-1 lg:row-start-1">
+                        <div data-hero-item className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 text-accent text-[11px] sm:text-xs font-semibold px-3 py-1.5 rounded-full">
+                            <span className="zyron-dot w-1.5 h-1.5 shrink-0 rounded-full bg-accent" />
+                            AVALIAÇÃO GRÁTIS · SEM CADASTRO
                         </div>
+                        <h1 id="evaluation-intro" data-hero-item className="text-[2rem] sm:text-4xl lg:text-5xl font-black leading-[1.08] tracking-tight">
+                            Descubra o nível real<br />
+                            <span className="text-foreground/65">do seu futebol.</span>{" "}
+                            <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">Comece agora.</span>
+                        </h1>
                     </div>
-                    <p data-hero-item className="text-xs text-foreground/55">
-                        Leva menos de 3 minutos. A conta só é necessária no final, para liberar o resultado.
-                    </p>
+
+                    {/* No mobile, o vídeo aparece antes do texto e do CTA; no desktop, ao lado. */}
+                    <div className="w-full min-w-0 self-center lg:col-start-2 lg:row-start-1 lg:row-span-2">
+                        <FunnelTestimonialVideo />
+                    </div>
+
+                    <div className="space-y-4 lg:col-start-1 lg:row-start-2">
+                        <p data-hero-item className="text-sm sm:text-base text-foreground/75 max-w-2xl leading-relaxed">
+                            Conheça seus pontos a melhorar, oportunidades e o perfil de jogadores compatíveis com o seu. São 10 indicadores individuais, sem pagar nada e sem precisar de contato dentro de clube.
+                        </p>
+                        <div data-hero-item className="flex flex-col items-center gap-3 sm:items-start">
+                            <button
+                                onClick={start}
+                                className="zyron-sheen group relative inline-flex min-h-12 w-full sm:w-auto items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-4 sm:px-6 py-3.5 text-sm sm:text-base font-black text-black shadow-[0_0_36px_-8px_rgba(251,191,36,0.75)] transition-all duration-200 hover:from-amber-300 hover:to-amber-400 hover:shadow-[0_0_52px_-8px_rgba(251,191,36,0.95)] active:scale-[0.98]"
+                            >
+                                <Zap className="relative z-10 w-4 h-4 shrink-0" />
+                                <span className="relative z-10">Começar minha avaliação</span>
+                                <ArrowRight className="relative z-10 w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
+                            </button>
+                            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                                <Stars />
+                                <span className="text-xs text-foreground/70">
+                                    <strong className="font-semibold text-foreground">4,9/5</strong> — famílias atendidas
+                                </span>
+                            </div>
+                        </div>
+                        <p data-hero-item className="text-xs text-foreground/60 leading-relaxed">
+                            Perfil pronto em menos de 3 minutos. Veja sua análise sem criar conta e receba os detalhes pelo WhatsApp.
+                        </p>
+                    </div>
                 </section>
 
                 {/* ─── STATS ─── */}
@@ -283,7 +293,7 @@ export default function FunnelHome() {
                             O problema é que essa tecnologia nunca esteve acessível para o atleta brasileiro que está no começo da carreira — aquele que vai bem num jogo, mas nunca tem quem analise e apresente seu desempenho de forma profissional.
                         </p>
                         <p>
-                            <strong className="font-semibold text-foreground">O Zyron encerra essa desigualdade.</strong> Você responde o perfil, nossa análise cruza suas características e gera um relatório técnico com o mesmo nível de profundidade usado por departamentos de scout.
+                            <strong className="font-semibold text-foreground">O Zyron encerra essa desigualdade.</strong> Você responde o perfil e nossa análise organiza suas características em pontos a melhorar, oportunidades e perfis de jogadores compatíveis.
                         </p>
                     </div>
                     <div data-anim-group="0.1" className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
@@ -316,11 +326,11 @@ export default function FunnelHome() {
                             Clubes que já utilizam Inteligência Artificial
                         </h3>
                     </div>
-                    <div data-anim-group="0.07" className="flex items-center justify-center gap-8 md:gap-16 flex-wrap">
+                    <div data-anim-group="0.07" className="flex items-start justify-center gap-x-4 gap-y-6 sm:gap-8 md:gap-12 flex-wrap">
                         {CLUBS.map((club) => (
-                            <div key={club.name} className="flex w-24 flex-col items-center gap-2 group md:w-28">
-                                <div className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center opacity-70 transition-all duration-300 group-hover:opacity-100 group-hover:-translate-y-1">
-                                    <img src={club.logo} alt={club.name} className="w-full h-full object-contain grayscale transition-all duration-300 group-hover:grayscale-0" loading="lazy" />
+                            <div key={club.name} className="flex w-20 sm:w-24 flex-col items-center gap-3 md:w-28">
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center rounded-2xl border border-border bg-card p-2.5 shadow-soft">
+                                    <img src={club.logo} alt={club.name} width={64} height={64} className="w-full h-full object-contain" loading="lazy" decoding="async" />
                                 </div>
                                 <div className="flex flex-col items-center gap-0.5">
                                     <span className="text-xs font-semibold leading-snug text-foreground/80 text-center">{club.name}</span>
@@ -415,9 +425,6 @@ export default function FunnelHome() {
                         </div>
                     </div>
 
-                    <div className="mt-10 md:mt-14 lg:mx-auto lg:max-w-5xl lg:px-4">
-                        <FunnelTestimonialVideo />
-                    </div>
                 </section>
 
                 {/* ─── DEPOIMENTOS DE ATLETAS ─── */}
@@ -450,9 +457,9 @@ export default function FunnelHome() {
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mx-auto shadow-[0_0_30px_-6px_rgba(251,191,36,0.75)]">
                         <Star className="w-5 h-5 text-black" />
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-black tracking-tight">Você Está a 3 Minutos do Seu Relatório</h3>
+                    <h3 className="text-2xl md:text-3xl font-black tracking-tight">Comece a descobrir seu potencial</h3>
                     <p className="text-foreground/75 max-w-xl mx-auto leading-relaxed">
-                        Cada grande jogador começou com uma avaliação. Comece a sua agora, sem cadastro, e crie a conta apenas no final para liberar o resultado.
+                        Cada grande jogador começou com uma avaliação. Preencha seu perfil, envie seus vídeos e veja sua análise sem cadastro. Os detalhes chegam pelo WhatsApp.
                     </p>
                     <button
                         onClick={start}

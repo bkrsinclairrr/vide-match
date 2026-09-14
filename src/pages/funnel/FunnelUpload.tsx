@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import FormatSelection from "@/components/upload/FormatSelection"
 import SingleVideoUpload from "@/components/upload/SingleVideoUpload"
@@ -10,22 +10,20 @@ import PersonalVideo from "@/components/upload/PersonalVideo"
 import UploadComplete from "@/components/upload/UploadComplete"
 import FunnelLegalMenu from "./FunnelLegalMenu"
 import { FUNNEL_ROUTES } from "@/lib/funnel"
+import "./funnel.css"
 
 /**
  * Envio de vídeo do funil aberto — MESMOS componentes do fluxo tradicional
  * (src/pages/Upload.tsx), reaproveitados tal como são: FormatSelection,
- * SingleVideoUpload, MultiVideoUpload, PersonalVideo e UploadComplete já
- * leem o `playerData` diretamente do sessionStorage e não dependem de
- * autenticação, então funcionam de forma idêntica aqui, sem duplicar
- * nenhuma linha. Inclusive o checkpoint de consentimento do responsável
+ * SingleVideoUpload, MultiVideoUpload, PersonalVideo e UploadComplete.
+ * Mantemos as etapas montadas para preservar os vídeos ao voltar.
+ * Inclui o checkpoint de consentimento do responsável
  * legal em PersonalVideo, que só aparece para o atleta menor de idade
  * (calculado a partir da mesma idade preenchida no formulário do funil).
  *
  * Diferença de rota: no fluxo tradicional o upload já acontece logado
- * (Onboarding → Upload → Analysis). Aqui o cadastro só existe depois do
- * upload, então "voltar" no primeiro passo leva para o formulário do
- * funil, e "concluir" leva para a criação de conta, não direto pra
- * análise.
+ * (Onboarding → Upload → Analysis). Aqui o resultado é público:
+ * "voltar" leva ao perfil e "concluir" leva direto à análise.
  */
 type UploadStep = 'format' | 'single' | 'multiple' | 'personal' | 'complete'
 
@@ -34,7 +32,13 @@ const FunnelUpload = () => {
   const [step, setStep] = useState<UploadStep>('format')
   const [format, setFormat] = useState<'single' | 'multiple'>('single')
   const [completedVideos, setCompletedVideos] = useState(0)
+  const [singleComplete, setSingleComplete] = useState(false)
   const [hasPersonalVideo, setHasPersonalVideo] = useState(false)
+
+  useEffect(() => { document.documentElement.classList.add('dark') }, [])
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }, [step])
 
   const playerId = (() => {
     try {
@@ -57,15 +61,15 @@ const FunnelUpload = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-elite p-4">
-      <div className="container mx-auto max-w-lg">
+    <div className="evaluation-funnel min-h-screen bg-gradient-elite p-4">
+      <div className="w-full mx-auto max-w-lg">
         <div className="flex items-center justify-between py-6">
-          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground"
+          <Button variant="ghost" size="icon" aria-label="Voltar à etapa anterior" className="text-muted-foreground hover:text-foreground"
             onClick={() => {
               if (step === 'format') navigate(FUNNEL_ROUTES.profile)
               else if (step === 'single' || step === 'multiple') setStep('format')
               else if (step === 'personal') setStep(format)
-              else navigate(FUNNEL_ROUTES.account)
+              else setStep('personal')
             }}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -73,18 +77,32 @@ const FunnelUpload = () => {
           <FunnelLegalMenu />
         </div>
 
-        <Card className="p-5 bg-card border-border">
-          {step === 'format' && <FormatSelection onSelect={handleFormatSelect} />}
-          {step === 'single' && <SingleVideoUpload onBack={() => setStep('format')} onContinue={() => { setCompletedVideos(1); setStep('personal') }} playerId={playerId} />}
-          {step === 'multiple' && <MultiVideoUpload onBack={() => setStep('format')} onContinue={() => setStep('personal')} onCompletedChange={setCompletedVideos} playerId={playerId} />}
-          {step === 'personal' && <PersonalVideo onBack={() => setStep(format)} onContinue={handlePersonalContinue} playerId={playerId} />}
+        <Card className="min-w-0 p-4 sm:p-5 bg-card border-border">
+          <div hidden={step !== 'format'}>
+            <FormatSelection onSelect={handleFormatSelect} highlightPending
+              completedFormats={[
+                ...(singleComplete ? ['single' as const] : []),
+                ...(completedVideos >= 4 ? ['multiple' as const] : []),
+              ]} />
+          </div>
+          <div hidden={step !== 'single'}>
+            <SingleVideoUpload onBack={() => setStep('format')} onContinue={() => setStep('personal')}
+              playerId={playerId} onCompletedChange={setSingleComplete} highlightPending />
+          </div>
+          <div hidden={step !== 'multiple'}>
+            <MultiVideoUpload onBack={() => setStep('format')} onContinue={() => setStep('personal')}
+              onCompletedChange={setCompletedVideos} playerId={playerId} autoAdvance />
+          </div>
+          <div hidden={step !== 'personal'}>
+            <PersonalVideo onBack={() => setStep(format)} onContinue={handlePersonalContinue} playerId={playerId} />
+          </div>
           {step === 'complete' && (
             <UploadComplete
               format={format}
               completedVideos={format === 'single' ? 1 : completedVideos}
               totalVideos={format === 'single' ? 1 : 8}
               hasPersonalVideo={hasPersonalVideo}
-              onComplete={() => navigate(FUNNEL_ROUTES.account)}
+              onComplete={() => navigate(FUNNEL_ROUTES.result)}
             />
           )}
         </Card>

@@ -27,11 +27,12 @@ interface VideoUploadCardProps {
   video: VideoFile;
   onChange: (video: VideoFile) => void;
   showCapture?: boolean;
+  highlightPending?: boolean;
 }
 
 const VideoUploadCard = ({
   title, subtitle, description, duration, example, maxDurationSec, maxSizeMB,
-  suggestedName, video, onChange, showCapture = true
+  suggestedName, video, onChange, showCapture = true, highlightPending = false
 }: VideoUploadCardProps) => {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -133,7 +134,7 @@ const VideoUploadCard = ({
     <Card className="p-4 border-border bg-card">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             <h4 className="font-semibold text-sm text-foreground">{title}</h4>
             {subtitle && <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{subtitle}</span>}
             {statusBadge()}
@@ -167,11 +168,11 @@ const VideoUploadCard = ({
           )}
 
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="flex-1 text-xs border-border" onClick={() => onChange({ ...video, bestMoment: video.bestMoment ? '' : 'marcado' })}>
+            <Button size="sm" variant="outline" className="flex-1 min-w-0 h-auto py-2 whitespace-normal text-xs border-border" onClick={() => onChange({ ...video, bestMoment: video.bestMoment ? '' : 'marcado' })}>
               <Scissors className="w-3 h-3 mr-1" />
               {video.bestMoment ? 'Trecho marcado ✓' : 'Marcar melhor trecho'}
             </Button>
-            <Button size="sm" variant="ghost" className="text-xs text-muted-foreground" onClick={() => {
+            <Button size="sm" variant="ghost" className="shrink-0 text-xs text-muted-foreground" onClick={() => {
               if (video.previewUrl) URL.revokeObjectURL(video.previewUrl);
               onChange({ file: null, status: 'empty' });
             }}>
@@ -183,11 +184,16 @@ const VideoUploadCard = ({
             value={video.comment || ''} onChange={(e) => onChange({ ...video, comment: e.target.value })}
             className="text-xs bg-muted border-border" rows={2} />
 
-          <p className="text-xs text-muted-foreground">Arquivo: <code className="text-primary">{suggestedName}</code></p>
+          <p className="text-xs text-muted-foreground break-all">Arquivo: <code className="text-primary">{suggestedName}</code></p>
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="border border-dashed border-border rounded-lg p-6 text-center hover:border-primary/40 transition-colors cursor-pointer"
+          {video.errorMessage && (
+            <p role="alert" className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+              {video.errorMessage}
+            </p>
+          )}
+          <button type="button" aria-label={`Enviar vídeo: ${title}`} className={`w-full border border-dashed border-border rounded-lg p-6 text-center hover:border-primary/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${highlightPending && video.status !== 'ok' ? 'funnel-upload-pending' : ''}`}
             onClick={() => galleryInputRef.current?.click()}>
             {uploading ? (
               <div className="flex flex-col items-center gap-2">
@@ -201,7 +207,7 @@ const VideoUploadCard = ({
                 <p className="text-xs text-muted-foreground">MP4, MOV, MKV — máx. {maxSizeMB} MB</p>
               </>
             )}
-          </div>
+          </button>
           <input
             ref={galleryInputRef}
             type="file"

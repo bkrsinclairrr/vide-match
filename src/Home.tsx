@@ -30,15 +30,14 @@ const NotFound = lazy(() => import("./pages/NotFound"))
 
 /**
  * Funil aberto (/avaliacao). Roda em paralelo ao tradicional, sem alterá-lo:
- * entrada pública → formulário público → criação de conta → conclusão com
- * o resultado de performance e o contato no WhatsApp. A proteção de rota
+ * entrada pública → formulário público → vídeos → resultado e WhatsApp.
+ * Nenhuma etapa exige criar conta. A proteção de rota
  * fica dentro das próprias telas (elas devolvem a pessoa para a etapa que
  * falta, em vez de jogá-la no /login e quebrar o funil).
  */
 const FunnelHome = lazy(() => import("./pages/funnel/FunnelHome"))
 const FunnelProfile = lazy(() => import("./pages/funnel/FunnelProfile"))
 const FunnelUpload = lazy(() => import("./pages/funnel/FunnelUpload"))
-const FunnelAccount = lazy(() => import("./pages/funnel/FunnelAccount"))
 const FunnelResult = lazy(() => import("./pages/funnel/FunnelResult"))
 
 const RouteFallback = () => (
@@ -92,11 +91,11 @@ const Home = () => {
               <Route path="/privacidade" element={<Privacy />} />
               <Route path="/termos" element={<Terms />} />
 
-              {/* Funil aberto — entrada sem login, conta só no final */}
+              {/* Funil aberto — resultado disponível sem login */}
               <Route path="/avaliacao" element={<FunnelHome />} />
               <Route path="/avaliacao/perfil" element={<FunnelProfile />} />
               <Route path="/avaliacao/upload" element={<FunnelUpload />} />
-              <Route path="/avaliacao/conta" element={<FunnelAccount />} />
+              <Route path="/avaliacao/conta" element={<Navigate to="/avaliacao/resultado" replace />} />
               <Route path="/avaliacao/resultado" element={<FunnelResult />} />
 
               {/* Protected routes - require authentication */}

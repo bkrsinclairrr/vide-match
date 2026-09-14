@@ -7,8 +7,7 @@ import { Settings, FileText, ShieldCheck, X, HelpCircle } from "lucide-react"
  * no mesmo padrão do painel de configurações do dashboard.
  *
  * Fica em todas as telas do funil de propósito: o funil é público, coleta
- * dados pessoais (inclusive de menores) e pede concordância antes do
- * cadastro — então o texto precisa estar a um toque de distância em
+ * dados pessoais (inclusive de menores) — então o texto precisa estar a um toque de distância em
  * qualquer etapa, não só no rodapé.
  */
 export default function FunnelLegalMenu({ tone = "token" }: { tone?: "token" | "white" }) {
@@ -23,7 +22,7 @@ export default function FunnelLegalMenu({ tone = "token" }: { tone?: "token" | "
   }, [open])
 
   // As telas do funil usam duas bases: tokens do tema (home) e branco
-  // sobre #0D0D0F (formulário, conta e resultado).
+  // sobre #0D0D0F (formulário).
   const isWhite = tone === "white"
   const trigger = isWhite
     ? "border-white/15 bg-white/[0.06] hover:bg-white/10 hover:border-white/30 text-white/75"

@@ -118,9 +118,7 @@ export default function FunnelProfile() {
 
     if (!leadSynced.current) void pushLead()
 
-    // Fim do formulário público → envio de vídeo (ainda sem login),
-    // igual ao fluxo tradicional (Onboarding → Upload). A conta só é
-    // criada depois, na saída do upload.
+    // Formulário público → vídeos → resultado, sem exigir uma conta.
     savePlayerData(playerData)
     navigate(FUNNEL_ROUTES.upload)
   }
@@ -321,7 +319,7 @@ export default function FunnelProfile() {
           {step === CONTACT_STEP && (
             <div className="space-y-5">
               <p className="text-sm text-white/70 leading-relaxed">
-                É por aqui que o relatório de performance e o retorno dos olheiros chegam até você.
+                É por aqui que você recebe seus pontos a melhorar, oportunidades e perfis de jogadores compatíveis.
               </p>
 
               <div>

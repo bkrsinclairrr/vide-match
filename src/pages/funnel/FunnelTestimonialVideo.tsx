@@ -191,8 +191,9 @@ export default function FunnelTestimonialVideo() {
 
     return (
         <div
-            data-anim="up"
-            className="relative overflow-hidden rounded-3xl border border-foreground/10 bg-foreground/[0.045] transition-all duration-300 hover:border-amber-400/30"
+            role="group"
+            aria-label="Depoimento em vídeo"
+            className="relative mx-auto w-full max-w-[22rem] sm:max-w-md overflow-hidden rounded-2xl border border-accent/25 bg-card shadow-medium"
         >
             <div
                 className="relative w-full bg-black/40"
@@ -233,37 +234,38 @@ export default function FunnelTestimonialVideo() {
                     onDoubleClick={(e) => e.preventDefault()}
                     onContextMenu={(e) => e.preventDefault()}
                     aria-label={playing ? "Pausar depoimento" : "Reproduzir depoimento"}
-                    className="absolute inset-0 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70"
+                    className="absolute inset-0 flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                 >
                     <span
-                        className={`flex items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-black shadow-[0_0_40px_-6px_rgba(251,191,36,0.85)] transition-all duration-300 ${
+                        className={`flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-gradient-golden text-accent-foreground shadow-glow transition-all duration-300 motion-reduce:transition-none ${
                             showPlayOverlay
-                                ? "h-20 w-20 scale-100 opacity-100 md:h-24 md:w-24"
-                                : "h-20 w-20 scale-75 opacity-0 md:h-24 md:w-24"
+                                ? "scale-100 opacity-100"
+                                : "scale-75 opacity-0"
                         }`}
                     >
-                        <Play className="ml-1 h-8 w-8 fill-current md:h-10 md:w-10" />
+                        <Play className="ml-0.5 h-6 w-6 fill-current sm:h-7 sm:w-7" />
                     </span>
                 </button>
             </div>
 
-            <div className="flex items-center gap-3 border-t border-foreground/10 bg-background/60 px-4 py-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 border-t border-border bg-card px-2 py-1.5">
                 <button
                     type="button"
                     onClick={togglePlay}
                     aria-label={playing ? "Pausar" : "Reproduzir"}
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/14 border border-amber-400/25 text-amber-400 transition-colors hover:bg-amber-500/22"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 border border-accent/25 text-accent transition-colors hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
                 >
-                    {playing ? <Pause className="h-4 w-4" /> : <Play className="ml-0.5 h-4 w-4 fill-current" />}
+                    {playing ? <Pause className="h-5 w-5" /> : <Play className="ml-0.5 h-5 w-5 fill-current" />}
                 </button>
 
                 <button
                     type="button"
                     onClick={toggleMute}
                     aria-label={muted ? "Ativar som" : "Desativar som"}
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-foreground/10 bg-foreground/[0.04] text-foreground/75 transition-colors hover:bg-foreground/[0.08] hover:text-foreground"
+                    aria-pressed={muted}
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted/40 text-foreground/75 transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring motion-reduce:transition-none"
                 >
-                    {muted || volume === 0 ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                    {muted || volume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 </button>
 
                 <input
@@ -274,10 +276,10 @@ export default function FunnelTestimonialVideo() {
                     value={muted ? 0 : volume}
                     onChange={(e) => changeVolume(Number(e.target.value))}
                     aria-label="Volume"
-                    className="h-1 w-28 max-w-[40%] cursor-pointer appearance-none rounded-full bg-foreground/15 accent-amber-400 md:w-36 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-400"
+                    className="h-11 w-16 min-w-0 flex-1 cursor-pointer appearance-none rounded-lg bg-transparent px-1 accent-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-foreground/20 [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-moz-range-track]:h-1 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-foreground/20 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-accent"
                 />
 
-                <span className="ml-auto text-[11px] font-medium uppercase tracking-widest text-foreground/45">
+                <span className="shrink-0 px-1 text-[10px] font-medium text-muted-foreground sm:text-xs">
                     Depoimento
                 </span>
             </div>

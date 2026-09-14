@@ -1,16 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import VideoUploadCard, { VideoFile } from "./VideoUploadCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface SingleVideoUploadProps {
   onBack: () => void;
   onContinue: () => void;
   playerId: string;
+  onCompletedChange?: (completed: boolean) => void;
+  highlightPending?: boolean;
 }
 
-const SingleVideoUpload = ({ onBack, onContinue, playerId }: SingleVideoUploadProps) => {
+const SingleVideoUpload = ({ onBack, onContinue, playerId, onCompletedChange, highlightPending }: SingleVideoUploadProps) => {
   const [video, setVideo] = useState<VideoFile>({ file: null, status: 'empty' });
+  useEffect(() => { onCompletedChange?.(video.status === 'ok'); }, [video.status, onCompletedChange]);
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -44,6 +47,7 @@ const SingleVideoUpload = ({ onBack, onContinue, playerId }: SingleVideoUploadPr
         suggestedName={`${playerId}_compilado.mp4`}
         video={video}
         onChange={setVideo}
+        highlightPending={highlightPending}
       />
 
       <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"

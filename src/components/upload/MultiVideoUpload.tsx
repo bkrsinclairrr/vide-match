@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Save } from "lucide-react";
 import VideoUploadCard, { VideoFile } from "./VideoUploadCard";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 const STEPS = [
   {
@@ -77,13 +77,42 @@ interface MultiVideoUploadProps {
   onContinue: () => void;
   onCompletedChange: (n: number) => void;
   playerId: string;
+  autoAdvance?: boolean;
 }
 
 const emptyVideo = (): VideoFile => ({ file: null, status: 'empty' });
 
-const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId }: MultiVideoUploadProps) => {
+const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId, autoAdvance = false }: MultiVideoUploadProps) => {
   const [videos, setVideos] = useState<VideoFile[]>(STEPS.map(() => emptyVideo()));
   const [currentStep, setCurrentStep] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const previousStatuses = useRef<VideoFile['status'][]>(STEPS.map(() => 'empty'));
+  const pendingScroll = useRef<number | null>(null);
+
+  const selectStep = useCallback((index: number) => {
+    setCurrentStep(index);
+    const track = trackRef.current;
+    const card = track?.children[index] as HTMLElement | undefined;
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+    if (track && card) {
+      pendingScroll.current = index;
+      track.scrollTo({ left: track.scrollLeft + card.getBoundingClientRect().left - track.getBoundingClientRect().left, behavior });
+    }
+    const tabs = tabsRef.current;
+    const tab = tabs?.children[index] as HTMLElement | undefined;
+    if (tabs && tab) {
+      tabs.scrollTo({ left: tabs.scrollLeft + tab.getBoundingClientRect().left - tabs.getBoundingClientRect().left, behavior });
+    }
+  }, []);
+
+  useEffect(() => {
+    const justCompleted = videos[currentStep].status === 'ok' && previousStatuses.current[currentStep] !== 'ok';
+    previousStatuses.current = videos.map(video => video.status);
+    if (!autoAdvance || !justCompleted) return;
+    const next = videos.findIndex((video, index) => index > currentStep && video.status !== 'ok');
+    if (next !== -1) selectStep(next);
+  }, [videos, autoAdvance, currentStep, selectStep]);
 
   const completedCount = videos.filter(v => v.status === 'ok').length;
   const progressPercent = (completedCount / STEPS.length) * 100;
@@ -94,9 +123,7 @@ const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId }: M
   }, [completedCount, onCompletedChange]);
 
   const updateVideo = (index: number, video: VideoFile) => {
-    const next = [...videos];
-    next[index] = video;
-    setVideos(next);
+    setVideos(previous => previous.map((item, i) => i === index ? video : item));
   };
 
   const canContinue = completedCount >= 4;
@@ -139,15 +166,16 @@ const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId }: M
                 videos[i].status === 'error' ? 'bg-destructive' :
                 i === currentStep ? 'bg-primary/30' : 'bg-border'
               }`}
-              onClick={() => setCurrentStep(i)} />
+              aria-label={`Ir para ${STEPS[i].title}`}
+              onClick={() => selectStep(i)} />
           ))}
         </div>
       </div>
 
       {/* Step tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+      <div ref={tabsRef} className="flex gap-1 overflow-x-auto pb-1 scrollbar-none" aria-label="Habilidades">
         {STEPS.map((s, i) => (
-          <button key={i} onClick={() => setCurrentStep(i)}
+          <button key={i} onClick={() => selectStep(i)} aria-current={i === currentStep ? 'step' : undefined}
             className={`px-2.5 py-1 rounded-lg text-xs whitespace-nowrap transition-colors ${
               i === currentStep ? 'bg-primary text-primary-foreground' :
               videos[i].status === 'ok' ? 'bg-primary/10 text-primary' :
@@ -158,7 +186,35 @@ const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId }: M
         ))}
       </div>
 
-      <VideoUploadCard
+      {autoAdvance ? (
+        <div ref={trackRef} className="flex items-start gap-3 overflow-x-auto snap-x snap-mandatory pb-2"
+          aria-label="Vídeos por habilidade"
+          onPointerDown={() => { pendingScroll.current = null; }}
+          onWheel={() => { pendingScroll.current = null; }}
+          onScroll={() => {
+            const track = trackRef.current;
+            if (!track) return;
+            const cards = Array.from(track.children) as HTMLElement[];
+            const index = cards.reduce((closest, card, i) =>
+              Math.abs(card.getBoundingClientRect().left - track.getBoundingClientRect().left) <
+              Math.abs(cards[closest].getBoundingClientRect().left - track.getBoundingClientRect().left) ? i : closest, 0);
+            if (pendingScroll.current !== null && index !== pendingScroll.current) return;
+            pendingScroll.current = null;
+            setCurrentStep(index);
+          }}>
+          {STEPS.map((step, index) => (
+            <div key={step.category} className="w-full min-w-0 shrink-0 snap-start"
+              ref={element => { if (element) element.inert = index !== currentStep; }}>
+              <VideoUploadCard
+                title={step.title} subtitle={step.subtitle} description={step.description}
+                duration={step.duration} example={step.example} maxDurationSec={step.maxDuration}
+                maxSizeMB={500} suggestedName={`${playerId}_${step.category}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.mp4`}
+                video={videos[index]} onChange={video => updateVideo(index, video)} highlightPending
+              />
+            </div>
+          ))}
+        </div>
+      ) : <VideoUploadCard
         title={STEPS[currentStep].title}
         subtitle={STEPS[currentStep].subtitle}
         description={STEPS[currentStep].description}
@@ -169,16 +225,16 @@ const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId }: M
         suggestedName={`${playerId}_${STEPS[currentStep].category}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.mp4`}
         video={videos[currentStep]}
         onChange={(v) => updateVideo(currentStep, v)}
-      />
+      />}
 
       <div className="flex gap-2">
         {currentStep > 0 && (
-          <Button variant="outline" size="sm" className="border-border text-foreground" onClick={() => setCurrentStep(currentStep - 1)}>
+          <Button variant="outline" size="sm" className="border-border text-foreground" onClick={() => selectStep(currentStep - 1)}>
             Anterior
           </Button>
         )}
         {currentStep < STEPS.length - 1 ? (
-          <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-sm" onClick={() => setCurrentStep(currentStep + 1)}>
+          <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground text-sm" onClick={() => selectStep(currentStep + 1)}>
             Próximo fundamento
           </Button>
         ) : (

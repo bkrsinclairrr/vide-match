@@ -2,9 +2,8 @@
  * Funil aberto (/avaliacao) — lógica compartilhada.
  *
  * Diferença para o funil tradicional (/dashboard → /onboarding → /upload):
- * aqui a pessoa entra sem login, preenche o perfil, e só precisa criar
- * conta na hora de ver o resultado. Depois de criar a conta, volta para a
- * conclusão (tela de performance + contato no WhatsApp).
+ * aqui a pessoa entra sem login, preenche o perfil e envia os vídeos.
+ * O resultado e o contato no WhatsApp são acessíveis sem criar conta.
  *
  * Os dados ficam em sessionStorage sob a MESMA chave usada pelo onboarding
  * tradicional ('playerData'), de propósito: quem passa por um funil e
@@ -19,7 +18,6 @@ export const FUNNEL_ROUTES = {
   home: "/avaliacao",
   profile: "/avaliacao/perfil",
   upload: "/avaliacao/upload",
-  account: "/avaliacao/conta",
   result: "/avaliacao/resultado",
 } as const
 
@@ -107,8 +105,8 @@ export function formatPhoneBR(value: string): string {
 }
 
 /**
- * Grava o lead assim que a pessoa informa contato — antes do vídeo e antes
- * da conta. O e-mail é a chave: refazer o funil atualiza o mesmo registro.
+ * Grava o lead assim que a pessoa informa contato — antes do vídeo.
+ * O e-mail é a chave: refazer o funil atualiza o mesmo registro.
  * A escrita passa por uma função SECURITY DEFINER porque quem envia ainda
  * é um cliente anônimo, sem acesso direto à tabela.
  */

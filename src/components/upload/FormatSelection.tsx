@@ -1,12 +1,14 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Film, Layers, Monitor, Clock, HardDrive, Maximize } from "lucide-react";
 
 interface FormatSelectionProps {
   onSelect: (format: 'single' | 'multiple') => void;
+  highlightPending?: boolean;
+  completedFormats?: Array<'single' | 'multiple'>;
 }
 
-const FormatSelection = ({ onSelect }: FormatSelectionProps) => {
+const FormatSelection = ({ onSelect, highlightPending = false, completedFormats = [] }: FormatSelectionProps) => {
+  const pendingClass = (format: 'single' | 'multiple') =>
+    highlightPending && !completedFormats.includes(format) ? 'funnel-upload-pending' : '';
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="text-center">
@@ -20,31 +22,33 @@ const FormatSelection = ({ onSelect }: FormatSelectionProps) => {
         Para a IA analisar seu jogo com precisão, seus vídeos precisam ter boa qualidade, mostrar você claramente e conter lances reais. Podem ser gravados em campo, society, rua ou treino. Evite imagens escuras, tremidas ou em que o jogador não seja identificado.
       </div>
 
-      <Card className="p-4 border-border hover:border-primary/40 cursor-pointer transition-all group"
+      <button type="button" className={`w-full rounded-xl bg-card p-4 border border-border text-left hover:border-primary/40 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${pendingClass('single')}`}
         onClick={() => onSelect('single')}>
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
             <Film className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground text-sm">Enviar 1 vídeo compilado</h3>
+            <h3 className="font-semibold text-foreground text-sm">{highlightPending ? 'Clique aqui para enviar o vídeo compilado' : 'Enviar 1 vídeo compilado'}</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Recomendada se você já tiver um vídeo de melhores momentos.</p>
+            {completedFormats.includes('single') && <p className="mt-2 text-xs text-primary">Vídeo concluído ✓</p>}
           </div>
         </div>
-      </Card>
+      </button>
 
-      <Card className="p-4 border-border hover:border-accent/40 cursor-pointer transition-all group"
+      <button type="button" className={`w-full rounded-xl bg-card p-4 border border-border text-left hover:border-primary/40 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${pendingClass('multiple')}`}
         onClick={() => onSelect('multiple')}>
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
             <Layers className="w-5 h-5 text-accent" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground text-sm">Enviar vídeos separados por habilidade</h3>
+            <h3 className="font-semibold text-foreground text-sm">{highlightPending ? 'Clique aqui para enviar os vídeos separados por habilidade' : 'Enviar vídeos separados por habilidade'}</h3>
             <p className="text-xs text-muted-foreground mt-0.5">Análises detalhadas por fundamento (ideal para celular).</p>
+            {completedFormats.includes('multiple') && <p className="mt-2 text-xs text-primary">Envios mínimos concluídos ✓</p>}
           </div>
         </div>
-      </Card>
+      </button>
 
       <div className="bg-muted/20 rounded-xl p-4 space-y-2 border border-border">
         <h4 className="font-semibold text-xs text-foreground">📋 Regras rápidas</h4>
@@ -57,7 +61,7 @@ const FormatSelection = ({ onSelect }: FormatSelectionProps) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 pt-1">
+      {!highlightPending && <div className="flex flex-col gap-3 pt-1">
         <button
           onClick={() => onSelect('single')}
           className="w-full h-14 rounded-2xl font-bold text-base text-black flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-[0_0_28px_rgba(251,191,36,0.35)] hover:shadow-[0_0_40px_rgba(251,191,36,0.5)]"
@@ -74,7 +78,7 @@ const FormatSelection = ({ onSelect }: FormatSelectionProps) => {
           <Layers className="w-4 h-4" />
           Vídeos separados por habilidade
         </button>
-      </div>
+      </div>}
     </div>
   );
 };
