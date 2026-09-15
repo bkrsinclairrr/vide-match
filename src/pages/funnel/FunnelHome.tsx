@@ -213,8 +213,8 @@ export default function FunnelHome() {
                         </div>
                         <h1 id="evaluation-intro" data-hero-item className="text-[2rem] sm:text-4xl lg:text-5xl font-black leading-[1.08] tracking-tight">
                             Descubra o nível real<br />
-                            <span className="text-foreground/65">do seu futebol.</span>{" "}
-                            <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">Comece agora.</span>
+                            <span className="text-foreground/65">do seu futebol.</span><br />
+                            <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">Resultado imediato através de IA.</span>
                         </h1>
                     </div>
 
@@ -225,7 +225,7 @@ export default function FunnelHome() {
 
                     <div className="space-y-4 lg:col-start-1 lg:row-start-2">
                         <p data-hero-item className="text-sm sm:text-base text-foreground/75 max-w-2xl leading-relaxed">
-                            Conheça seus pontos a melhorar, oportunidades e o perfil de jogadores compatíveis com o seu. São 10 indicadores individuais, sem pagar nada e sem precisar de contato dentro de clube.
+                            Pare de esperar por uma oportunidade. Descubra agora quais times combinam com as suas características e onde o seu futebol pode ganhar espaço — no Brasil, na Europa e no mundo. Encontre os clubes certos para o seu perfil, com análise por IA e 100% grátis.
                         </p>
                         <div data-hero-item className="flex flex-col items-center gap-3 sm:items-start">
                             <button
