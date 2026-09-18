@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "@/contexts/AuthContext"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import UtmifyPixel from "@/components/UtmifyPixel"
+import RequireJogadorAccess from "@/pages/jogador/RequireJogadorAccess"
 
 import { lazy, Suspense, useEffect } from "react"
 import { useLocation } from "react-router-dom"
@@ -40,6 +41,17 @@ const FunnelHome = lazy(() => import("./pages/funnel/FunnelHome"))
 const FunnelProfile = lazy(() => import("./pages/funnel/FunnelProfile"))
 const FunnelUpload = lazy(() => import("./pages/funnel/FunnelUpload"))
 const FunnelResult = lazy(() => import("./pages/funnel/FunnelResult"))
+
+/**
+ * Clone de acesso restrito do funil aberto, sob /jogador — mesma
+ * experiência, atrás de usuário e senha (RequireJogadorAccess/AccessGate).
+ * Cópia física dos componentes de funnel/, não a mesma rota parametrizada:
+ * evita qualquer risco sobre o funil público, que recebe tráfego pago.
+ */
+const JogadorHome = lazy(() => import("./pages/jogador/JogadorHome"))
+const JogadorProfile = lazy(() => import("./pages/jogador/JogadorProfile"))
+const JogadorUpload = lazy(() => import("./pages/jogador/JogadorUpload"))
+const JogadorResult = lazy(() => import("./pages/jogador/JogadorResult"))
 
 const RouteFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -99,6 +111,13 @@ const Home = () => {
               <Route path="/avaliacao/upload" element={<FunnelUpload />} />
               <Route path="/avaliacao/conta" element={<Navigate to="/avaliacao/resultado" replace />} />
               <Route path="/avaliacao/resultado" element={<FunnelResult />} />
+
+              {/* Clone de acesso restrito do funil aberto — ver AccessGate.tsx */}
+              <Route path="/jogador" element={<RequireJogadorAccess><JogadorHome /></RequireJogadorAccess>} />
+              <Route path="/jogador/perfil" element={<RequireJogadorAccess><JogadorProfile /></RequireJogadorAccess>} />
+              <Route path="/jogador/upload" element={<RequireJogadorAccess><JogadorUpload /></RequireJogadorAccess>} />
+              <Route path="/jogador/conta" element={<Navigate to="/jogador/resultado" replace />} />
+              <Route path="/jogador/resultado" element={<RequireJogadorAccess><JogadorResult /></RequireJogadorAccess>} />
 
               {/* Protected routes - require authentication */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

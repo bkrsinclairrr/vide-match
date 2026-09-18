@@ -1,14 +1,19 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /jogador
 
 User-agent: Bingbot
 Allow: /
+Disallow: /jogador
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /jogador
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /jogador
 
 User-agent: *
 Allow: /
+Disallow: /jogador

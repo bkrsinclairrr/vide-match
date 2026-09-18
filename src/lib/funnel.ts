@@ -21,6 +21,19 @@ export const FUNNEL_ROUTES = {
   result: "/avaliacao/resultado",
 } as const
 
+/**
+ * Clone de acesso restrito do funil, sob /jogador — mesma experiência,
+ * atrás de uma senha (ver src/pages/jogador/AccessGate.tsx). Usado pelos
+ * componentes em src/pages/jogador/*, que fora do prefixo de rota são
+ * idênticos aos de src/pages/funnel/*.
+ */
+export const JOGADOR_ROUTES = {
+  home: "/jogador",
+  profile: "/jogador/perfil",
+  upload: "/jogador/upload",
+  result: "/jogador/resultado",
+} as const
+
 /** Número de contato do time Zyron (formato E.164, sem símbolos). */
 export const WHATSAPP_NUMBER = "5551982690162"
 
