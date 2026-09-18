@@ -191,8 +191,11 @@ export default function Analysis() {
     return () => clearInterval(cycle)
   }, [phase])
 
-  // ── Deterministic scores based on user email ─────────────────────────────
-  const seed = useMemo(() => hashString(user?.email ?? "zyron-user"), [user])
+  // ── Deterministic scores based on the account id ─────────────────────────
+  // O id nunca muda mesmo que o e-mail da conta mude, então o resultado do
+  // atleta permanece o mesmo entre visitas mais confiavelmente do que
+  // amarrado ao e-mail.
+  const seed = useMemo(() => hashString(user?.id ?? "zyron-user"), [user?.id])
 
   const stats = useMemo(() =>
     STAT_DEFINITIONS.map((s, i) => ({ ...s, score: seededRand(seed, i) })),

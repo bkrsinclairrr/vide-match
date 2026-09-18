@@ -10,6 +10,7 @@ import {
   FUNNEL_ROUTES, loadPlayerData, isProfileComplete,
   buildStats, overallFrom, buildWhatsAppLink, type PlayerData,
 } from "@/lib/funnel"
+import { buildAccountSeed, buildAnonymousSeed, getClientIp } from "@/lib/resultIdentity"
 import FunnelLegalMenu from "./FunnelLegalMenu"
 import MysteryClubOpportunity from "./MysteryClubOpportunity"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
@@ -47,6 +48,7 @@ export default function FunnelResult() {
   const [revealed, setRevealed] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [currentMsg, setCurrentMsg] = useState(0)
+  const [resultSeed, setResultSeed] = useState<string | null>(null)
   const savedRef = useRef(false)
   const newestMessageRef = useRef<HTMLDivElement>(null)
   const resultHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -56,6 +58,30 @@ export default function FunnelResult() {
     document.documentElement.classList.add("dark")
   }, [])
 
+  /**
+   * A mesma pessoa precisa ver sempre o mesmo resultado, mesmo preenchendo
+   * o formulário de novo — por isso a seed não usa o texto digitado direto.
+   * Com conta, o id já garante unicidade. Sem conta (o caso comum aqui,
+   * já que o funil aberto não exige login), IP + telefone substituem o
+   * texto livre. Roda em paralelo aos 38s de loading, então o resultado já
+   * está pronto quando a contagem termina.
+   */
+  useEffect(() => {
+    if (!profileComplete) return
+    let cancelled = false
+
+    if (user?.id) {
+      setResultSeed(buildAccountSeed(user.id))
+      return
+    }
+
+    getClientIp().then((ip) => {
+      if (cancelled) return
+      setResultSeed(buildAnonymousSeed(ip, { phone: player.phone, name: player.name }))
+    })
+    return () => { cancelled = true }
+  }, [profileComplete, user?.id, player.phone, player.name])
+
   // Só os dados do perfil são necessários; autenticação nunca bloqueia a análise.
   useEffect(() => {
     if (!profileComplete) {
@@ -64,12 +90,16 @@ export default function FunnelResult() {
   }, [profileComplete, navigate])
 
   // Contagem da revelação — mesma lógica e duração da fase 1 de Analysis.tsx.
+  // Só revela quando a seed do resultado também estiver pronta: em rede
+  // lenta, a resolução do IP pode passar dos 38s, e revelar antes disso
+  // mostraria os indicadores zerados por um instante.
   useEffect(() => {
     if (!profileComplete || revealed) return
     const id = setInterval(() => {
       setElapsed((e) => {
         const next = e + 1
         if (next >= LOADING_SECONDS) {
+          if (!resultSeed) return e
           clearInterval(id)
           setRevealed(true)
           return LOADING_SECONDS
@@ -83,7 +113,7 @@ export default function FunnelResult() {
       })
     }, 1000)
     return () => clearInterval(id)
-  }, [profileComplete, revealed])
+  }, [profileComplete, revealed, resultSeed])
 
   useEffect(() => {
     if (revealed || !profileComplete) return
@@ -144,8 +174,8 @@ export default function FunnelResult() {
   }, [session, user, player])
 
   const stats = useMemo(
-    () => buildStats(user?.email || player.name || "zyron-atleta"),
-    [user?.email, player.name]
+    () => buildStats(resultSeed ?? "zyron-atleta"),
+    [resultSeed]
   )
   const overall = useMemo(() => overallFrom(stats), [stats])
 

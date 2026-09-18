@@ -3,8 +3,19 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, MapPin, Users, MessageCircle, CheckCircle2, Clock, Shield, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import { getRandomClub, getRandomBrazilianClub, Club } from "@/data/clubs";
+import { useState, useEffect, useMemo } from "react";
+import { getClubBySeed, getBrazilianClubBySeed, Club } from "@/data/clubs";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Mesmo hash usado em Analysis.tsx e funnel.ts — mantém o mesmo resultado
+// para o mesmo atleta em vez de sortear algo novo a cada visita.
+function hashString(str: string): number {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  return Math.abs(hash);
+}
 
 const LOADING_MESSAGES = [
   "Analisando métricas físicas e técnicas...",
@@ -27,6 +38,7 @@ interface PlayerData {
 
 const Match = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [matchedClub, setMatchedClub] = useState<Club | null>(null);
   const [isMatching, setIsMatching] = useState(true);
   const [compatibility, setCompatibility] = useState(0);
@@ -40,6 +52,13 @@ const Match = () => {
       try { setPlayerData(JSON.parse(saved) as PlayerData); } catch { setPlayerData(null); }
     }
   }, []);
+
+  // Conta autenticada (rota protegida) já garante unicidade; o nome é só um
+  // fallback para o instante antes do contexto de auth carregar.
+  const seed = useMemo(
+    () => hashString(user?.id || playerData?.name || "zyron-user"),
+    [user?.id, playerData?.name]
+  );
 
   useEffect(() => {
     if (!isMatching) return;
@@ -61,18 +80,15 @@ const Match = () => {
 
     // Reveal club after ~30s
     const revealTimeout = setTimeout(() => {
-      const usedClubIds = JSON.parse(localStorage.getItem('usedClubIds') || '[]');
       const category = playerData?.category || 'Sub 17';
       const isSub20 = category === 'Sub 20';
 
-      const club = isSub20
-        ? getRandomClub(usedClubIds)
-        : getRandomBrazilianClub(usedClubIds);
+      // Determinístico: a mesma pessoa sempre vê o mesmo clube e a mesma
+      // compatibilidade, em vez de sortear um novo a cada "Nova Análise".
+      const club = isSub20 ? getClubBySeed(seed) : getBrazilianClubBySeed(seed);
 
       setMatchedClub(club);
-      setCompatibility(93 + Math.floor(Math.random() * 3));
-      const updatedUsedIds = [...usedClubIds, club.id];
-      localStorage.setItem('usedClubIds', JSON.stringify(updatedUsedIds));
+      setCompatibility(93 + (seed % 3));
       setProgress(100);
       setTimeout(() => setIsMatching(false), 500);
     }, 30000);
@@ -82,7 +98,7 @@ const Match = () => {
       clearInterval(messageInterval);
       clearTimeout(revealTimeout);
     };
-  }, [isMatching, playerData]);
+  }, [isMatching, playerData, seed]);
 
   const isSub20 = playerData?.category === 'Sub 20';
 
@@ -95,13 +111,13 @@ const Match = () => {
     return reasons;
   };
 
-  const urgencyDateRef = useRef<string | null>(null);
-  if (!urgencyDateRef.current) {
+  // Determinístico por pessoa (7 a 20 dias a partir de hoje), não fixo no
+  // calendário — senão quem voltasse dias depois veria um prazo já vencido.
+  const urgencyDate = useMemo(() => {
     const d = new Date();
-    d.setDate(d.getDate() + Math.floor(Math.random() * 14) + 7);
-    urgencyDateRef.current = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  }
-  const urgencyDate = urgencyDateRef.current;
+    d.setDate(d.getDate() + (seed % 14) + 7);
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }, [seed]);
 
   const handleContact = () => {
     if (!matchedClub) return;

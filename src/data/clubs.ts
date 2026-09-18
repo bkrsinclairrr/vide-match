@@ -6679,17 +6679,18 @@ export const getAllClubs = (): Club[] => {
   return [...clubsDatabase, ...brazilianClubs];
 };
 
-export const getRandomClub = (usedClubIds: string[] = []): Club => {
+/**
+ * Mesmo clube sempre para a mesma seed (mesmo atleta) — o resultado do
+ * match precisa ficar fixo por pessoa, não sortear um clube novo a cada
+ * visita.
+ */
+export const getClubBySeed = (seed: number): Club => {
   const all = [...clubsDatabase, ...brazilianClubs];
-  const available = all.filter(club => !usedClubIds.includes(club.id));
-  const toUse = available.length > 0 ? available : all;
-  return toUse[Math.floor(Math.random() * toUse.length)];
+  return all[seed % all.length];
 };
 
-export const getRandomBrazilianClub = (usedClubIds: string[] = []): Club => {
-  const available = brazilianClubs.filter(club => !usedClubIds.includes(club.id));
-  const toUse = available.length > 0 ? available : brazilianClubs;
-  return toUse[Math.floor(Math.random() * toUse.length)];
+export const getBrazilianClubBySeed = (seed: number): Club => {
+  return brazilianClubs[seed % brazilianClubs.length];
 };
 
 export const getClubsByContinent = (continent: string): Club[] => {
