@@ -37,7 +37,7 @@ const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => 
         </Button>
         <h2 className="text-lg font-bold text-foreground">Apresentação Pessoal</h2>
         <p className="text-xs text-muted-foreground mt-1">
-          Grave um vídeo de até 5 minutos contando sua trajetória, conquistas e motivação.
+          Grave um vídeo de até 120 minutos contando sua trajetória, conquistas e motivação.
         </p>
         <p className="text-xs text-muted-foreground mt-1 italic opacity-70">
           (Opcional — mas altamente recomendado. Dirigentes gostam de conhecer o atleta por trás do vídeo.)
@@ -51,9 +51,9 @@ const PersonalVideo = ({ onBack, onContinue, playerId }: PersonalVideoProps) => 
       <VideoUploadCard
         title="Vídeo de Apresentação"
         description="Conte sua história, trajetória e motivação"
-        duration="Até 5 min"
-        maxDurationSec={300}
-        maxSizeMB={500}
+        duration="Até 120 min"
+        maxDurationSec={7200}
+        maxSizeMB={3072}
         suggestedName={`${playerId}_apresentacao.mp4`}
         video={video}
         onChange={setVideo}

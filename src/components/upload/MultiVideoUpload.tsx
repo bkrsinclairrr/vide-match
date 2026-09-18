@@ -11,7 +11,7 @@ const STEPS = [
     description: "Aceleração dos 0–20m com cronômetro visível ou marcações de campo.",
     duration: "15–30s (3 repetições)",
     example: "Mostre sua explosão e velocidade nos primeiros 20 metros.",
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "tiro_velocidade20",
   },
   {
@@ -19,7 +19,7 @@ const STEPS = [
     description: "Recepção sob pressão, domínio orientado (pés e peito).",
     duration: "30–60s",
     example: "Sequências de controle em passes curtos.",
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "dominio",
   },
   {
@@ -27,7 +27,7 @@ const STEPS = [
     description: "Chutes em situação real e de treino (curta/média distância).",
     duration: "30–90s (5–8 tentativas)",
     example: "Finalização com e sem oposição.",
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "finalizacao",
   },
   {
@@ -35,7 +35,7 @@ const STEPS = [
     description: "Desarmes, interceptações, reação defensiva.",
     duration: "20–60s",
     example: undefined,
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "roubada",
   },
   {
@@ -43,7 +43,7 @@ const STEPS = [
     description: "Passes em profundidade, trocas rápidas e lançamentos decisivos.",
     duration: "30–60s",
     example: undefined,
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "passe",
   },
   {
@@ -51,7 +51,7 @@ const STEPS = [
     description: "Dribles em situações reais, decisão de quando driblar.",
     duration: "30–60s",
     example: undefined,
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "drible",
   },
   {
@@ -59,7 +59,7 @@ const STEPS = [
     description: "Sequência mostrando movimentação sem bola em ataque/defesa.",
     duration: "30–60s",
     example: undefined,
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "posicionamento",
   },
   {
@@ -67,7 +67,7 @@ const STEPS = [
     description: "1–3 minutos contínuos de jogo real com o jogador visível.",
     duration: "60–180s",
     example: undefined,
-    maxDuration: 180,
+    maxDuration: 7200,
     category: "partida",
   },
 ];
@@ -208,7 +208,7 @@ const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId, aut
               <VideoUploadCard
                 title={step.title} subtitle={step.subtitle} description={step.description}
                 duration={step.duration} example={step.example} maxDurationSec={step.maxDuration}
-                maxSizeMB={500} suggestedName={`${playerId}_${step.category}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.mp4`}
+                maxSizeMB={3072} suggestedName={`${playerId}_${step.category}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.mp4`}
                 video={videos[index]} onChange={video => updateVideo(index, video)} highlightPending
               />
             </div>
@@ -221,7 +221,7 @@ const MultiVideoUpload = ({ onBack, onContinue, onCompletedChange, playerId, aut
         duration={STEPS[currentStep].duration}
         example={STEPS[currentStep].example}
         maxDurationSec={STEPS[currentStep].maxDuration}
-        maxSizeMB={500}
+        maxSizeMB={3072}
         suggestedName={`${playerId}_${STEPS[currentStep].category}_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.mp4`}
         video={videos[currentStep]}
         onChange={(v) => updateVideo(currentStep, v)}

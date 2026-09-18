@@ -30,6 +30,10 @@ interface VideoUploadCardProps {
   highlightPending?: boolean;
 }
 
+/** Formata em GB acima de 1024 MB — "3072 MB" lido na tela é bem menos claro que "3 GB". */
+const formatSize = (mb: number): string =>
+  mb >= 1024 ? `${(mb / 1024).toFixed(mb % 1024 === 0 ? 0 : 1)} GB` : `${mb} MB`;
+
 const VideoUploadCard = ({
   title, subtitle, description, duration, example, maxDurationSec, maxSizeMB,
   suggestedName, video, onChange, showCapture = true, highlightPending = false
@@ -44,7 +48,7 @@ const VideoUploadCard = ({
       return { status: 'error', errorMessage: 'Formato inválido. Aceitos: MP4, MOV, MKV, WEBM.' };
     }
     if (file.size > maxSizeMB * 1024 * 1024) {
-      return { status: 'error', errorMessage: `Este arquivo excede o limite de ${maxSizeMB} MB.` };
+      return { status: 'error', errorMessage: `Este arquivo excede o limite de ${formatSize(maxSizeMB)}.` };
     }
     return { status: 'ok' };
   };
@@ -78,7 +82,12 @@ const VideoUploadCard = ({
       // válido por não conseguirmos medi-lo.
       if (Number.isFinite(finalDuration) && finalDuration > maxDurationSec) {
         URL.revokeObjectURL(previewUrl);
-        onChange({ file, status: 'error', errorMessage: `Este vídeo excede o limite de ${duration}.` });
+        // maxDurationSec é o teto técnico real; `duration` é só a sugestão de
+        // gravação exibida no card (ex: "15–30s (3 repetições)") e não
+        // corresponde ao limite de fato — citá-la aqui confundiria quem
+        // excedeu um teto bem maior que a sugestão.
+        const maxMinutes = Math.round(maxDurationSec / 60);
+        onChange({ file, status: 'error', errorMessage: `Este vídeo excede o limite de ${maxMinutes} minutos.` });
       } else {
         onChange({ file, previewUrl, status: validation.status, errorMessage: validation.errorMessage, warningMessage: validation.warningMessage });
       }
@@ -204,7 +213,7 @@ const VideoUploadCard = ({
               <>
                 <Upload className="w-6 h-6 text-muted-foreground mx-auto mb-1.5" />
                 <p className="text-xs font-medium text-foreground">Clique para enviar</p>
-                <p className="text-xs text-muted-foreground">MP4, MOV, MKV — máx. {maxSizeMB} MB</p>
+                <p className="text-xs text-muted-foreground">MP4, MOV, MKV — máx. {formatSize(maxSizeMB)}</p>
               </>
             )}
           </button>

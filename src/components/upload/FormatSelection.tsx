@@ -55,8 +55,8 @@ const FormatSelection = ({ onSelect, highlightPending = false, completedFormats 
         <div className="space-y-1.5 text-xs text-muted-foreground">
           <div className="flex items-center gap-2"><Monitor className="w-3.5 h-3.5 text-primary shrink-0" /><span>Formatos: <span className="text-foreground font-medium">MP4, MOV, MKV</span></span></div>
           <div className="flex items-center gap-2"><Maximize className="w-3.5 h-3.5 text-primary shrink-0" /><span>Resolução mínima: <span className="text-foreground font-medium">720p</span></span></div>
-          <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-primary shrink-0" /><span>Duração: máx. <span className="text-foreground font-medium">3 min</span> (separados) / <span className="text-foreground font-medium">10 min</span> (compilado)</span></div>
-          <div className="flex items-center gap-2"><HardDrive className="w-3.5 h-3.5 text-primary shrink-0" /><span>Tamanho: <span className="text-foreground font-medium">500 MB</span></span></div>
+          <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-primary shrink-0" /><span>Duração: máx. <span className="text-foreground font-medium">120 min</span> (separados ou compilado)</span></div>
+          <div className="flex items-center gap-2"><HardDrive className="w-3.5 h-3.5 text-primary shrink-0" /><span>Tamanho: <span className="text-foreground font-medium">3 GB</span></span></div>
           <div className="flex items-center gap-2"><Maximize className="w-3.5 h-3.5 text-primary shrink-0" /><span>Orientação: <span className="text-foreground font-medium">paisagem</span> preferível</span></div>
         </div>
       </div>

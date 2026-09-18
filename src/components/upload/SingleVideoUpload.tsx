@@ -41,9 +41,9 @@ const SingleVideoUpload = ({ onBack, onContinue, playerId, onCompletedChange, hi
       <VideoUploadCard
         title="Vídeo Compilado"
         description="Seus melhores momentos com todos os fundamentos"
-        duration="Até 10 min"
-        maxDurationSec={600}
-        maxSizeMB={500}
+        duration="Até 120 min"
+        maxDurationSec={7200}
+        maxSizeMB={3072}
         suggestedName={`${playerId}_compilado.mp4`}
         video={video}
         onChange={setVideo}
