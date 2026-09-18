@@ -248,13 +248,13 @@ export function friendlyAuthError(message: string | undefined): string {
     return "Confirme seu cadastro para continuar. Toque em \"Já tenho conta\" e tente entrar novamente em instantes."
   }
   if (m.includes("already registered") || m.includes("user_already_exists")) {
-    return "Este e-mail já tem uma conta. Toque em \"Já tenho conta\" para entrar."
+    return "Este e-mail já tem uma conta. Toque em \"Já tenho conta\" para entrar — se você criou a conta pelo Google, use o botão \"Entrar com Google\" ou \"Esqueceu a senha?\" para definir uma senha."
   }
   if (m.includes("invalid login credentials")) {
-    return "E-mail ou senha incorretos."
+    return "E-mail ou senha incorretos. Se você criou a conta pelo Google, entre com o botão \"Entrar com Google\" ou toque em \"Esqueceu a senha?\"."
   }
   if (m.includes("password") && m.includes("character")) {
-    return "A senha precisa ter pelo menos 12 caracteres."
+    return "A senha precisa ter pelo menos 6 caracteres."
   }
 
   return message || "Algo deu errado. Tente novamente em instantes."

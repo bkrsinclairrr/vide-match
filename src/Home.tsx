@@ -18,6 +18,7 @@ import { useLocation } from "react-router-dom"
  */
 const Dashboard = lazy(() => import("./pages/Dashboard"))
 const Login = lazy(() => import("./pages/Login"))
+const ResetPassword = lazy(() => import("./pages/ResetPassword"))
 const Onboarding = lazy(() => import("./pages/Onboarding"))
 const Admin = lazy(() => import("./pages/Admin"))
 const Upload = lazy(() => import("./pages/Upload"))
@@ -88,6 +89,7 @@ const Home = () => {
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/privacidade" element={<Privacy />} />
               <Route path="/termos" element={<Terms />} />
 

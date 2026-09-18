@@ -7,7 +7,7 @@ import { Trophy, Mail, Lock, User, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
-import { nameSchema, validateCredentials } from "@/lib/security"
+import { emailSchema, nameSchema, validateCredentials } from "@/lib/security"
 import { friendlyAuthError } from "@/lib/funnel"
 
 export default function Login() {
@@ -18,6 +18,9 @@ export default function Login() {
   const [name, setName] = useState("")
   const [regEmail, setRegEmail] = useState("")
   const [regPassword, setRegPassword] = useState("")
+  const [forgotMode, setForgotMode] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState("")
+  const [forgotLoading, setForgotLoading] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
 
@@ -25,7 +28,7 @@ export default function Login() {
     e.preventDefault()
     const credentials = validateCredentials(email, password)
     if (!credentials) {
-      toast({ title: "Dados inválidos", description: "Informe um e-mail válido e uma senha de 12 a 128 caracteres.", variant: "destructive" })
+      toast({ title: "Dados inválidos", description: "Informe um e-mail válido e uma senha de 6 a 128 caracteres.", variant: "destructive" })
       return
     }
     setIsLoading(true)
@@ -43,7 +46,7 @@ export default function Login() {
     const credentials = validateCredentials(regEmail, regPassword)
     const validName = nameSchema.safeParse(name.trim())
     if (!credentials || !validName.success) {
-      toast({ title: "Dados inválidos", description: "Informe nome válido, e-mail válido e uma senha de 12 a 128 caracteres.", variant: "destructive" })
+      toast({ title: "Dados inválidos", description: "Informe nome válido, e-mail válido e uma senha de 6 a 128 caracteres.", variant: "destructive" })
       return
     }
     setIsLoading(true)
@@ -74,6 +77,31 @@ export default function Login() {
     if (error) {
       toast({ title: "Erro ao entrar com Google", description: error.message, variant: "destructive" })
       setGoogleLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const validEmail = emailSchema.safeParse(forgotEmail)
+    if (!validEmail.success) {
+      toast({ title: "E-mail inválido", description: "Informe um e-mail válido.", variant: "destructive" })
+      return
+    }
+    setForgotLoading(true)
+    const { error } = await supabase.auth.resetPasswordForEmail(validEmail.data, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    setForgotLoading(false)
+    // O Supabase sempre responde sem erro aqui, mesmo se o e-mail não existir
+    // (evita confirmar pra quem tenta quais e-mails têm conta).
+    if (error) {
+      toast({ title: "Erro ao enviar", description: friendlyAuthError(error.message), variant: "destructive" })
+    } else {
+      toast({
+        title: "E-mail enviado!",
+        description: "Se houver uma conta com esse endereço, você vai receber um link para criar uma nova senha — inclusive se a conta foi criada com o Google.",
+      })
+      setForgotMode(false)
     }
   }
 
@@ -141,6 +169,47 @@ export default function Login() {
 
             {/* TAB: LOGIN */}
             <TabsContent value="login" className="space-y-6 mt-0">
+              {forgotMode ? (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-semibold">Recuperar senha</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Informe seu e-mail. Se você criou a conta pelo Google, este link também define uma senha para entrar sem o Google.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">E-mail</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        placeholder="nome@exemplo.com"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
+                        required
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <Button type="submit" disabled={forgotLoading} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-base transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    {forgotLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-background/30 border-t-background rounded-full animate-spin" />
+                        Enviando...
+                      </div>
+                    ) : "Enviar link de recuperação"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setForgotMode(false)}
+                    className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Voltar para o login
+                  </button>
+                </form>
+              ) : (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">E-mail</Label>
@@ -160,7 +229,13 @@ export default function Login() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Senha</Label>
-                    <a href="#" className="text-xs text-primary font-medium hover:underline">Esqueceu a senha?</a>
+                    <button
+                      type="button"
+                      onClick={() => { setForgotEmail(email); setForgotMode(true) }}
+                      className="text-xs text-primary font-medium hover:underline"
+                    >
+                      Esqueceu a senha?
+                    </button>
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -217,6 +292,7 @@ export default function Login() {
                   {googleLoading ? "Redirecionando..." : "Entrar com Google"}
                 </button>
               </form>
+              )}
             </TabsContent>
 
             {/* TAB: REGISTER */}
@@ -264,10 +340,10 @@ export default function Login() {
                       onChange={(e) => setRegPassword(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
                       required
-                      minLength={12}
+                      minLength={6}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">A senha deve ter pelo menos 12 caracteres.</p>
+                  <p className="text-xs text-muted-foreground mt-1">A senha deve ter pelo menos 6 caracteres.</p>
                 </div>
 
                 <Button type="submit" disabled={isLoading} className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-base transition-all hover:scale-[1.02] active:scale-[0.98] mt-2">
