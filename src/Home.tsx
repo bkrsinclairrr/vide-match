@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "@/contexts/AuthContext"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import UtmifyPixel from "@/components/UtmifyPixel"
+import SiteAccessGate from "@/components/SiteAccessGate"
 import RequireJogadorAccess from "@/pages/jogador/RequireJogadorAccess"
 
 import { lazy, Suspense, useEffect } from "react"
@@ -97,40 +98,42 @@ const Home = () => {
         <BrowserRouter>
           <UtmifyPixel />
           <ScrollToTop />
-          <Suspense fallback={<RouteFallback />}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/privacidade" element={<Privacy />} />
-              <Route path="/termos" element={<Terms />} />
+          <SiteAccessGate>
+            <Suspense fallback={<RouteFallback />}>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/privacidade" element={<Privacy />} />
+                <Route path="/termos" element={<Terms />} />
 
-              {/* Funil aberto — resultado disponível sem login */}
-              <Route path="/avaliacao" element={<FunnelHome />} />
-              <Route path="/avaliacao/perfil" element={<FunnelProfile />} />
-              <Route path="/avaliacao/upload" element={<FunnelUpload />} />
-              <Route path="/avaliacao/conta" element={<Navigate to="/avaliacao/resultado" replace />} />
-              <Route path="/avaliacao/resultado" element={<FunnelResult />} />
+                {/* Funil aberto — resultado disponível sem login */}
+                <Route path="/avaliacao" element={<FunnelHome />} />
+                <Route path="/avaliacao/perfil" element={<FunnelProfile />} />
+                <Route path="/avaliacao/upload" element={<FunnelUpload />} />
+                <Route path="/avaliacao/conta" element={<Navigate to="/avaliacao/resultado" replace />} />
+                <Route path="/avaliacao/resultado" element={<FunnelResult />} />
 
-              {/* Clone de acesso restrito do funil aberto — ver AccessGate.tsx */}
-              <Route path="/jogador" element={<RequireJogadorAccess><JogadorHome /></RequireJogadorAccess>} />
-              <Route path="/jogador/perfil" element={<RequireJogadorAccess><JogadorProfile /></RequireJogadorAccess>} />
-              <Route path="/jogador/upload" element={<RequireJogadorAccess><JogadorUpload /></RequireJogadorAccess>} />
-              <Route path="/jogador/conta" element={<Navigate to="/jogador/resultado" replace />} />
-              <Route path="/jogador/resultado" element={<RequireJogadorAccess><JogadorResult /></RequireJogadorAccess>} />
+                {/* Clone de acesso restrito do funil aberto — ver AccessGate.tsx */}
+                <Route path="/jogador" element={<RequireJogadorAccess><JogadorHome /></RequireJogadorAccess>} />
+                <Route path="/jogador/perfil" element={<RequireJogadorAccess><JogadorProfile /></RequireJogadorAccess>} />
+                <Route path="/jogador/upload" element={<RequireJogadorAccess><JogadorUpload /></RequireJogadorAccess>} />
+                <Route path="/jogador/conta" element={<Navigate to="/jogador/resultado" replace />} />
+                <Route path="/jogador/resultado" element={<RequireJogadorAccess><JogadorResult /></RequireJogadorAccess>} />
 
-              {/* Protected routes - require authentication */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-              <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-              <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
-              <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
-              <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
+                {/* Protected routes - require authentication */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
+                <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
+                <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
+                <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </SiteAccessGate>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
