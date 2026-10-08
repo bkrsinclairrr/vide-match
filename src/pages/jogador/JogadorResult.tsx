@@ -419,8 +419,8 @@ export default function JogadorResult() {
         </section>
 
         <footer className="text-center py-6 border-t border-border space-y-3">
-          {/* Leva ao início do funil, não a "/": a raiz cai no dashboard, que é
-              protegido, e o visitante do funil não está autenticado. */}
+          {/* Leva ao início do funil (/jogador), não à home institucional em
+              "/": quem chega aqui já está dentro do funil. */}
           <button
             type="button"
             onClick={() => navigate(JOGADOR_ROUTES.home)}
