@@ -31,6 +31,9 @@ const Privacy = lazy(() => import("./pages/Privacy"))
 const Terms = lazy(() => import("./pages/Terms"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
+/** Home institucional pública em "/" — leva o visitante ao funil de avaliação. */
+const SiteHome = lazy(() => import("./pages/site/SiteHome"))
+
 /**
  * Funil aberto (/avaliacao). Roda em paralelo ao tradicional, sem alterá-lo:
  * entrada pública → formulário público → vídeos → resultado e WhatsApp.
@@ -102,6 +105,7 @@ const Home = () => {
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 {/* Public routes */}
+                <Route path="/" element={<SiteHome />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacidade" element={<Privacy />} />
@@ -122,7 +126,6 @@ const Home = () => {
                 <Route path="/jogador/resultado" element={<RequireJogadorAccess><JogadorResult /></RequireJogadorAccess>} />
 
                 {/* Protected routes - require authentication */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                 <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
