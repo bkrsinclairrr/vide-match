@@ -1,4 +1,5 @@
 /** Clone de src/pages/funnel/FunnelResult.tsx sob /jogador — ver JogadorHome.tsx. */
+import "@fontsource-variable/inter"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/lib/funnel"
 import { buildAccountSeed, buildAnonymousSeed, getClientIp } from "@/lib/resultIdentity"
 import FunnelLegalMenu from "@/pages/funnel/FunnelLegalMenu"
+import { ZyronLogo } from "@/pages/site/ZyronMark"
 import MysteryClubOpportunity from "@/pages/funnel/MysteryClubOpportunity"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import "@/pages/funnel/funnel.css"
@@ -248,12 +250,7 @@ export default function JogadorResult() {
     <div className="evaluation-funnel min-h-screen bg-background text-foreground font-sans antialiased">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm">
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-golden flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-accent-foreground" />
-            </div>
-            <span className="font-bold text-sm tracking-tight">ZYRON</span>
-          </div>
+          <ZyronLogo size={28} />
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground font-semibold uppercase tracking-widest hidden sm:block">Sua avaliação</span>
             <FunnelLegalMenu />

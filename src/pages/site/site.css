@@ -459,6 +459,112 @@ html.zyron-scroll-root body {
   background: linear-gradient(180deg, transparent, #0b0b0c);
 }
 
+/* ─── Entrada do funil (/avaliacao, /jogador): hero com vídeo ───────── */
+
+.zs-hero.zs-hero--split {
+  align-items: stretch;
+  min-height: 0;
+  padding: 132px 24px 24px;
+  text-align: left;
+}
+
+.zs-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 470px);
+  grid-template-areas: "head video" "body video";
+  column-gap: 56px;
+  align-items: center;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.zs-hero-head { grid-area: head; align-self: end; }
+.zs-hero-body { grid-area: body; align-self: start; }
+.zs-hero-video { grid-area: video; width: 100%; }
+
+.zs-hero--split .zs-hero-title { margin-bottom: 0; }
+.zs-hero--split .zs-hero-sub { max-width: 600px; margin: 24px 0 32px; font-size: 19px; }
+.zs-hero--split .zs-hero-ctas,
+.zs-hero--split .zs-hero-proof { justify-content: flex-start; }
+
+@media (min-width: 992px) {
+  .zs-hero--split .zs-hero-title { font-size: 56px; letter-spacing: -1.6px; }
+}
+
+/* Moldura dourada do depoimento em vídeo — a mesma do print do painel. */
+.zs-video-frame {
+  width: 100%;
+  max-width: calc(22rem + 22px);
+  margin: 0 auto;
+  padding: 10px;
+  border-radius: 24px;
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.24), rgba(251, 191, 36, 0.05) 45%, rgba(255, 255, 255, 0.03));
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55), 0 0 60px rgba(251, 191, 36, 0.14);
+}
+
+@media (min-width: 640px) {
+  .zs-video-frame { max-width: calc(28rem + 22px); }
+}
+
+.zs-stats-band { position: relative; padding: 80px 0 10px; }
+.zs-stats-band .zs-stats { margin-top: 0; }
+
+.zs-manifesto { position: relative; padding: 110px 0 40px; }
+
+.zs-manifesto-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 760px;
+  margin: 0 auto 56px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
+.zs-manifesto-copy p { margin: 0; }
+.zs-manifesto-copy strong { color: #fff; font-weight: 600; }
+
+.zs-cta-band {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 40px 24px 100px;
+  text-align: center;
+}
+
+.zs-cta-band-kicker {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Duas colunas só a partir de 1200px: abaixo disso a coluna do texto fica
+   estreita demais para o título e a linha de provas. */
+@media (max-width: 1199px) {
+  .zs-hero.zs-hero--split { padding-top: 112px; text-align: center; }
+  .zs-hero-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "video" "body"; row-gap: 28px; }
+  .zs-hero--split .zs-hero-sub { margin: 0 auto 28px; }
+  .zs-hero--split .zs-hero-ctas,
+  .zs-hero--split .zs-hero-proof { justify-content: center; }
+}
+
+@media (max-width: 767px) {
+  .zs-hero.zs-hero--split { padding: 104px 20px 8px; }
+  .zs-hero--split .zs-hero-sub { font-size: 16px; }
+  .zs-stats-band { padding-top: 56px; }
+  .zs-manifesto { padding: 80px 0 24px; }
+  .zs-manifesto-copy { margin-bottom: 40px; font-size: 16px; }
+  .zs-cta-band { padding: 24px 20px 80px; }
+}
+
 /* ─── Faixa de clubes ───────────────────────────────────────────────── */
 
 .zs-proof {
@@ -1445,6 +1551,7 @@ html.zyron-scroll-root body {
 }
 
 @media (max-width: 479px) {
+  .zs-label { padding: 6px 12px; font-size: 10.5px; letter-spacing: 1.2px; }
   .zs-hero-title { font-size: 36px; }
   .zs-hero-title br { display: none; }
   .zs-hero-ctas { flex-direction: column; align-items: stretch; width: 100%; gap: 12px; }
