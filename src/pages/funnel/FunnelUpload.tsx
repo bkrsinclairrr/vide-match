@@ -1,3 +1,4 @@
+import "@fontsource-variable/inter"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"

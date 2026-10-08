@@ -1,4 +1,5 @@
 /** Clone de src/pages/funnel/FunnelUpload.tsx sob /jogador — ver JogadorHome.tsx. */
+import "@fontsource-variable/inter"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"

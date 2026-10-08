@@ -125,7 +125,6 @@
     @apply bg-background text-foreground antialiased;
     max-width: 100%;
     overflow-x: hidden;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   /* Scrollbar styling */
