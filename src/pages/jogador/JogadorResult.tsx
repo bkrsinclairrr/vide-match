@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   JOGADOR_ROUTES, loadPlayerData, isProfileComplete,
-  buildStats, overallFrom, buildWhatsAppLink, type PlayerData,
+  buildStats, overallFrom, buildWhatsAppLink, syncFunnelProfile, toFunnelReport, type PlayerData,
 } from "@/lib/funnel"
 import { buildAccountSeed, buildAnonymousSeed, getClientIp } from "@/lib/resultIdentity"
 import FunnelLegalMenu from "@/pages/funnel/FunnelLegalMenu"
@@ -181,6 +181,14 @@ export default function JogadorResult() {
     [resultSeed]
   )
   const overall = useMemo(() => overallFrom(stats), [stats])
+
+  // Leva à VOXEN o mesmo relatório que esta tela mostra (borrado), uma vez.
+  const reportSyncedRef = useRef(false)
+  useEffect(() => {
+    if (!revealed || !resultSeed || reportSyncedRef.current) return
+    reportSyncedRef.current = true
+    syncFunnelProfile(player, toFunnelReport(stats, overall))
+  }, [revealed, resultSeed, player, stats, overall])
 
   // A nota NÃO entra na mensagem: ela aparece borrada na tela, e mandá-la
   // no texto do WhatsApp entregaria de graça justamente o que está velado.

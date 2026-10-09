@@ -34,6 +34,9 @@ const NotFound = lazy(() => import("./pages/NotFound"))
 /** Home institucional pública em "/" — leva o visitante ao funil de avaliação. */
 const SiteHome = lazy(() => import("./pages/site/SiteHome"))
 
+/** VOXEN: plataforma interna dos admins com os atletas da base (login + papel admin). */
+const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
+
 /**
  * Funil aberto (/avaliacao). Roda em paralelo ao tradicional, sem alterá-lo:
  * entrada pública → formulário público → vídeos → resultado e WhatsApp.
@@ -133,6 +136,7 @@ const Home = () => {
                 <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/voxen/*" element={<VoxenApp />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
