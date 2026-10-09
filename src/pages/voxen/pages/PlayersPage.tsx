@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { ArrowDown, ArrowUp, Check, Download, GitCompareArrows, Search, SlidersHorizontal, Users, X } from "lucide-react"
 import { STAT_KEYS } from "@/lib/funnel"
 import { useVoxen } from "../store"
 import {
   POSITIONS, STAGES, STAT_ABBR, formatDate, formatPhone, placeOf, positionCode, scoutAverage, scoutTone, type Player,
 } from "../data"
-import { Avatar, Empty, PosBadge, ScoreChip, StageTag, playerPath } from "../ui"
+import { Avatar, Empty, PosBadge, ScoreChip, StageTag, comparePath, playerPath } from "../ui"
 
 type SortKey = "name" | "pos" | "category" | "age" | "overall" | "created" | "scout" | (typeof STAT_KEYS)[number]["key"]
 const PAGE = 50
@@ -233,7 +233,7 @@ export default function PlayersPage() {
                           </button>
                           <Avatar name={p.name} size={32} />
                           <div className="min-w-0 max-w-[200px]">
-                            <div className="truncate text-[13.5px] font-semibold text-white">{p.name}</div>
+                            <Link to={playerPath(p)} onClick={(e) => e.stopPropagation()} className="block truncate text-[13.5px] font-semibold text-white hover:text-amber-300">{p.name}</Link>
                             <div className="truncate text-[11.5px] text-zinc-500">{p.email ?? (p.source === "conta" ? "Conta Zyron" : "—")}</div>
                           </div>
                         </div>
@@ -294,7 +294,7 @@ export default function PlayersPage() {
             type="button"
             className="vx-btn vx-btn--gold"
             disabled={selected.length < 2}
-            onClick={() => navigate(`/voxen/comparativo?p=${selected.map(encodeURIComponent).join(",")}`)}
+            onClick={() => navigate(comparePath(selected))}
           >
             <GitCompareArrows /> Comparar
           </button>

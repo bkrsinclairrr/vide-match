@@ -68,12 +68,12 @@ export default function Compare() {
   const [params, setParams] = useSearchParams()
   const [tab, setTab] = useState<Tab>("indicadores")
 
-  const keys = (params.get("p") ?? "").split(",").map((k) => decodeURIComponent(k)).filter((k) => byKey.has(k)).slice(0, 3)
+  const keys = (params.get("p") ?? "").split(",").filter((k) => byKey.has(k)).slice(0, 3)
   const chosen = keys.map((k) => byKey.get(k) as Player)
 
   const setKeys = (next: string[]) => {
     const sp = new URLSearchParams(params)
-    if (next.length) sp.set("p", next.map(encodeURIComponent).join(","))
+    if (next.length) sp.set("p", next.join(","))
     else sp.delete("p")
     setParams(sp, { replace: true })
   }

@@ -10,6 +10,7 @@
  * depois cai no outro não perde o que já preencheu.
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { emailSchema, nameSchema } from "@/lib/security"
 import { loadUtmifyAttribution } from "@/lib/utmify"
@@ -173,10 +174,12 @@ export function syncFunnelProfile(d: PlayerData, report?: FunnelReport): void {
     dualCitizenshipCountry: d.dualCitizenshipCountry,
   }
 
-  // A função é nova e ainda não está nos tipos gerados do Supabase.
-  const rpc = supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => PromiseLike<unknown>
+  // A função é nova e ainda não está nos tipos gerados do Supabase. O cast é
+  // do cliente inteiro, não do método: `rpc` usa `this.rest` por dentro, e
+  // chamá-lo solto lançaria antes de qualquer requisição sair.
+  const client = supabase as unknown as SupabaseClient
   try {
-    Promise.resolve(rpc("capture_funnel_profile", {
+    Promise.resolve(client.rpc("capture_funnel_profile", {
       p_lead_id: leadId,
       p_email: d.email.trim().toLowerCase(),
       p_profile: profile,

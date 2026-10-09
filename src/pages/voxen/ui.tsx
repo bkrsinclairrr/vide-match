@@ -86,6 +86,9 @@ export function StageTag({ stage }: { stage: StageKey }) {
 
 export const playerPath = (p: Player) => `/voxen/jogadores/${encodeURIComponent(p.key)}`
 
+/** Comparativo com até 3 atletas; o URLSearchParams cuida da codificação. */
+export const comparePath = (keys: string[]) => `/voxen/comparativo?${new URLSearchParams({ p: keys.join(",") })}`
+
 export function PlayerLink({ player, children, className = "" }: { player: Player; children: ReactNode; className?: string }) {
   return <Link to={playerPath(player)} className={className}>{children}</Link>
 }

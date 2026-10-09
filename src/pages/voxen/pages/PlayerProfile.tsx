@@ -12,7 +12,7 @@ import {
   positionOf, scoreTone, scoutAverage, scoutTone, timeAgo, whatsappLink, type Player,
 } from "../data"
 import { Meter, Pitch, RadarChart, Ring, CountUp } from "../charts"
-import { Avatar, CardHead, Empty, PosBadge, ScoreChip } from "../ui"
+import { Avatar, CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
 
 const norm = (score: number) => (score - 64) / 34
 
@@ -59,7 +59,7 @@ function Header({ p }: { p: Player }) {
           {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="vx-btn vx-btn--wpp"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>}
           {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
           {p.email && <a href={`mailto:${p.email}`} className="vx-icon-btn" aria-label={`E-mail para ${p.email}`} title={p.email}><Mail /></a>}
-          <button type="button" className="vx-icon-btn" aria-label="Comparar com outros" title="Comparar" onClick={() => navigate(`/voxen/comparativo?p=${encodeURIComponent(p.key)}`)}><GitCompareArrows /></button>
+          <button type="button" className="vx-icon-btn" aria-label="Comparar com outros" title="Comparar" onClick={() => navigate(comparePath([p.key]))}><GitCompareArrows /></button>
           <button type="button" className="vx-icon-btn" aria-label="Imprimir ficha" title="Imprimir ficha" onClick={() => window.print()}><Printer /></button>
         </div>
       </div>
@@ -226,7 +226,7 @@ function NotesCard({ p }: { p: Player }) {
 export default function PlayerProfile() {
   const { key = "" } = useParams()
   const { byKey, percentile } = useVoxen()
-  const p = byKey.get(decodeURIComponent(key))
+  const p = byKey.get(key)
 
   const dims = useMemo(() => (p ? dimensionScores(p) : []), [p])
 

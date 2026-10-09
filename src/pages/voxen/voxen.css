@@ -904,11 +904,17 @@
 
 /* ─── Impressão (ficha do atleta) ─────────────────────────────────── */
 
+/* A ficha sai com o mesmo visual escuro da tela: as cores de fundo são
+   impressas (print-color-adjust) em vez de o navegador apagá-las e deixar
+   texto branco sobre papel branco. */
 @media print {
-  .vx { background: #fff; color: #111; }
-  .vx-side, .vx-top, .vx-backdrop, .vx-no-print, .vx-floatbar { display: none !important; }
+  @page { size: A4; margin: 10mm; }
+  html, body, .vx { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #070708 !important; }
+  .vx-side, .vx-top, .vx-backdrop, .vx-no-print, .vx-floatbar, .vx-scrim { display: none !important; }
   .vx-main { margin: 0; }
-  .vx-page { padding: 0; }
-  .vx-card { border-color: #ddd; background: #fff; box-shadow: none; break-inside: avoid; }
-  .vx *, .vx *::before, .vx *::after { animation: none !important; }
+  .vx-page { max-width: none; padding: 0; }
+  .vx-grid { gap: 10px; }
+  .vx-card { box-shadow: none; break-inside: avoid; }
+  .vx *, .vx *::before, .vx *::after { animation: none !important; transition: none !important; }
+  .vx-area-line { stroke-dashoffset: 0; }
 }
