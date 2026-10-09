@@ -10,6 +10,7 @@
  * depois cai no outro não perde o que já preencheu.
  */
 
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { emailSchema, nameSchema } from "@/lib/security"
 import { loadUtmifyAttribution } from "@/lib/utmify"
@@ -139,7 +140,59 @@ export async function syncFunnelLead(d: PlayerData): Promise<string> {
     p_ttclid: attribution.ttclid,
   })
   if (error) throw new Error(error.message)
+  try {
+    if (data) sessionStorage.setItem(LEAD_ID_KEY, data)
+  } catch {
+    /* sem storage o perfil só não chega à VOXEN; o funil segue */
+  }
   return data
+}
+
+const LEAD_ID_KEY = "zyron:lead-id"
+
+type FunnelReport = { overall: number; stats: Record<string, number> }
+
+/**
+ * Leva o perfil (e, na tela de resultado, o relatório) para o lead na
+ * VOXEN, a plataforma interna dos admins. Nunca lança e nunca é aguardada
+ * pelo funil: se a função ainda não existir no banco, ou a rede falhar, o
+ * atleta não percebe nada. A foto fica de fora de propósito.
+ */
+export function syncFunnelProfile(d: PlayerData, report?: FunnelReport): void {
+  let leadId: string | null = null
+  try {
+    leadId = sessionStorage.getItem(LEAD_ID_KEY)
+  } catch {
+    return
+  }
+  if (!leadId || !isValidEmail(d.email)) return
+
+  const profile = {
+    age: d.age, height: d.height, weight: d.weight, preferredFoot: d.preferredFoot,
+    nationality: d.nationality, position: d.position, category: d.category,
+    state: d.state, city: d.city, hasDualCitizenship: d.hasDualCitizenship,
+    dualCitizenshipCountry: d.dualCitizenshipCountry,
+  }
+
+  // A função é nova e ainda não está nos tipos gerados do Supabase. O cast é
+  // do cliente inteiro, não do método: `rpc` usa `this.rest` por dentro, e
+  // chamá-lo solto lançaria antes de qualquer requisição sair.
+  const client = supabase as unknown as SupabaseClient
+  try {
+    Promise.resolve(client.rpc("capture_funnel_profile", {
+      p_lead_id: leadId,
+      p_email: d.email.trim().toLowerCase(),
+      p_profile: profile,
+      p_report: report ?? null,
+    })).catch(() => undefined)
+  } catch {
+    /* idem: falha silenciosa */
+  }
+}
+
+/** Formato compacto do relatório para a VOXEN: nota geral + nota por indicador. */
+export function toFunnelReport(stats: StatResult[], overall: number): FunnelReport {
+  return { overall, stats: Object.fromEntries(stats.map((s) => [s.key, s.score])) }
 }
 
 /* ------------------------------------------------------------------ */
