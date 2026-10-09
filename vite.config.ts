@@ -10,6 +10,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  // Valor explícito (vazio): sem ele, `=== "1"` não é resolvido na compilação e o
+  // gerador de dados fictícios da VOXEN (pages/voxen/demoFlag.ts) iria para o bundle do site.
+  // O build de demonstração define "1" em vite.demo.config.ts.
+  define: { "import.meta.env.VITE_VOXEN_DEMO": JSON.stringify("") },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

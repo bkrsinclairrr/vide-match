@@ -568,14 +568,16 @@ export function buildDemoData(): VoxenData {
       ? Object.fromEntries(SCOUT_ATTRS.map((a) => [a.key, Math.round((1.5 + rand() * 3.5) * 2) / 2]))
       : null
     const utmSource = pick(rand, ORIGINS)
-    const digits = `61 9${Math.floor(rand() * 9e7 + 1e7)}`.replace(/\D/g, "")
+    // Telefone que não existe (o celular brasileiro não começa com 90): a demonstração é pública
+    // e um número aleatório poderia ser de uma pessoa real.
+    const digits = `6190000${String(Math.floor(rand() * 9000 + 1000))}`
     const [fn, ...rest] = name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").split(" ")
 
     players.push({
       key,
       source: "funil",
       name,
-      email: `${fn}.${rest[rest.length - 1]}${Math.floor(rand() * 90 + 10)}@exemplo.com`,
+      email: `${fn}.${rest[rest.length - 1]}${Math.floor(rand() * 90 + 10)}@example.com`,
       phone: digits,
       createdAt: created.toISOString(),
       profile,
@@ -602,7 +604,7 @@ export function buildDemoData(): VoxenData {
   const g = players[0]
   Object.assign(g, {
     name: "Gabriel Rocha da Silva",
-    email: "gabriel.rocha@exemplo.com",
+    email: "gabriel.rocha@example.com",
     profile: { age: 19, height: 178, weight: 72, foot: "Canhoto", nationality: "Brasil", position: "Meia-Atacante", category: "Sub 20", state: "Distrito Federal", city: "Brasília - DF" },
     hasProfile: true,
     createdAt: new Date(now - 42 * 60000).toISOString(),

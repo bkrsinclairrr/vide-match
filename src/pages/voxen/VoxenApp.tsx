@@ -16,6 +16,7 @@ import {
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
 import { positionCode } from "./data"
+import { DEMO_ONLY, SITE_BASE } from "./demoFlag"
 import { Avatar, PageSkeleton, ScoreChip, VoxenMark, VoxenWordmark, playerPath } from "./ui"
 
 const Overview = lazy(() => import("./pages/Overview"))
@@ -35,12 +36,13 @@ const DEMO_KEY = "voxen:demo"
 
 /**
  * Modo demonstração: dados fictícios, sem login. Só existe no `npm run dev`
- * (import.meta.env.DEV é falso no build de produção, então o bloco some do
- * bundle publicado). Liga com /voxen?demo.
+ * (liga com /voxen?demo) e no build separado de demonstração, onde está
+ * sempre ligado (ver demoFlag.ts). No build de produção do site o bloco some.
  */
 function useDemoMode() {
   const { search } = useLocation()
   return useMemo(() => {
+    if (DEMO_ONLY) return true
     if (!import.meta.env.DEV) return false
     try {
       if (new URLSearchParams(search).has("demo")) sessionStorage.setItem(DEMO_KEY, "1")
@@ -57,7 +59,7 @@ export default function VoxenApp() {
   useEffect(() => {
     document.documentElement.classList.add("dark")
     const prev = document.title
-    document.title = "VOXEN · Scouting Zyron"
+    document.title = DEMO_ONLY ? "VOXEN · Demonstração" : "VOXEN · Scouting Zyron"
     return () => { document.title = prev }
   }, [])
 
@@ -350,10 +352,10 @@ function Sidebar({ open, count, email, onSignOut }: { open: boolean; count: numb
 
       <p className="vx-nav-label">Atalhos</p>
       <nav className="vx-nav">
-        <a href="/avaliacao" target="_blank" rel="noopener noreferrer" className="vx-nav-item">
+        <a href={`${SITE_BASE}/avaliacao`} target="_blank" rel="noopener noreferrer" className="vx-nav-item">
           <ArrowUpRight /> Abrir o funil
         </a>
-        <a href="/" target="_blank" rel="noopener noreferrer" className="vx-nav-item">
+        <a href={`${SITE_BASE}/`} target="_blank" rel="noopener noreferrer" className="vx-nav-item">
           <ArrowUpRight /> Site da Zyron
         </a>
       </nav>

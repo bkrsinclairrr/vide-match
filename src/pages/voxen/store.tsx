@@ -37,8 +37,11 @@ export function VoxenProvider({ demo, children }: { demo: boolean; children: Rea
     setLoading(true)
     setError(null)
     try {
-      // import.meta.env.DEV: no build de produção a demonstração some do bundle.
-      const loaded = import.meta.env.DEV && demo ? buildDemoData() : await loadVoxenData()
+      // A condição fica escrita aqui, por extenso, de propósito: só assim ela é resolvida na
+      // compilação e o gerador de dados fictícios some do bundle do site (ver demoFlag.ts).
+      const loaded = (import.meta.env.DEV || import.meta.env.VITE_VOXEN_DEMO === "1") && demo
+        ? buildDemoData()
+        : await loadVoxenData()
       dataRef.current = loaded
       setData(loaded)
     } catch (err) {
