@@ -51,7 +51,11 @@ export default function MinhaArea() {
 
   return (
     <div className="vx">
-      <div className="vx-backdrop" aria-hidden="true" />
+      <div className="vx-backdrop" aria-hidden="true">
+        <span className="vx-aurora vx-aurora--a" />
+        <span className="vx-aurora vx-aurora--b" />
+        <span className="vx-aurora vx-aurora--c" />
+      </div>
       {body}
     </div>
   )

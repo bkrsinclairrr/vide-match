@@ -3,15 +3,26 @@ import { Link, useNavigate } from "react-router-dom"
 import {
   ArrowDownRight, ArrowRight, ArrowUpRight, Database, Flame, Info, Minus, Sparkles, Target, UserCheck, Users,
 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
 import { useVoxen } from "../store"
 import {
   POSITIONS, STAGES, firstName, placeOf, positionCode, shortName, timeAgo, type Player,
 } from "../data"
-import { AreaChart, CountUp, Donut, HeatGrid, Meter, Pitch } from "../charts"
+import { AreaChart, CountUp, Donut, HeatGrid, Meter, Pitch, Sparkline } from "../charts"
 import { Avatar, CardHead, Empty, PosBadge, ScoreChip, StageTag, playerPath } from "../ui"
 
 const CATEGORY_COLORS = ["#fbbf24", "#34d399", "#38bdf8", "#fb923c", "#a3e635", "#f472b6", "#a78bfa", "#facc15", "#2dd4bf"]
 const DAY = 86400000
+
+function greeting() {
+  const h = new Date().getHours()
+  return h >= 5 && h < 12 ? "Bom dia" : h >= 12 && h < 18 ? "Boa tarde" : "Boa noite"
+}
+
+function todayLabel() {
+  const s = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
 
 function categoryOrder(c: string) {
   const n = Number.parseInt(c.replace(/\D/g, ""), 10)
@@ -33,9 +44,12 @@ function Delta({ now, before }: { now: number; before: number }) {
 
 export default function Overview() {
   const { players, data, demo } = useVoxen()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [category, setCategory] = useState("Todos")
   const [range, setRange] = useState(30)
+  const [slice, setSlice] = useState<number | null>(null)
+  const first = String(user?.user_metadata?.full_name ?? user?.user_metadata?.name ?? "").trim().split(/\s+/)[0]
 
   const categories = useMemo(() => {
     const set = new Set(players.map((p) => p.profile.category).filter(Boolean) as string[])
@@ -94,10 +108,24 @@ export default function Overview() {
     const stages = STAGES.map((s) => ({ ...s, value: list.filter((p) => p.meta.stage === s.key).length }))
     const top = [...list].sort((a, b) => b.overall - a.overall).slice(0, 6)
 
-    return { last7, prev7, today, withProfile, worked, evaluating, days, catSlices, origins, byPos, heat, stages, top }
+    // Minilinhas dos indicadores: entradas por dia (14 dias) e base acumulada (30 dias).
+    const midnight = new Date(now)
+    midnight.setHours(0, 0, 0, 0)
+    const dayEnd = (back: number) => midnight.getTime() + DAY - back * DAY
+    const daily14 = Array.from({ length: 14 }, (_, i) => {
+      const end = dayEnd(13 - i)
+      return list.filter((p) => t(p) >= end - DAY && t(p) < end).length
+    })
+    const total30 = Array.from({ length: 30 }, (_, i) => {
+      const end = dayEnd(29 - i)
+      return list.filter((p) => t(p) < end).length
+    })
+
+    return { last7, prev7, today, withProfile, worked, evaluating, days, catSlices, origins, byPos, heat, stages, top, daily14, total30 }
   }, [list, range])
 
   const total = list.length
+  const activeSlice = slice !== null ? stats.catSlices[slice] ?? null : null
   const showNotice = !demo && data && (!data.profileCapture || !data.sharedMeta)
   const maxStage = Math.max(1, ...stats.stages.map((s) => s.value))
 
@@ -115,18 +143,24 @@ export default function Overview() {
         </div>
       )}
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[13px] text-zinc-400">
-            {"Atualizado " + (data ? timeAgo(data.loadedAt.toISOString()) : "")}
+          <p className="vx-hello">
+            <span className="vx-live" aria-hidden="true" />
+            <span className="text-zinc-300">{greeting()}{first ? `, ${first}` : ""}</span>
+            <span className="text-zinc-600">·</span>
+            <span>{todayLabel()}</span>
+            {data && <span className="hidden text-zinc-500 sm:inline">· atualizado {timeAgo(data.loadedAt.toISOString())}</span>}
           </p>
-          <h2 className="mt-1 text-[26px] font-bold tracking-[-0.02em]">
-            {stats.today > 0 ? <>Hoje chegaram <span className="text-amber-300">{stats.today}</span> atleta{stats.today === 1 ? "" : "s"}.</> : "Sua base de atletas"}
+          <h2 className="mt-2 text-[28px] font-bold leading-tight tracking-[-0.025em]">
+            {stats.today > 0
+              ? <>Hoje chegaram <span className="vx-gold-text">{stats.today}</span> atleta{stats.today === 1 ? "" : "s"}.</>
+              : "Sua base de atletas"}
           </h2>
         </div>
-        <div className="vx-chips" role="tablist" aria-label="Categoria">
+        <div className="vx-chips vx-chips--scroll" role="tablist" aria-label="Categoria">
           {categories.map((c) => (
-            <button key={c} type="button" role="tab" aria-selected={c === category} className={`vx-chip ${c === category ? "is-on" : ""}`} onClick={() => setCategory(c)}>
+            <button key={c} type="button" role="tab" aria-selected={c === category} className={`vx-chip ${c === category ? "is-on" : ""}`} onClick={() => { setCategory(c); setSlice(null) }}>
               {c}
             </button>
           ))}
@@ -135,12 +169,12 @@ export default function Overview() {
 
       {/* Indicadores */}
       <div className="vx-grid vx-stagger mb-[18px] grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Atletas na base", value: total, icon: Users, color: "#fbbf24", foot: <span>{stats.today} hoje</span> },
-          { label: "Novos nos últimos 7 dias", value: stats.last7, icon: Flame, color: "#fb923c", foot: <><Delta now={stats.last7} before={stats.prev7} /><span>vs. 7 dias anteriores</span></> },
-          { label: "Perfis completos", value: total ? Math.round((stats.withProfile / total) * 100) : 0, suffix: "%", icon: Database, color: "#38bdf8", foot: <span>{stats.withProfile} com posição e categoria</span> },
-          { label: "Em avaliação ou aprovados", value: stats.evaluating, icon: UserCheck, color: "#34d399", foot: <span>{stats.worked} já trabalhados pela equipe</span> },
-        ].map((kpi, i) => (
+        {([
+          { label: "Atletas na base", value: total, icon: Users, color: "#fbbf24", spark: stats.total30, foot: <span>{stats.today} hoje</span> },
+          { label: "Novos nos últimos 7 dias", value: stats.last7, icon: Flame, color: "#fb923c", spark: stats.daily14, foot: <><Delta now={stats.last7} before={stats.prev7} /><span>vs. 7 dias anteriores</span></> },
+          { label: "Perfis completos", value: total ? Math.round((stats.withProfile / total) * 100) : 0, suffix: "%", icon: Database, color: "#38bdf8", meter: total ? (stats.withProfile / total) * 100 : 0, foot: <span>{stats.withProfile} com posição e categoria</span> },
+          { label: "Em avaliação ou aprovados", value: stats.evaluating, icon: UserCheck, color: "#34d399", meter: total ? (stats.evaluating / total) * 100 : 0, foot: <span>{stats.worked} já trabalhados pela equipe</span> },
+        ] as { label: string; value: number; suffix?: string; icon: typeof Users; color: string; spark?: number[]; meter?: number; foot: React.ReactNode }[]).map((kpi, i) => (
           <div key={kpi.label} className="vx-card vx-card--hover" style={{ "--i": i } as React.CSSProperties}>
             <div className="flex items-start justify-between gap-3">
               <span className="vx-kpi-label">{kpi.label}</span>
@@ -148,7 +182,11 @@ export default function Overview() {
                 <kpi.icon />
               </span>
             </div>
-            <div className="vx-kpi-value"><CountUp value={kpi.value} suffix={kpi.suffix} /></div>
+            <div className="vx-kpi-row">
+              <div className="vx-kpi-value"><CountUp value={kpi.value} suffix={kpi.suffix} /></div>
+              {kpi.spark && <span className="hidden sm:block"><Sparkline data={kpi.spark} color={kpi.color} /></span>}
+            </div>
+            {kpi.meter !== undefined && <div className="mt-3.5"><Meter value={kpi.meter} color={kpi.color} height={5} delay={250 + i * 90} /></div>}
             <div className="vx-kpi-foot">{kpi.foot}</div>
           </div>
         ))}
@@ -168,22 +206,34 @@ export default function Overview() {
               </div>
             }
           />
-          <AreaChart key={`${range}-${category}`} height={268} data={stats.days} format={(v) => `${v} atleta${v === 1 ? "" : "s"}`} />
+          <AreaChart key={`${range}-${category}`} height={268} data={stats.days} live format={(v) => `${v} atleta${v === 1 ? "" : "s"}`} />
         </section>
 
         <section className="vx-card">
-          <CardHead title="Por categoria" sub="Distribuição da base filtrada" />
+          <CardHead title="Por categoria" sub="Passe o cursor numa fatia para ver o detalhe" />
           {total ? (
             <div className="flex flex-col items-center gap-5 sm:flex-row xl:flex-col 2xl:flex-row">
               <Donut
                 key={category}
                 slices={stats.catSlices}
-                center={<><span className="text-[28px] font-bold tnum leading-none"><CountUp value={total} /></span><span className="mt-1 text-[11px] text-zinc-500">atletas</span></>}
+                active={slice}
+                onActive={setSlice}
+                center={activeSlice ? (
+                  <span key={activeSlice.label} className="vx-donut-detail">
+                    <span className="text-[28px] font-bold tnum leading-none" style={{ color: activeSlice.color }}>{Math.round((activeSlice.value / total) * 100)}%</span>
+                    <span className="mt-1 text-[11px] text-zinc-400">{activeSlice.label} · {activeSlice.value}</span>
+                  </span>
+                ) : (
+                  <span className="vx-donut-detail">
+                    <span className="text-[28px] font-bold tnum leading-none"><CountUp value={total} /></span>
+                    <span className="mt-1 text-[11px] text-zinc-500">atletas</span>
+                  </span>
+                )}
               />
-              <ul className="flex w-full flex-col gap-2">
-                {stats.catSlices.slice(0, 7).map((s) => (
-                  <li key={s.label} className="flex items-center gap-2.5 text-[12.5px]">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.color }} />
+              <ul className={`vx-legend flex w-full flex-col gap-1 ${slice !== null ? "has-active" : ""}`} onPointerLeave={() => setSlice(null)}>
+                {stats.catSlices.slice(0, 7).map((s, i) => (
+                  <li key={s.label} className={`flex items-center gap-2.5 text-[12.5px] ${slice === i ? "is-active" : ""}`} onPointerEnter={() => setSlice(i)}>
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.color, boxShadow: slice === i ? `0 0 10px ${s.color}` : undefined }} />
                     <span className="flex-1 text-zinc-300">{s.label}</span>
                     <span className="font-semibold tnum text-zinc-400">{Math.round((s.value / total) * 100)}%</span>
                   </li>
@@ -205,6 +255,7 @@ export default function Overview() {
           <div className="vx-stagger grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
             {stats.top.map((p, i) => (
               <Link key={p.key} to={playerPath(p)} className="vx-pcard" style={{ "--i": i } as React.CSSProperties}>
+                <span className={`vx-pcard-rank ${i < 3 ? "is-top" : ""}`}>#{i + 1}</span>
                 <span className="vx-pcard-ovr"><ScoreChip score={p.overall} size="sm" /></span>
                 <Avatar name={p.name} size={58} />
                 <span className="vx-pcard-name">{shortName(p.name)}</span>

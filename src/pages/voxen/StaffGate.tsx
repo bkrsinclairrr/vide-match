@@ -16,6 +16,35 @@ const FEATURES = [
   { icon: ShieldCheck, title: "Contas e acessos", text: "Quem é administrador, quem só lê e quem é atleta, com controle total." },
 ]
 
+/** Pontos do radar decorativo: ângulo (graus, a partir do topo) e distância do centro (0 a 1). */
+const BLIPS = [
+  { a: 38, r: 0.52 }, { a: 112, r: 0.74 }, { a: 168, r: 0.36 }, { a: 236, r: 0.62 }, { a: 302, r: 0.44 }, { a: 334, r: 0.7 },
+]
+const SWEEP_SECONDS = 7
+
+function Radar() {
+  return (
+    <div className="sl-radar" aria-hidden="true">
+      <span className="sl-radar-sweep" style={{ animationDuration: `${SWEEP_SECONDS}s` }} />
+      {BLIPS.map(({ a, r }) => {
+        const rad = (a * Math.PI) / 180
+        return (
+          <span
+            key={a}
+            className="sl-blip"
+            style={{
+              left: `${50 + Math.sin(rad) * r * 50}%`,
+              top: `${50 - Math.cos(rad) * r * 50}%`,
+              animationDuration: `${SWEEP_SECONDS}s`,
+              animationDelay: `${(a / 360) * SWEEP_SECONDS}s`,
+            }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 type Mode = "entrar" | "senha"
 
 /**
@@ -32,6 +61,7 @@ export function StaffLogin() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
+  const [shake, setShake] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { emailRef.current?.focus() }, [mode])
@@ -56,6 +86,7 @@ export function StaffLogin() {
         setError(/invalid login credentials/i.test(err.message)
           ? "E-mail ou senha incorretos. Confira os dados ou use “Esqueci a senha”."
           : friendlyAuthError(err.message))
+        setShake(true)
       }
     } else {
       const { error: err } = await supabase.auth.resetPasswordForEmail(mail, { redirectTo: `${window.location.origin}/reset-password` })
@@ -68,14 +99,17 @@ export function StaffLogin() {
   return (
     <div className="vx-gate relative z-[1]">
       <aside className="vx-gate-art sl-art">
-        <div className="vx-gate-orbit" aria-hidden="true" />
-        <VoxenWordmark size={40} />
+        <Radar />
+        <span className="relative"><VoxenWordmark size={40} /></span>
         <div className="relative max-w-[520px]">
-          <span className="sl-kicker"><Lock className="h-3.5 w-3.5" /> Acesso da equipe</span>
-          <h1 className="mt-5 text-[42px] font-extrabold leading-[1.06] tracking-[-0.03em]">
+          <span className="sl-kicker"><span className="vx-live" aria-hidden="true" /> Acesso da equipe</span>
+          <h1 className="mt-5 text-[44px] font-extrabold leading-[1.05] tracking-[-0.035em]">
             A central da{" "}
-            <span className="bg-gradient-to-b from-white via-amber-200 to-amber-500 bg-clip-text text-transparent">equipe Zyron.</span>
+            <span className="sl-shine">equipe Zyron.</span>
           </h1>
+          <p className="mt-4 max-w-[440px] text-[15px] leading-relaxed text-zinc-400">
+            Base de atletas, análises de partidas e acessos da equipe, num só lugar.
+          </p>
           <ul className="sl-features">
             {FEATURES.map(({ icon: Icon, title, text }, i) => (
               <li key={title} style={{ animationDelay: `${0.25 + i * 0.12}s` }}>
@@ -108,9 +142,9 @@ export function StaffLogin() {
               </div>
             </div>
           ) : (
-            <>
+            <div className={`sl-fields ${shake ? "is-shake" : ""}`} onAnimationEnd={(e) => { if (e.target === e.currentTarget) setShake(false) }}>
               <label className="sl-label" htmlFor="sl-email">E-mail</label>
-              <div className="relative">
+              <div className="sl-field relative">
                 <Mail className="sl-icon" />
                 <input id="sl-email" ref={emailRef} type="email" autoComplete="username" inputMode="email" required value={email}
                   onChange={(e) => setEmail(e.target.value)} className="vx-input vx-input--icon" placeholder="nome@aizyron.com" />
@@ -122,7 +156,7 @@ export function StaffLogin() {
                     <label className="sl-label !mt-0" htmlFor="sl-pass">Senha</label>
                     <button type="button" className="sl-link" onClick={() => go("senha")}>Esqueci a senha</button>
                   </div>
-                  <div className="relative">
+                  <div className="sl-field relative">
                     <Lock className="sl-icon" />
                     <input id="sl-pass" type={show ? "text" : "password"} autoComplete="current-password" required value={password}
                       onChange={(e) => setPassword(e.target.value)} onKeyUp={(e) => setCaps(e.getModifierState("CapsLock"))} onBlur={() => setCaps(false)}
@@ -140,7 +174,7 @@ export function StaffLogin() {
               <button type="submit" disabled={!valid || busy} className="vx-btn vx-btn--gold sl-submit">
                 {busy ? <><Loader2 className="sl-spin" /> {mode === "entrar" ? "Entrando..." : "Enviando..."}</> : mode === "entrar" ? <>Entrar <ArrowRight /></> : "Enviar o link"}
               </button>
-            </>
+            </div>
           )}
 
           {mode === "senha" && (

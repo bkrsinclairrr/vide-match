@@ -18,7 +18,8 @@ type VoxenStore = {
   role: StaffRole
   /** Só o administrador altera; o executivo apenas lê. */
   canEdit: boolean
-  reload: () => Promise<void>
+  /** Recarrega a base; `true` se deu certo. */
+  reload: () => Promise<boolean>
   updateMeta: (key: string, patch: Partial<PlayerMeta>) => Promise<void>
   /** Edita o cadastro do atleta (só administrador). `partial`: o perfil do lead não pôde ser gravado. */
   editPlayer: (key: string, edit: PlayerEdit) => Promise<{ partial: boolean }>
@@ -53,8 +54,10 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
         : await loadVoxenData()
       dataRef.current = loaded
       setData(loaded)
+      return true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível carregar os atletas.")
+      return false
     } finally {
       setLoading(false)
     }
