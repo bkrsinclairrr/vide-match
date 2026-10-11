@@ -38,7 +38,7 @@ export default function AdminMembers() {
   const { toast } = useToast()
   const [params, setParams] = useSearchParams()
   const kind: MemberKind = params.get("tipo") === "referencias" ? "referencia" : "membro"
-  const { byKey } = useVoxen()
+  const { byKey, canEdit } = useVoxen()
   const fromKey = params.get("de")
   const fromPlayer = fromKey ? byKey.get(fromKey) : undefined
   const prefill = useMemo(() => (fromPlayer ? prefillFrom(fromPlayer) : undefined), [fromPlayer])
@@ -94,12 +94,14 @@ export default function AdminMembers() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <input className="vx-input vx-input--icon" placeholder="Buscar por nome, e-mail, posição ou time" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar perfis" />
         </div>
-        <button type="button" className="vx-btn vx-btn--gold" onClick={() => setCreating((c) => !c)}>
-          <Plus /> {kind === "membro" ? "Novo membro" : "Nova referência"}
-        </button>
+        {canEdit && (
+          <button type="button" className="vx-btn vx-btn--gold" onClick={() => setCreating((c) => !c)}>
+            <Plus /> {kind === "membro" ? "Novo membro" : "Nova referência"}
+          </button>
+        )}
       </div>
 
-      {creating && (
+      {creating && canEdit && (
         <section className="vx-card mb-[18px]">
           <h2 className="vx-card-title">{kind === "membro" ? (prefill ? `Tornar ${prefill.fullName} membro` : "Cadastrar membro") : "Criar perfil de referência"}</h2>
           <p className="vx-card-sub" style={{ marginBottom: 20 }}>

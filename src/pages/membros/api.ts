@@ -40,6 +40,8 @@ export interface DataSource {
   /** Cadastro de membro ligado a uma conta (o admin vendo um atleta como ele vê). */
   findByUser(userId: string): Promise<Member | null>
   saveMember(input: MemberInput): Promise<Member>
+  /** Exclui o perfil e, em cascata, as partidas e os lances dele. */
+  deleteMember(id: string): Promise<void>
   saveMatch(input: MatchInput): Promise<Match>
   deleteMatch(id: string): Promise<void>
   addEvent(input: EventInput): Promise<MatchEvent>
@@ -258,6 +260,11 @@ const supabaseSource: DataSource = {
     }
     check(res.error)
     return toMember(res.data)
+  },
+
+  async deleteMember(id) {
+    const { error } = await db.from("zyron_members").delete().eq("id", id)
+    check(error)
   },
 
   async saveMatch(input) {

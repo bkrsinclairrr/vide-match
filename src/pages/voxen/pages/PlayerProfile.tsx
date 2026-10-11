@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react"
+import { lazy, Suspense, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
-  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, Eye, GitCompareArrows, Mail, NotebookPen, Pencil, Printer, Radar, Save,
-  UserRoundSearch, X,
+  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, Eye, GitCompareArrows, KeyRound, Mail, NotebookPen, Pencil, Printer, Radar, Save,
+  Trash2, UserRoundSearch, X,
 } from "lucide-react"
 import { getSource } from "@/pages/membros/api"
 import { useToast } from "@/hooks/use-toast"
@@ -15,11 +15,13 @@ import {
 import { Meter, Pitch, RadarChart, Ring, CountUp } from "../charts"
 import { Avatar, CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
 
+const PlayerEditor = lazy(() => import("./PlayerEditor"))
+
 const norm = (score: number) => (score - 64) / 34
 
 /** Lead que virou cliente: abre o cadastro de membro preenchido ou o membro já criado. */
 function MemberButton({ p }: { p: Player }) {
-  const { demo } = useVoxen()
+  const { demo, canEdit } = useVoxen()
   const navigate = useNavigate()
   const leadId = p.key.startsWith("lead:") ? p.key.slice(5) : null
   const [memberId, setMemberId] = useState<string | null>(null)
@@ -37,6 +39,7 @@ function MemberButton({ p }: { p: Player }) {
   if (memberId) {
     return <Link to={`/voxen/membros/${memberId}`} className="vx-btn"><BadgeCheck /> Ver membro</Link>
   }
+  if (!canEdit) return null
   return (
     <button type="button" className="vx-btn" title="Cadastrar na área de membros com os dados do funil"
       onClick={() => navigate(`/voxen/membros?${new URLSearchParams({ de: p.key })}`)}>
@@ -45,11 +48,26 @@ function MemberButton({ p }: { p: Player }) {
   )
 }
 
-function Header({ p }: { p: Player }) {
-  const { updateMeta } = useVoxen()
+function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: () => void }) {
+  const { updateMeta, canEdit, removePlayer } = useVoxen()
   const { toast } = useToast()
   const navigate = useNavigate()
   const wa = whatsappLink(p)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const remove = async () => {
+    setDeleting(true)
+    try {
+      await removePlayer(p.key)
+      toast({ title: "Cadastro excluído", description: p.name })
+      navigate("/voxen/jogadores")
+    } catch (err) {
+      setDeleting(false)
+      setConfirmDelete(false)
+      toast({ title: "Não foi possível excluir", description: err instanceof Error ? err.message : String(err), variant: "destructive" })
+    }
+  }
 
   const copyPhone = async () => {
     try {
@@ -84,7 +102,7 @@ function Header({ p }: { p: Player }) {
             <span className="vx-chip h-7 cursor-default">Origem: {p.origin}</span>
           </div>
         </div>
-        <div className="vx-no-print flex flex-wrap items-center gap-2">
+        <div className="vx-no-print flex w-full flex-wrap items-center gap-2 2xl:ml-auto 2xl:w-auto">
           {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="vx-btn vx-btn--wpp"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>}
           {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
           <MemberButton p={p} />
@@ -93,11 +111,36 @@ function Header({ p }: { p: Player }) {
               <Eye /> Ver como atleta
             </Link>
           )}
+          {p.source === "conta" && p.userId && (
+            <Link to={`/voxen/contas?conta=${encodeURIComponent(p.userId)}`} className="vx-btn" title="Mudar o acesso, desativar ou excluir a conta de login">
+              <KeyRound /> Gerenciar acesso
+            </Link>
+          )}
+          {canEdit && (
+            <button type="button" className={`vx-btn ${editing ? "is-on" : ""}`} onClick={onEdit}><Pencil /> {editing ? "Fechar edição" : "Editar"}</button>
+          )}
+          {canEdit && (
+            <button type="button" className="vx-icon-btn pp-danger" title="Excluir este cadastro" aria-label="Excluir este cadastro" onClick={() => setConfirmDelete(true)}><Trash2 /></button>
+          )}
           {p.email && <a href={`mailto:${p.email}`} className="vx-icon-btn" aria-label={`E-mail para ${p.email}`} title={p.email}><Mail /></a>}
           <button type="button" className="vx-icon-btn" aria-label="Comparar com outros" title="Comparar" onClick={() => navigate(comparePath([p.key]))}><GitCompareArrows /></button>
           <button type="button" className="vx-icon-btn" aria-label="Imprimir ficha" title="Imprimir ficha" onClick={() => window.print()}><Printer /></button>
         </div>
       </div>
+
+      {confirmDelete && (
+        <div className="pp-confirm" role="alertdialog" aria-label="Confirmar exclusão">
+          <p>
+            Excluir o cadastro de <strong>{p.name}</strong>? {p.source === "conta"
+              ? "O perfil do atleta e as notas da equipe são apagados. A conta de login continua (exclua em Contas e acessos, se quiser)."
+              : "O contato, o perfil e as notas da equipe são apagados."} <strong>Não dá para desfazer.</strong>
+          </p>
+          <div>
+            <button type="button" className="vx-btn" onClick={() => setConfirmDelete(false)} disabled={deleting}>Cancelar</button>
+            <button type="button" className="vx-btn pp-danger-solid" onClick={() => void remove()} disabled={deleting}>{deleting ? "Excluindo..." : "Excluir de vez"}</button>
+          </div>
+        </div>
+      )}
 
       <div className="relative mt-5 flex flex-wrap items-center gap-3 border-t border-white/5 pt-4">
         <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Etapa</span>
@@ -111,6 +154,7 @@ function Header({ p }: { p: Player }) {
                 role="radio"
                 aria-checked={on}
                 className="vx-stage-btn"
+                disabled={!canEdit}
                 style={on ? { color: s.color, borderColor: `${s.color}66`, background: `${s.color}17`, boxShadow: `0 0 18px -6px ${s.color}` } : undefined}
                 onClick={() => void updateMeta(p.key, { stage: s.key })}
               >
@@ -129,7 +173,7 @@ function Header({ p }: { p: Player }) {
 }
 
 function ScoutCard({ p }: { p: Player }) {
-  const { updateMeta } = useVoxen()
+  const { updateMeta, canEdit } = useVoxen()
   const { toast } = useToast()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Record<string, number>>({})
@@ -160,7 +204,7 @@ function ScoutCard({ p }: { p: Player }) {
         sub="Notas de 1 a 5 dadas pela equipe depois de ver os vídeos do atleta"
         actions={
           <div className="vx-no-print flex gap-2">
-            {editing ? (
+            {!canEdit ? null : editing ? (
               <>
                 <button type="button" className="vx-btn" onClick={() => setEditing(false)}><X /> Cancelar</button>
                 <button type="button" className="vx-btn vx-btn--gold" onClick={() => void save()}><Save /> Salvar</button>
@@ -176,7 +220,7 @@ function ScoutCard({ p }: { p: Player }) {
         <Empty icon={<UserRoundSearch className="h-6 w-6" />} title="Ainda sem avaliação da equipe">
           Assista aos vídeos que o atleta enviar pelo WhatsApp e registre as notas aqui: elas viram o radar,
           entram no comparativo e ficam visíveis para todos os admins.
-          <div className="mt-4"><button type="button" className="vx-btn vx-btn--gold" onClick={startEdit}><Pencil /> Avaliar agora</button></div>
+          {canEdit && <div className="mt-4"><button type="button" className="vx-btn vx-btn--gold" onClick={startEdit}><Pencil /> Avaliar agora</button></div>}
         </Empty>
       ) : (
         <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
@@ -223,7 +267,7 @@ function ScoutCard({ p }: { p: Player }) {
 }
 
 function NotesCard({ p }: { p: Player }) {
-  const { updateMeta, data, demo } = useVoxen()
+  const { updateMeta, data, canEdit } = useVoxen()
   const [text, setText] = useState(p.meta.notes)
   const [saved, setSaved] = useState(true)
 
@@ -239,12 +283,13 @@ function NotesCard({ p }: { p: Player }) {
     <section className="vx-card">
       <CardHead
         title={<span className="inline-flex items-center gap-2"><NotebookPen className="h-4 w-4 text-amber-300" /> Notas da equipe</span>}
-        sub={data?.sharedMeta ? "Compartilhadas com todos os admins" : "Salvas neste navegador até a atualização do banco"}
-        actions={<span className="text-[12px] text-zinc-500" aria-live="polite">{saved ? <span className="inline-flex items-center gap-1 text-emerald-400"><Check className="h-3.5 w-3.5" /> Salvo</span> : "Salvando..."}</span>}
+        sub={data?.sharedMeta ? "Compartilhadas com toda a equipe" : "Salvas neste navegador até a atualização do banco"}
+        actions={!canEdit ? <span className="text-[12px] text-zinc-500">Somente leitura</span> : <span className="text-[12px] text-zinc-500" aria-live="polite">{saved ? <span className="inline-flex items-center gap-1 text-emerald-400"><Check className="h-3.5 w-3.5" /> Salvo</span> : "Salvando..."}</span>}
       />
       <textarea
         className="vx-input vx-textarea"
         value={text}
+        readOnly={!canEdit}
         maxLength={5000}
         placeholder="Combinados com a família, impressões dos vídeos, próximos passos..."
         onChange={(e) => {
@@ -261,6 +306,7 @@ function NotesCard({ p }: { p: Player }) {
 export default function PlayerProfile() {
   const { key = "" } = useParams()
   const { byKey, percentile } = useVoxen()
+  const [editing, setEditing] = useState(false)
   const p = byKey.get(key)
 
   const dims = useMemo(() => (p ? dimensionScores(p) : []), [p])
@@ -282,7 +328,12 @@ export default function PlayerProfile() {
 
   return (
     <>
-      <Header p={p} />
+      <Header p={p} editing={editing} onEdit={() => setEditing((v) => !v)} />
+      {editing && (
+        <Suspense fallback={null}>
+          <PlayerEditor key={p.key} p={p} onClose={() => setEditing(false)} />
+        </Suspense>
+      )}
 
       <div className="vx-grid mb-[18px] lg:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)_minmax(0,0.85fr)]">
         <section className="vx-card">

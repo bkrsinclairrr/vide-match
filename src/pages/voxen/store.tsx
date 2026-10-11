@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useToast } from "@/hooks/use-toast"
 import {
-  buildPercentiles, loadVoxenData, saveMeta,
-  type Percentiles, type Player, type PlayerMeta, type VoxenData,
+  buildPercentiles, deletePlayer, loadVoxenData, saveMeta, updatePlayer,
+  type Percentiles, type Player, type PlayerEdit, type PlayerMeta, type VoxenData,
 } from "./data"
+import { canEditAs, type StaffRole } from "./access"
 
 type VoxenStore = {
   data: VoxenData | null
@@ -13,8 +14,16 @@ type VoxenStore = {
   loading: boolean
   error: string | null
   demo: boolean
+  /** Nível de acesso de quem está na VOXEN. */
+  role: StaffRole
+  /** Só o administrador altera; o executivo apenas lê. */
+  canEdit: boolean
   reload: () => Promise<void>
   updateMeta: (key: string, patch: Partial<PlayerMeta>) => Promise<void>
+  /** Edita o cadastro do atleta (só administrador). `partial`: o perfil do lead não pôde ser gravado. */
+  editPlayer: (key: string, edit: PlayerEdit) => Promise<{ partial: boolean }>
+  /** Exclui o registro (só administrador). */
+  removePlayer: (key: string) => Promise<void>
 }
 
 const Ctx = createContext<VoxenStore | null>(null)
@@ -25,7 +34,7 @@ export function useVoxen() {
   return ctx
 }
 
-export function VoxenProvider({ demo, children }: { demo: boolean; children: ReactNode }) {
+export function VoxenProvider({ demo, role, children }: { demo: boolean; role: StaffRole; children: ReactNode }) {
   const { toast } = useToast()
   const [data, setData] = useState<VoxenData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -58,6 +67,7 @@ export function VoxenProvider({ demo, children }: { demo: boolean; children: Rea
    * sequência viram uma gravação só, 700 ms depois da última tecla.
    */
   const updateMeta = useCallback(async (key: string, patch: Partial<PlayerMeta>) => {
+    if (!canEditAs(role)) return
     const current = dataRef.current
     const player = current?.players.find((p) => p.key === key)
     if (!current || !player) return
@@ -82,7 +92,49 @@ export function VoxenProvider({ demo, children }: { demo: boolean; children: Rea
         })
       }
     }, "notes" in patch ? 700 : 0))
-  }, [demo, toast])
+  }, [demo, role, toast])
+
+  const editPlayer = useCallback(async (key: string, edit: PlayerEdit) => {
+    const current = dataRef.current
+    const player = current?.players.find((p) => p.key === key)
+    if (!canEditAs(role) || !current || !player) throw new Error("Você não tem permissão para editar.")
+    if (demo) {
+      const f = edit.profile
+      const next: Player = {
+        ...player,
+        name: edit.name.trim() || player.name,
+        email: edit.email !== undefined ? edit.email.trim().toLowerCase() || null : player.email,
+        phone: edit.phone !== undefined ? edit.phone.replace(/\D/g, "") || null : player.phone,
+        profile: {
+          ...player.profile,
+          age: f.age ?? undefined, height: f.height ?? undefined, weight: f.weight ?? undefined, foot: f.foot ?? undefined,
+          nationality: f.nationality ?? undefined, position: f.position ?? undefined, category: f.category ?? undefined,
+          state: f.state ?? undefined, city: f.city ?? undefined,
+        },
+      }
+      const updated = { ...current, players: current.players.map((p) => (p.key === key ? next : p)) }
+      dataRef.current = updated
+      setData(updated)
+      return { partial: false }
+    }
+    const result = await updatePlayer(player, edit)
+    await reload()
+    return result
+  }, [demo, role, reload])
+
+  const removePlayer = useCallback(async (key: string) => {
+    const current = dataRef.current
+    const player = current?.players.find((p) => p.key === key)
+    if (!canEditAs(role) || !current || !player) throw new Error("Você não tem permissão para excluir.")
+    if (demo) {
+      const updated = { ...current, players: current.players.filter((p) => p.key !== key) }
+      dataRef.current = updated
+      setData(updated)
+      return
+    }
+    await deletePlayer(player)
+    await reload()
+  }, [demo, role, reload])
 
   const value = useMemo<VoxenStore>(() => {
     const players = data?.players ?? []
@@ -94,10 +146,14 @@ export function VoxenProvider({ demo, children }: { demo: boolean; children: Rea
       loading,
       error,
       demo,
+      role,
+      canEdit: canEditAs(role),
       reload,
       updateMeta,
+      editPlayer,
+      removePlayer,
     }
-  }, [data, loading, error, demo, reload, updateMeta])
+  }, [data, loading, error, demo, role, reload, updateMeta, editPlayer, removePlayer])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

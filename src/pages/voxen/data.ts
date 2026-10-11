@@ -117,6 +117,8 @@ export type PlayerMeta = {
 export type Player = {
   key: string
   source: "funil" | "conta"
+  /** Conta do Supabase Auth (só para quem tem conta): liga o atleta a "Contas e acessos". */
+  userId?: string | null
   name: string
   email: string | null
   phone: string | null
@@ -358,6 +360,7 @@ function fromAthlete(row: AthleteRow, names: Map<string, string>, meta: Map<stri
   return {
     key,
     source: "conta",
+    userId: row.user_id,
     name: row.nome?.trim() || (row.user_id && names.get(row.user_id)) || "Atleta",
     email: null,
     phone: null,
@@ -454,6 +457,83 @@ export async function loadVoxenData(): Promise<VoxenData> {
     profileCapture: leads.length === 0 || leads.some((row) => "profile" in row),
     loadedAt: new Date(),
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Editar e excluir (administrador)                                    */
+/* ------------------------------------------------------------------ */
+
+export type ProfileEdit = {
+  age: number | null
+  height: number | null
+  weight: number | null
+  foot: string | null
+  nationality: string | null
+  position: string | null
+  category: string | null
+  state: string | null
+  city: string | null
+}
+
+export type PlayerEdit = { name: string; email?: string; phone?: string; profile: ProfileEdit }
+
+const friendly = (message: string, code?: string) =>
+  code === "23505" ? "Já existe um registro com este e-mail." : code === "42501" ? "Você não tem permissão para alterar isto." : message
+
+/**
+ * Edita o cadastro: o lead do funil (contato e perfil) ou o perfil de quem tem
+ * conta (`Atletas`). Só o administrador consegue gravar (RLS). `partial` avisa
+ * que o perfil do lead não pôde ser salvo porque a migração dele não rodou.
+ */
+export async function updatePlayer(p: Player, edit: PlayerEdit): Promise<{ partial: boolean }> {
+  const f = edit.profile
+  if (p.key.startsWith("atleta:")) {
+    const { error } = await db.from("Atletas").update({
+      nome: edit.name.trim() || null,
+      idade: f.age,
+      altura: f.height,
+      peso: f.weight,
+      melhor_pe: f.foot,
+      nacionalidade: f.nationality,
+      posicao: f.position,
+      cidade: f.city,
+    }).eq("id", Number(p.key.slice(7)))
+    if (error) throw new Error(friendly(error.message, error.code))
+    return { partial: false }
+  }
+  if (!p.key.startsWith("lead:")) throw new Error("Este registro não pode ser editado.")
+
+  const id = p.key.slice(5)
+  const contact = {
+    name: edit.name.trim() || null,
+    email: (edit.email ?? "").trim().toLowerCase(),
+    phone: (edit.phone ?? "").replace(/\D/g, ""),
+    updated_at: new Date().toISOString(),
+  }
+  // Mescla com o JSON salvo para não perder chaves que esta tela não edita.
+  const current = await db.from("funnel_leads").select("profile").eq("id", id).maybeSingle()
+  const hasProfile = !current.error
+  const saved = hasProfile && current.data?.profile && typeof current.data.profile === "object" ? (current.data.profile as Record<string, unknown>) : {}
+  const text = (v: number | string | null) => (v === null || v === "" ? "" : String(v))
+  const profile = {
+    ...saved,
+    age: text(f.age), height: text(f.height), weight: text(f.weight), preferredFoot: text(f.foot),
+    nationality: text(f.nationality), position: text(f.position), category: text(f.category), state: text(f.state), city: text(f.city),
+  }
+  const { error } = await db.from("funnel_leads").update(hasProfile ? { ...contact, profile } : contact).eq("id", id)
+  if (error) throw new Error(friendly(error.message, error.code))
+  return { partial: !hasProfile }
+}
+
+/** Exclui o registro (lead ou perfil de atleta) e as anotações da equipe sobre ele. A conta de login não é apagada aqui. */
+export async function deletePlayer(p: Player): Promise<void> {
+  const table = p.key.startsWith("atleta:") ? "Atletas" : p.key.startsWith("lead:") ? "funnel_leads" : null
+  if (!table) throw new Error("Este registro não pode ser excluído.")
+  const id = table === "Atletas" ? Number(p.key.slice(7)) : p.key.slice(5)
+  const { error } = await db.from(table).delete().eq("id", id)
+  if (error) throw new Error(friendly(error.message, error.code))
+  // As notas ficam em outra tabela; se ela não existir ou falhar, o registro já foi excluído.
+  await db.from("voxen_player_meta").delete().eq("player_key", p.key)
 }
 
 export async function saveMeta(key: string, meta: PlayerMeta, shared: boolean): Promise<void> {

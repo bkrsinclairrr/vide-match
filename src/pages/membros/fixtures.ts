@@ -278,6 +278,14 @@ export const fixtureSource: DataSource = {
     return delay(next)
   },
 
+  async deleteMember(id) {
+    const matchIds = state.matches.filter((m) => m.memberId === id).map((m) => m.id)
+    state.members = state.members.filter((m) => m.id !== id)
+    state.matches = state.matches.filter((m) => m.memberId !== id)
+    state.events = state.events.filter((e) => !matchIds.includes(e.matchId))
+    return delay(undefined)
+  },
+
   async saveMatch(input: MatchInput) {
     const now = new Date().toISOString()
     const existing = input.id ? state.matches.find((m) => m.id === input.id) : undefined

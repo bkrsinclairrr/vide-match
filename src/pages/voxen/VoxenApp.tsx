@@ -4,8 +4,8 @@ import "./voxen.css"
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  ArrowUpRight, BadgeCheck, GitCompareArrows, LayoutDashboard, LogOut, Menu, RefreshCw,
-  Search, ShieldAlert, Shirt, Users, X,
+  ArrowUpRight, BadgeCheck, Eye, GitCompareArrows, LayoutDashboard, LogOut, Menu, RefreshCw,
+  Search, ShieldAlert, ShieldCheck, Shirt, Users, X,
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/command"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
+import { LEVEL_LABEL, levelFromRoles, type StaffRole } from "./access"
 import { positionCode } from "./data"
 import { Avatar, PageSkeleton, ScoreChip, VoxenMark, VoxenWordmark, playerPath } from "./ui"
 import LoginScreen from "./LoginScreen"
@@ -28,6 +29,7 @@ const AdminMembers = lazy(() => import("./pages/members/AdminMembers"))
 const AdminMember = lazy(() => import("./pages/members/AdminMember"))
 const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
 const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
+const AccountsPage = lazy(() => import("./pages/accounts/AccountsPage"))
 const ClientArea = lazy(() => import("@/pages/membros/ClientArea"))
 
 const NAV = [
@@ -36,6 +38,7 @@ const NAV = [
   { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, end: false },
   { to: "/voxen/elenco", label: "Elenco", icon: Shirt, end: false },
   { to: "/voxen/comparativo", label: "Comparativo", icon: GitCompareArrows, end: false },
+  { to: "/voxen/contas", label: "Contas e acessos", icon: ShieldCheck, end: false },
 ]
 
 const DEMO_KEY = "voxen:demo"
@@ -57,8 +60,24 @@ function useDemoMode() {
   }, [search])
 }
 
+/** No `npm run dev`, /voxen?demo&papel=executivo testa a visão somente leitura. */
+function useDemoRole(): StaffRole {
+  const { search } = useLocation()
+  return useMemo(() => {
+    if (!import.meta.env.DEV) return "admin"
+    try {
+      const p = new URLSearchParams(search).get("papel")
+      if (p) sessionStorage.setItem("voxen:demo-role", p)
+      return sessionStorage.getItem("voxen:demo-role") === "executivo" ? "executive" : "admin"
+    } catch {
+      return "admin"
+    }
+  }, [search])
+}
+
 export default function VoxenApp() {
   const demo = useDemoMode()
+  const demoRole = useDemoRole()
 
   useEffect(() => {
     document.documentElement.classList.add("dark")
@@ -70,7 +89,7 @@ export default function VoxenApp() {
   return (
     <div className="vx">
       <div className="vx-backdrop" aria-hidden="true" />
-      {demo ? <Portal role="admin" demo /> : <AccessGate />}
+      {demo ? <Portal role={demoRole} demo /> : <AccessGate />}
     </div>
   )
 }
@@ -79,7 +98,7 @@ export default function VoxenApp() {
 /* Acesso: login + papel de admin                                      */
 /* ------------------------------------------------------------------ */
 
-type Role = "admin" | "client"
+type Role = StaffRole | "client"
 type RoleState = { userId: string | null; status: "checking" | Role }
 
 function AccessGate() {
@@ -90,14 +109,15 @@ function AccessGate() {
     if (!user) return
     let cancelled = false
     setRole({ userId: user.id, status: "checking" })
+    // Lê todos os papéis da própria conta (a RLS libera) e fica com o maior: admin > executivo > atleta.
     supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
       .then(({ data, error }) => {
         if (cancelled) return
-        setRole({ userId: user.id, status: !error && data && data.length > 0 ? "admin" : "client" })
+        const level = error ? "user" : levelFromRoles((data ?? []).map((r) => String(r.role)))
+        setRole({ userId: user.id, status: level === "user" ? "client" : level })
       })
     return () => { cancelled = true }
   }, [user])
@@ -109,21 +129,21 @@ function AccessGate() {
 }
 
 /**
- * Um login, duas áreas: a equipe (admin) usa o painel; o cliente da Zyron só
- * enxerga a própria área, em /voxen/cliente. O admin também abre essa área
- * ("ver como membro"), sempre em modo leitura. A RLS do banco é quem garante
- * os dados; o roteamento aqui só evita telas sem sentido.
+ * Um login, duas áreas: a equipe (administrador ou executivo) usa o painel; o
+ * cliente da Zyron só enxerga a própria área, em /voxen/cliente. A equipe também
+ * abre essa área ("ver como"), sempre em modo leitura. A RLS do banco é quem
+ * garante os dados; o roteamento aqui só evita telas sem sentido.
  */
 function Portal({ role, demo }: { role: Role; demo: boolean }) {
   const { pathname, search } = useLocation()
   const inClient = pathname === CLIENT_BASE || pathname.startsWith(`${CLIENT_BASE}/`)
-  const isAdmin = role === "admin"
+  const isAdmin = role !== "client"
   const asMember = useMemo(() => (isAdmin && inClient ? readAsMember(search) : null), [isAdmin, inClient, search])
 
   // Saiu da área do cliente: o "ver como" não deve vazar para a próxima visita.
   useEffect(() => { if (!inClient) clearAsMember() }, [inClient])
 
-  if (!inClient) return isAdmin ? <Workspace demo={demo} /> : <Navigate to={CLIENT_BASE} replace />
+  if (!inClient) return role !== "client" ? <Workspace demo={demo} role={role} /> : <Navigate to={CLIENT_BASE} replace />
   if (isAdmin && !asMember && !demo) return <Navigate to="/voxen/membros" replace />
   return (
     <Suspense fallback={<Splash />}>
@@ -144,9 +164,9 @@ function Splash() {
 /* Área de trabalho                                                    */
 /* ------------------------------------------------------------------ */
 
-function Workspace({ demo }: { demo: boolean }) {
+function Workspace({ demo, role }: { demo: boolean; role: StaffRole }) {
   return (
-    <VoxenProvider demo={demo}>
+    <VoxenProvider demo={demo} role={role}>
       <Shell />
     </VoxenProvider>
   )
@@ -162,6 +182,7 @@ function useTitle() {
   if (pathname.startsWith("/voxen/jogadores")) return { kicker: "Base de atletas", title: "Jogadores" }
   if (pathname.startsWith("/voxen/elenco")) return { kicker: "Por posição", title: "Elenco" }
   if (pathname.startsWith("/voxen/comparativo")) return { kicker: "Lado a lado", title: "Comparativo" }
+  if (pathname.startsWith("/voxen/contas")) return { kicker: "Administração", title: "Contas e acessos" }
   if (pathname.startsWith("/voxen/membros/comparar")) return { kicker: "Área de membros", title: "Comparar perfis" }
   if (pathname.endsWith("/partidas/nova")) return { kicker: "Área de membros", title: "Nova partida" }
   if (pathname.includes("/partidas/")) return { kicker: "Área de membros", title: "Partida e lances" }
@@ -171,7 +192,7 @@ function useTitle() {
 }
 
 function Shell() {
-  const { players, loading, reload, demo, error } = useVoxen()
+  const { players, loading, reload, demo, error, role, canEdit } = useVoxen()
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [open, setOpen] = useState(false)
@@ -194,7 +215,7 @@ function Shell() {
   return (
     <>
       {open && <div className="vx-scrim" onClick={() => setOpen(false)} />}
-      <Sidebar open={open} count={players.length} email={demo ? "equipe@aizyron.com" : user?.email ?? ""} onSignOut={demo ? undefined : () => void signOut()} />
+      <Sidebar open={open} count={players.length} role={role} email={demo ? (role === "admin" ? "equipe@aizyron.com" : "executivo@aizyron.com") : user?.email ?? ""} onSignOut={demo ? undefined : () => void signOut()} />
 
       <div className="vx-main">
         <header className="vx-top">
@@ -205,6 +226,11 @@ function Shell() {
             <span className="vx-top-kicker">{kicker}</span>
             <h1 className="vx-top-h1">{title}</h1>
           </div>
+          {!canEdit && (
+            <span className="vx-tag vx-readonly" title="O seu acesso é de executivo: você vê tudo, mas não altera nada.">
+              <Eye className="h-3 w-3" /> Somente leitura
+            </span>
+          )}
           <button type="button" className="vx-search" onClick={() => setPalette(true)} aria-label="Buscar atleta">
             <Search />
             <span>Buscar atleta, e-mail ou telefone</span>
@@ -242,6 +268,7 @@ function Shell() {
                   <Route path="jogadores/:key" element={<PlayerProfile />} />
                   <Route path="elenco" element={<Squad />} />
                   <Route path="comparativo" element={<Compare />} />
+                  <Route path="contas" element={<AccountsPage />} />
                   <Route path="membros" element={<AdminMembers />} />
                   <Route path="membros/comparar" element={<AdminCompare />} />
                   <Route path="membros/:id" element={<AdminMember />} />
@@ -259,7 +286,7 @@ function Shell() {
   )
 }
 
-function Sidebar({ open, count, email, onSignOut }: { open: boolean; count: number; email: string; onSignOut?: () => void }) {
+function Sidebar({ open, count, email, role, onSignOut }: { open: boolean; count: number; email: string; role: StaffRole; onSignOut?: () => void }) {
   const { pathname } = useLocation()
   const navRef = useRef<HTMLElement>(null)
   const [pill, setPill] = useState<{ y: number; visible: boolean }>({ y: 0, visible: false })
@@ -307,7 +334,7 @@ function Sidebar({ open, count, email, onSignOut }: { open: boolean; count: numb
           <Avatar name={email || "Admin"} size={34} />
           <div className="min-w-0 flex-1">
             <div className="vx-user-email">{email}</div>
-            <div className="vx-user-role">Administrador</div>
+            <div className="vx-user-role">{LEVEL_LABEL[role]}</div>
           </div>
           {onSignOut && (
             <button type="button" className="vx-icon-btn" onClick={onSignOut} aria-label="Sair" title="Sair">
