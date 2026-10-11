@@ -19,7 +19,7 @@ const corsHeaders = {
 type Level = "admin" | "executive" | "user";
 const STAFF = ["admin", "executive"];
 const READ_ACTIONS = ["list_users"];
-const WRITE_ACTIONS = ["set_role", "invite_staff", "update_user", "disable_user", "enable_user", "delete_user"];
+const WRITE_ACTIONS = ["set_role", "invite_staff", "create_staff", "update_user", "disable_user", "enable_user", "delete_user"];
 
 class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -99,6 +99,15 @@ Deno.serve(async (req) => {
       }
     };
 
+    /** Dá o nível de equipe à conta: entra o papel novo primeiro; só depois saem os outros de equipe. */
+    const grantStaff = async (id: string, level: Level) => {
+      const { error: upErr } = await adminClient.from("user_roles").upsert({ user_id: id, role: level }, { onConflict: "user_id,role", ignoreDuplicates: true });
+      if (upErr) throw upErr;
+      const drop = STAFF.filter((r) => r !== level);
+      const { error: delErr } = await adminClient.from("user_roles").delete().eq("user_id", id).in("role", drop);
+      if (delErr) throw delErr;
+    };
+
     switch (action) {
       case "list_users": {
         const users = await listAllUsers();
@@ -133,13 +142,7 @@ Deno.serve(async (req) => {
         if (target === user.id && level !== "admin") throw new HttpError(400, "Você não pode tirar o seu próprio acesso de administrador.");
         if (level !== "admin") await guardLastAdmin(target, "rebaixar");
 
-        // Entra o papel novo primeiro; só depois saem os outros de equipe.
-        const keep = level === "user" ? "user" : level;
-        const { error: upErr } = await adminClient.from("user_roles").upsert({ user_id: target, role: keep }, { onConflict: "user_id,role", ignoreDuplicates: true });
-        if (upErr) throw upErr;
-        const drop = STAFF.filter((r) => r !== level);
-        const { error: delErr } = await adminClient.from("user_roles").delete().eq("user_id", target).in("role", drop);
-        if (delErr) throw delErr;
+        await grantStaff(target, level);
         return reply(200, { success: true, level });
       }
 
@@ -161,12 +164,41 @@ Deno.serve(async (req) => {
           id = data.user.id;
           invited = true;
         }
-        const { error: upErr } = await adminClient.from("user_roles").upsert({ user_id: id, role: level }, { onConflict: "user_id,role", ignoreDuplicates: true });
-        if (upErr) throw upErr;
-        const drop = STAFF.filter((r) => r !== level);
-        const { error: delErr } = await adminClient.from("user_roles").delete().eq("user_id", id).in("role", drop);
-        if (delErr) throw delErr;
+        await grantStaff(id, level);
         return reply(200, { success: true, invited, userId: id });
+      }
+
+      // Cria a conta já pronta para entrar (e-mail confirmado, senha definida por quem cria).
+      // A senha só passa por aqui: não é gravada em lugar nenhum nem aparece nos logs.
+      case "create_staff": {
+        const level = body.level as Level;
+        const email = isEmail(body.email) ? body.email.trim().toLowerCase() : null;
+        const fullName = typeof body.fullName === "string" ? body.fullName.trim().slice(0, 120) : "";
+        const password = typeof body.password === "string" ? body.password : "";
+        if (!email || !STAFF.includes(level)) throw new HttpError(400, "Informe um e-mail válido e o nível de acesso.");
+
+        const existing = (await listAllUsers()).find((u) => u.email?.toLowerCase() === email);
+        let id = existing?.id;
+        let created = false;
+        if (!id) {
+          if (password.length < 8 || password.length > 72) throw new HttpError(400, "A senha precisa ter de 8 a 72 caracteres.");
+          const { data, error } = await adminClient.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: fullName ? { full_name: fullName } : undefined,
+          });
+          if (error || !data.user) {
+            throw new HttpError(400, /password|senha/i.test(error?.message ?? "")
+              ? "O Supabase recusou esta senha por ser fraca. Use uma mais longa, com letras, números e símbolos."
+              : "Não foi possível criar a conta com este e-mail.");
+          }
+          id = data.user.id;
+          created = true;
+        }
+        // Quem já tinha conta (atleta, por exemplo) só ganha o nível: a senha dela não muda.
+        await grantStaff(id, level);
+        return reply(200, { success: true, created, userId: id });
       }
 
       case "update_user": {

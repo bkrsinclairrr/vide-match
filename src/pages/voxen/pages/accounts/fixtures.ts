@@ -60,6 +60,16 @@ export const localAccounts: AccountsApi = {
     users = [base(`u-${Date.now()}`, fullName, email, level, 0, null, { confirmed: false }), ...users]
     return delay({ invited: true })
   },
+  async createStaff(email, fullName, level, password) {
+    const existing = users.find((u) => u.email?.toLowerCase() === email.toLowerCase())
+    if (existing) {
+      patch(existing.id, { level })
+      return delay({ created: false })
+    }
+    if (password.length < 8 || password.length > 72) throw new Error("A senha precisa ter de 8 a 72 caracteres.")
+    users = [base(`u-${Date.now()}`, fullName, email, level, 0, null), ...users]
+    return delay({ created: true })
+  },
   async rename(id, fullName) {
     patch(id, { fullName })
     return delay(undefined)

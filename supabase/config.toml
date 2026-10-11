@@ -1,4 +1,6 @@
 project_id = "mehmqibxzxfqdxqjnjad"
 
+# A função confere a sessão por conta própria (auth.getUser com o token do chamador)
+# e o papel com a service role; em produção ela roda sem a verificação do gateway.
 [functions.admin-users]
-verify_jwt = true
+verify_jwt = false
