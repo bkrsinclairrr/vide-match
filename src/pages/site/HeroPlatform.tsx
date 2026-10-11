@@ -4,7 +4,7 @@ import {
   HelpCircle, Layers, MapPin, Menu, MessageCircle, Pencil, Ruler, Search, Sparkles,
   User, Weight,
 } from "lucide-react"
-import { DEMO_ATHLETE as A, clubLogo } from "./siteData"
+import { FEATURED_ATHLETE as A, clubLogo } from "./siteData"
 import { ZyronLogo } from "./ZyronMark"
 
 /**
