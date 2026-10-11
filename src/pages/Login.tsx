@@ -72,7 +72,7 @@ export default function Login() {
     setGoogleLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/voxen` },
+      options: { redirectTo: `${window.location.origin}/dashboard` }, // já permitido no Supabase; /dashboard encaminha para a VOXEN
     })
     if (error) {
       toast({ title: "Erro ao entrar com Google", description: error.message, variant: "destructive" })
