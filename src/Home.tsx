@@ -11,6 +11,7 @@ import RequireJogadorAccess from "@/pages/jogador/RequireJogadorAccess"
 import { lazy, Suspense, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { CLIENT_BASE } from "./pages/membros/paths"
+import { useAccessLevel } from "@/hooks/useAccessLevel"
 
 /**
  * Cada rota vira seu próprio chunk (code splitting). Antes, abrir o
@@ -23,7 +24,6 @@ const Dashboard = lazy(() => import("./pages/Dashboard"))
 const Login = lazy(() => import("./pages/Login"))
 const ResetPassword = lazy(() => import("./pages/ResetPassword"))
 const Onboarding = lazy(() => import("./pages/Onboarding"))
-const Admin = lazy(() => import("./pages/Admin"))
 const Upload = lazy(() => import("./pages/Upload"))
 const Analysis = lazy(() => import("./pages/Analysis"))
 const Match = lazy(() => import("./pages/Match"))
@@ -35,19 +35,34 @@ const NotFound = lazy(() => import("./pages/NotFound"))
 /** Home institucional pública em "/" — leva o visitante ao funil de avaliação. */
 const SiteHome = lazy(() => import("./pages/site/SiteHome"))
 
-/** VOXEN: plataforma interna dos admins com os atletas da base (login + papel admin). */
+/** VOXEN: a plataforma da equipe (administradores e executivos), com login próprio em /voxen. */
 const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
 
-/** Quem entra com a conta cai na VOXEN (a área dele ou, para a equipe, o painel). O painel antigo segue em /dashboard?classico. */
+/** Entrada só de administradores (/admin): login sem cadastro que leva direto à VOXEN. */
+const AdminEntry = lazy(() => import("./pages/admin/AdminEntry"))
+
+/** Minha área: a casa de quem entra com a conta do Zyron (login em /login). */
+const MinhaArea = lazy(() => import("./pages/membros/MinhaArea"))
+
+/**
+ * Depois de entrar, cada um vai para o seu lugar: a equipe para a VOXEN
+ * (/voxen) e o atleta para a área dele (/minha-area). O painel antigo segue em
+ * /dashboard?classico.
+ */
 function DashboardEntry() {
   const { search } = useLocation()
-  return new URLSearchParams(search).has("classico") ? <Dashboard /> : <Navigate to="/voxen" replace />
+  const { level, loading, failed } = useAccessLevel()
+  if (new URLSearchParams(search).has("classico")) return <Dashboard />
+  // Se não deu para saber o nível, /minha-area decide (e mostra o erro com "tentar de novo").
+  if (failed) return <Navigate to={CLIENT_BASE} replace />
+  if (loading || !level) return <RouteFallback />
+  return <Navigate to={level === "user" ? CLIENT_BASE : "/voxen"} replace />
 }
 
-/** Endereço antigo da área do membro: leva ao mesmo lugar dentro da VOXEN. */
-function MembersRedirect() {
+/** Endereços antigos da área do atleta (/membros e /voxen/cliente): levam à /minha-area. */
+function LegacyAreaRedirect({ from }: { from: string }) {
   const { pathname, search } = useLocation()
-  return <Navigate to={`${CLIENT_BASE}${pathname.slice("/membros".length)}${search}`} replace />
+  return <Navigate to={`${CLIENT_BASE}${pathname.slice(from.length)}${search}`} replace />
 }
 
 /**
@@ -146,9 +161,11 @@ const Home = () => {
                 <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
                 <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/admin" element={<AdminEntry />} />
+                <Route path="/voxen/cliente/*" element={<LegacyAreaRedirect from="/voxen/cliente" />} />
+                <Route path="/membros/*" element={<LegacyAreaRedirect from="/membros" />} />
+                <Route path="/minha-area/*" element={<MinhaArea />} />
                 <Route path="/voxen/*" element={<VoxenApp />} />
-                <Route path="/membros/*" element={<MembersRedirect />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

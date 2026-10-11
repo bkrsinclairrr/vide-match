@@ -32,7 +32,7 @@ export default function AdminMatch() {
   const { id = "", matchId = "" } = useParams()
   const isNew = matchId === "nova"
   const source = useAdminSource()
-  const { demo } = useVoxen()
+  const { demo, canEdit } = useVoxen()
   const navigate = useNavigate()
   const { toast } = useToast()
   const { data, error, loading, setData } = useSourceData(source, (s) => s.getBundle(id, false), [id])
@@ -66,6 +66,10 @@ export default function AdminMatch() {
     return <div className="vx-card"><Empty icon={<Film className="h-6 w-6" />} title="Partida não encontrada"><Link to={`/voxen/membros/${id}`} className="text-amber-300 underline">Voltar para o perfil</Link></Empty></div>
   }
 
+  if (isNew && !canEdit) {
+    return <div className="vx-card"><Empty icon={<Film className="h-6 w-6" />} title="Somente leitura"><Link to={`/voxen/membros/${id}`} className="text-amber-300 underline">Voltar para o perfil</Link></Empty></div>
+  }
+
   const member = data.member
   const setEvents = (fn: (list: MatchEvent[]) => MatchEvent[]) => setData((b) => (b ? { ...b, events: fn(b.events) } : b))
   const putMatch = (saved: Match) => setData((b) => (b ? {
@@ -74,7 +78,7 @@ export default function AdminMatch() {
   } : b))
 
   const saveMatch = async (input: MatchInput) => {
-    if (!source) return false
+    if (!source || !canEdit) return false
     setSaving(true)
     try {
       const saved = await source.saveMatch(input)
@@ -91,7 +95,7 @@ export default function AdminMatch() {
   }
 
   const togglePublished = async () => {
-    if (!source || !match) return
+    if (!source || !match || !canEdit) return
     try {
       const saved = await source.saveMatch({ ...match, published: !match.published })
       putMatch(saved)
@@ -105,7 +109,7 @@ export default function AdminMatch() {
   }
 
   const removeMatch = async () => {
-    if (!source || !match) return
+    if (!source || !match || !canEdit) return
     if (!confirmDelete) {
       setConfirmDelete(true)
       return
@@ -197,27 +201,31 @@ export default function AdminMatch() {
         {match && summary && (
           <div className="flex flex-wrap items-center gap-2">
             <RatingChip rating={summary.rating} />
-            <button type="button" className={`vx-chip ${match.published ? "is-on" : ""}`} aria-pressed={match.published} onClick={() => void togglePublished()}
+            <button type="button" className={`vx-chip ${match.published ? "is-on" : ""}`} aria-pressed={match.published} disabled={!canEdit} onClick={() => void togglePublished()}
               title={match.published ? "O membro vê esta partida. Clique para voltar a rascunho." : "Só a equipe vê. Clique para publicar para o membro."}>
               {match.published ? <><Eye className="h-3.5 w-3.5" /> Publicada</> : <><EyeOff className="h-3.5 w-3.5" /> Rascunho · publicar</>}
             </button>
             {member.kind === "membro" && match.published && (
               <a className="vx-btn" href={memberAreaUrl(member.id, `/partidas/${match.id}`, demo)} target="_blank" rel="noopener noreferrer"><ExternalLink /> Ver como membro</a>
             )}
-            <button type="button" className={`vx-btn ${confirmDelete ? "mb-btn-danger" : ""}`} onClick={() => void removeMatch()}>
-              <Trash2 /> {confirmDelete ? "Confirmar exclusão" : "Excluir"}
-            </button>
+            {canEdit && (
+              <button type="button" className={`vx-btn ${confirmDelete ? "mb-btn-danger" : ""}`} onClick={() => void removeMatch()}>
+                <Trash2 /> {confirmDelete ? "Confirmar exclusão" : "Excluir"}
+              </button>
+            )}
           </div>
         )}
       </section>
 
-      <MatchForm key={match?.id ?? "nova"} member={member} matches={data.matches} match={match}
+      <MatchForm key={match?.id ?? "nova"} member={member} matches={data.matches} match={match} readOnly={!canEdit}
         autoNow={summary ? autoRating(summary.line) : null} saving={saving} onSave={saveMatch} />
 
       {match && summary ? (
         <>
-          <Tagger key={match.id} match={match} events={summary.events} canUndo={stack.current.length > 0}
-            onAdd={addEvent} onDelete={(ev) => deleteEvent(ev, true)} onUndo={undo} />
+          {canEdit
+            ? <Tagger key={match.id} match={match} events={summary.events} canUndo={stack.current.length > 0}
+                onAdd={addEvent} onDelete={(ev) => deleteEvent(ev, true)} onUndo={undo} />
+            : <ReadOnlyEvents key={match.id} match={match} events={summary.events} />}
           <Preview summary={summary} />
         </>
       ) : (
@@ -321,10 +329,12 @@ function toMatchInput(d: Draft, memberId: string, base: Match | null): MatchInpu
 
 const uniq = (values: (string | null | undefined)[]) => [...new Set(values.filter((v): v is string => Boolean(v && v.trim())))]
 
-function MatchForm({ member, matches, match, autoNow, saving, onSave }: {
+function MatchForm({ member, matches, match, autoNow, saving, onSave, readOnly = false }: {
   member: Member
   matches: Match[]
   match: Match | null
+  /** Executivo: mostra os dados sem o botão de editar. */
+  readOnly?: boolean
   autoNow: number | null
   saving: boolean
   onSave: (input: MatchInput) => Promise<boolean>
@@ -362,7 +372,7 @@ function MatchForm({ member, matches, match, autoNow, saving, onSave }: {
           <div><dt>Vídeo</dt><dd>{kind ? VIDEO_KINDS[kind.kind].label : "Sem vídeo"}</dd></div>
           <div><dt>Nota</dt><dd>{match.rating !== null ? `${fmt1(match.rating)} (equipe)` : "Calculada"}</dd></div>
         </dl>
-        <button type="button" className="vx-btn" onClick={() => setOpen(true)}><Pencil /> Editar dados</button>
+        {!readOnly && <button type="button" className="vx-btn" onClick={() => setOpen(true)}><Pencil /> Editar dados</button>}
       </section>
     )
   }
@@ -781,6 +791,30 @@ function Tagger({ match, events, canUndo, onAdd, onDelete, onUndo }: {
       <section className="vx-card mb-[18px]">
         <CardHead title="Lances marcados" sub={`${events.length} ${events.length === 1 ? "ação" : "ações"} · toque para rever no vídeo, × para apagar`} />
         <EventList events={events} time={trackable ? time : null} onSeek={trackable ? seekReview : setManualTime} onDelete={onDelete} maxHeight={380} />
+      </section>
+    </div>
+  )
+}
+
+/** Visão do executivo: vídeo, linha do tempo e lista de lances, sem marcar nem apagar. */
+function ReadOnlyEvents({ match, events }: { match: Match; events: MatchEvent[] }) {
+  const player = useRef<PlayerApi>(null)
+  const [time, setTime] = useState<number | null>(null)
+  const [duration, setDuration] = useState<number | null>(null)
+  const video = parseVideo(match.videoUrl)
+  const trackable = video?.kind === "youtube" || video?.kind === "file"
+  return (
+    <div className="mb-tagger mb-[18px]">
+      <section className="vx-card">
+        <CardHead title="Vídeo" sub={video ? `${VIDEO_KINDS[video.kind].label} · toque num lance para ir até ele` : "Sem vídeo"} />
+        <VideoPlayer ref={player} url={match.videoUrl} onTime={setTime} onDuration={setDuration} title={`${match.team} × ${match.opponent}`} />
+        <div className="mt-4">
+          <EventTimeline events={events} duration={duration} time={trackable ? time : null} onSeek={trackable ? (t) => player.current?.seek(t) : undefined} />
+        </div>
+      </section>
+      <section className="vx-card">
+        <CardHead title="Lances marcados" sub={`${events.length} ${events.length === 1 ? "ação" : "ações"}`} />
+        <EventList events={events} time={trackable ? time : null} onSeek={trackable ? (t) => player.current?.seek(Math.max(0, t - 2)) : undefined} maxHeight={420} />
       </section>
     </div>
   )

@@ -50,7 +50,7 @@ export function SiteNav({
   const { session } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const hasMenu = links.length > 0
-  const account = session ? { to: "/voxen", label: "Minha área" } : { to: "/login", label: "Entrar" }
+  const account = session ? { to: "/dashboard", label: "Minha área" } : { to: "/login", label: "Entrar" }
 
   useEffect(() => {
     if (!menuOpen) return
@@ -397,7 +397,7 @@ export function SiteFooter({
                 {link.label}
               </a>
             ))}
-            {showMembers && <Link to="/voxen/cliente" className="zs-footer-link">Área do membro</Link>}
+            {showMembers && <Link to="/minha-area" className="zs-footer-link">Minha área</Link>}
             <Link to="/termos" className="zs-footer-link">Termos de Uso</Link>
             <Link to="/privacidade" className="zs-footer-link">Privacidade</Link>
           </nav>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import {
-  ArrowLeft, CircleDot, Copy, Eye, EyeOff, Film, GitCompareArrows, Plus, Power, UserCheck,
+  ArrowLeft, CircleDot, Copy, Eye, EyeOff, Film, GitCompareArrows, Plus, Power, Trash2, UserCheck,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
@@ -20,12 +20,13 @@ type Tab = "partidas" | "dados" | "scout" | "desempenho"
 export default function AdminMember() {
   const { id = "" } = useParams()
   const source = useAdminSource()
-  const { byKey, demo } = useVoxen()
+  const { byKey, demo, canEdit } = useVoxen()
   const navigate = useNavigate()
   const { toast } = useToast()
   const [params, setParams] = useSearchParams()
   const tab = (params.get("aba") as Tab) || "partidas"
   const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const bundle = useSourceData(source, (s) => s.getBundle(id, false), [id])
 
   const summary = useMemo(() => (bundle.data ? summarizeProfile(bundle.data) : null), [bundle.data])
@@ -40,10 +41,10 @@ export default function AdminMember() {
   const isMember = member.kind === "membro"
   const lead = member.leadId ? byKey.get(`lead:${member.leadId}`) : undefined
   const age = ageFrom(member.birthDate)
-  const inviteText = `Olá, ${member.fullName.split(" ")[0]}! Seu acesso à plataforma da Zyron está liberado. Entre em ${window.location.origin}/voxen, toque em “Primeiro acesso” e crie sua senha com o e-mail ${member.email}.`
+  const inviteText = `Olá, ${member.fullName.split(" ")[0]}! Seu acesso à Zyron está liberado. Entre em ${window.location.origin}/login, toque em “Criar conta” e cadastre-se com o e-mail ${member.email}. Depois é só confirmar o e-mail e entrar.`
 
   const saveMember = async (input: MemberInput, message = "Dados salvos") => {
-    if (!source) return
+    if (!source || !canEdit) return
     setSaving(true)
     try {
       const saved = await source.saveMember(input)
@@ -56,8 +57,20 @@ export default function AdminMember() {
     }
   }
 
+  const removeMember = async () => {
+    if (!source || !canEdit) return
+    try {
+      await source.deleteMember(id)
+      toast({ title: isMember ? "Membro excluído" : "Referência excluída", description: member.fullName })
+      navigate(isMember ? "/voxen/membros" : "/voxen/membros?tipo=referencias")
+    } catch (e) {
+      setConfirmDelete(false)
+      toast({ title: "Não foi possível excluir", description: e instanceof Error ? e.message : String(e), variant: "destructive" })
+    }
+  }
+
   const togglePublished = async (m: Match) => {
-    if (!source) return
+    if (!source || !canEdit) return
     try {
       const saved = await source.saveMatch({ ...m, published: !m.published })
       bundle.setData((b) => (b ? { ...b, matches: b.matches.map((x) => (x.id === saved.id ? saved : x)) } : b))
@@ -115,12 +128,29 @@ export default function AdminMember() {
               <a className="vx-btn" href={memberAreaUrl(member.id, "", demo)} target="_blank" rel="noopener noreferrer"><Eye /> Ver como membro</a>
             )}
             <button type="button" className="vx-btn" onClick={() => navigate(`/voxen/membros/comparar?${new URLSearchParams({ p: member.id })}`)}><GitCompareArrows /> Comparar</button>
-            <button type="button" className="vx-icon-btn" title={member.active ? "Desativar acesso" : "Reativar"} aria-label={member.active ? "Desativar" : "Reativar"}
-              onClick={() => void saveMember({ ...inputFromMember(member), active: !member.active }, member.active ? "Perfil desativado" : "Perfil reativado")}>
-              <Power style={{ color: member.active ? "#34d399" : "#a1a1aa" }} />
-            </button>
+            {canEdit && (
+              <button type="button" className="vx-icon-btn" title={member.active ? "Desativar acesso" : "Reativar"} aria-label={member.active ? "Desativar" : "Reativar"}
+                onClick={() => void saveMember({ ...inputFromMember(member), active: !member.active }, member.active ? "Perfil desativado" : "Perfil reativado")}>
+                <Power style={{ color: member.active ? "#34d399" : "#a1a1aa" }} />
+              </button>
+            )}
+            {canEdit && (
+              <button type="button" className="vx-icon-btn pp-danger" title="Excluir este perfil" aria-label="Excluir este perfil" onClick={() => setConfirmDelete(true)}><Trash2 /></button>
+            )}
           </div>
         </div>
+        {confirmDelete && (
+          <div className="pp-confirm" role="alertdialog" aria-label="Confirmar exclusão">
+            <p>
+              Excluir <strong>{member.fullName}</strong>? As {matches.length} partida{matches.length === 1 ? "" : "s"} e todos os lances marcados dele{" "}
+              {matches.length === 1 ? "também são apagados" : "também são apagados"}. A conta de login (se houver) continua. <strong>Não dá para desfazer.</strong>
+            </p>
+            <div>
+              <button type="button" className="vx-btn" onClick={() => setConfirmDelete(false)}>Cancelar</button>
+              <button type="button" className="vx-btn pp-danger-solid" onClick={() => void removeMember()}>Excluir de vez</button>
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="vx-tabs mb-5" role="tablist">
@@ -136,7 +166,7 @@ export default function AdminMember() {
               <strong className="text-white tnum">{matches.filter((m) => m.published).length}</strong> publicada{matches.filter((m) => m.published).length === 1 ? "" : "s"} de <span className="tnum">{matches.length}</span>.
               {isMember && " O membro só vê as publicadas."}
             </p>
-            <Link to={`/voxen/membros/${member.id}/partidas/nova`} className="vx-btn vx-btn--gold"><Plus /> Nova partida</Link>
+            {canEdit && <Link to={`/voxen/membros/${member.id}/partidas/nova`} className="vx-btn vx-btn--gold"><Plus /> Nova partida</Link>}
           </div>
           {ordered.length ? (
             <div className="overflow-x-auto">
@@ -167,7 +197,7 @@ export default function AdminMember() {
                         <td className="tnum text-zinc-300">{s.events.length}</td>
                         <td><RatingChip rating={s.rating} size="sm" /></td>
                         <td>
-                          <button type="button" className={`vx-chip h-7 ${m.published ? "is-on" : ""}`} onClick={(e) => { e.stopPropagation(); void togglePublished(m) }}>
+                          <button type="button" className={`vx-chip h-7 ${m.published ? "is-on" : ""}`} disabled={!canEdit} onClick={(e) => { e.stopPropagation(); void togglePublished(m) }}>
                             {m.published ? <><Eye className="h-3.5 w-3.5" /> Publicada</> : <><EyeOff className="h-3.5 w-3.5" /> Rascunho</>}
                           </button>
                         </td>
@@ -187,13 +217,17 @@ export default function AdminMember() {
 
       {tab === "dados" && (
         <section className="vx-card">
-          <MemberForm key={member.updatedAt} kind={member.kind} initial={inputFromMember(member)} onSave={(input) => saveMember(input)} saving={saving} />
+          <fieldset disabled={!canEdit} className="m-0 min-w-0 border-0 p-0">
+            <MemberForm key={member.updatedAt} kind={member.kind} initial={inputFromMember(member)} onSave={(input) => saveMember(input)} saving={saving} />
+          </fieldset>
         </section>
       )}
 
       {tab === "scout" && (
-        <ScoutEditor key={member.updatedAt} member={member} saving={saving}
-          onSave={(scout) => saveMember({ ...inputFromMember(member), scout }, "Avaliação salva")} />
+        <fieldset disabled={!canEdit} className="m-0 min-w-0 border-0 p-0">
+          <ScoutEditor key={member.updatedAt} member={member} saving={saving}
+            onSave={(scout) => saveMember({ ...inputFromMember(member), scout }, "Avaliação salva")} />
+        </fieldset>
       )}
 
       {tab === "desempenho" && (

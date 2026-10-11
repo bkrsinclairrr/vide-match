@@ -20,6 +20,7 @@ import { friendlyAuthError } from "@/lib/funnel"
  */
 export default function ResetPassword() {
   const [ready, setReady] = useState(false)
+  const invited = window.location.hash.includes("type=invite")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -30,11 +31,11 @@ export default function ResetPassword() {
     // Sinal de que a pessoa veio do link do e-mail. Sem isso, uma sessão
     // comum já ativa no navegador (ex: login normal numa aba) faria esta
     // página liberar o formulário mesmo sem vir de um link de recovery.
-    const isRecoveryLink = window.location.hash.includes("type=recovery")
-    if (!isRecoveryLink) return
+    // Recuperar a senha (recovery) e o convite da equipe (invite) chegam por aqui.
+    if (!/type=(recovery|invite)/.test(window.location.hash)) return
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true)
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true)
     })
     // Se o hash já foi processado antes deste efeito rodar, o evento acima
     // não dispara mais; a sessão de recovery já existe.
@@ -62,7 +63,7 @@ export default function ResetPassword() {
       toast({ title: "Erro ao salvar", description: friendlyAuthError(error.message), variant: "destructive" })
     } else {
       toast({ title: "Senha atualizada!", description: "Você já pode entrar com a nova senha." })
-      navigate("/voxen")
+      navigate("/dashboard")
     }
   }
 
@@ -73,9 +74,11 @@ export default function ResetPassword() {
           <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
             <Trophy className="w-6 h-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Criar nova senha</h1>
+          <h1 className="text-2xl font-bold text-foreground">{invited ? "Crie a sua senha" : "Criar nova senha"}</h1>
           {ready ? (
-            <p className="text-sm text-muted-foreground">Escolha uma nova senha para sua conta Zyron.</p>
+            <p className="text-sm text-muted-foreground">
+              {invited ? "Você foi convidado para a equipe Zyron. Escolha uma senha para entrar na VOXEN." : "Escolha uma nova senha para sua conta Zyron."}
+            </p>
           ) : (
             <p className="text-sm text-muted-foreground">
               Abra esta página a partir do link que chegou no seu e-mail. Se o link expirou, peça um novo em "Esqueceu a senha?" na tela de login.

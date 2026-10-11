@@ -355,7 +355,7 @@ export default function Dashboard() {
                                 <>
                                     <p className="text-[10px] text-foreground/55 uppercase tracking-widest font-semibold px-3 pt-5 pb-1">Administração</p>
                                     <button
-                                        onClick={() => { setSettingsOpen(false); navigate("/admin") }}
+                                        onClick={() => { setSettingsOpen(false); navigate("/voxen/contas") }}
                                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-amber-400 hover:text-amber-400 hover:bg-amber-500/12 transition-all text-left"
                                     >
                                         <Shield className="w-4 h-4" /> Gerenciar usuários

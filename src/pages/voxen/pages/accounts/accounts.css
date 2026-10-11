@@ -1,0 +1,52 @@
+/* Contas e acessos (/voxen/contas). Mesmo sistema visual da VOXEN (.vx-*). */
+
+.ac-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.ac-kpi { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+.ac-kpi > svg { flex-shrink: 0; width: 38px; height: 38px; padding: 9px; border-radius: 12px; color: var(--vx-gold); background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); }
+.ac-kpi b { display: block; font-size: 26px; font-weight: 850; letter-spacing: -0.03em; line-height: 1; }
+.ac-kpi span { display: block; margin-top: 4px; color: var(--vx-dim); font-size: 12px; font-weight: 600; }
+@media (max-width: 860px) { .ac-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.ac-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.ac-legend-card { display: flex; gap: 14px; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--vx-border); background: var(--vx-panel); }
+.ac-legend-icon { display: grid; flex-shrink: 0; place-items: center; width: 38px; height: 38px; border-radius: 12px; }
+.ac-legend-icon svg { width: 18px; height: 18px; }
+.ac-legend-card b { font-size: 14px; }
+.ac-legend-card p { margin: 4px 0 0; color: var(--vx-dim); font-size: 12.5px; line-height: 1.5; }
+.ac-legend-card.is-admin .ac-legend-icon { color: #1a1203; background: linear-gradient(135deg, #fde68a, #f59e0b); }
+.ac-legend-card.is-executive .ac-legend-icon { color: #7dd3fc; background: rgba(56, 189, 248, 0.14); }
+.ac-legend-card.is-user .ac-legend-icon { color: #a1a1aa; background: rgba(255, 255, 255, 0.07); }
+@media (max-width: 960px) { .ac-legend { grid-template-columns: 1fr; } }
+
+.ac-level { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 750; white-space: nowrap; }
+.ac-level.is-admin { color: #fde68a; background: rgba(251, 191, 36, 0.14); border: 1px solid rgba(251, 191, 36, 0.3); }
+.ac-level.is-executive { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.28); }
+.ac-level.is-user { color: #a1a1aa; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--vx-border-2); }
+
+.ac-readonly { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(56, 189, 248, 0.25); background: rgba(56, 189, 248, 0.07); color: #bae6fd; font-size: 13px; }
+.ac-readonly svg { flex-shrink: 0; }
+
+.ac-invite { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 0.9fr) auto; gap: 10px; }
+@media (max-width: 960px) { .ac-invite { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .ac-invite { grid-template-columns: 1fr; } }
+
+.ac-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--vx-border); }
+
+.ac-table tr.is-off td { opacity: 0.6; }
+.ac-table tr.is-off td:last-child { opacity: 1; }
+.ac-table tr.is-focus td { background: rgba(251, 191, 36, 0.08); }
+.ac-table td { vertical-align: top; padding-top: 12px; padding-bottom: 12px; }
+.ac-select { height: 34px; min-width: 150px; padding-top: 0; padding-bottom: 0; font-size: 12.5px; }
+.ac-you { margin-left: 8px; padding: 1px 7px; border-radius: 99px; background: rgba(251, 191, 36, 0.14); color: var(--vx-gold-3); font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.ac-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.ac-danger:hover:not(:disabled) { color: #fecaca; border-color: rgba(248, 113, 113, 0.5); background: rgba(248, 113, 113, 0.12); }
+.ac-actions .vx-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.ac-confirm-row td { padding: 0 20px 14px; }
+.ac-confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(248, 113, 113, 0.3); background: rgba(40, 14, 14, 0.7); animation: vx-fade 0.25s ease both; }
+.ac-confirm p { flex: 1; min-width: 240px; margin: 0; color: var(--vx-muted); font-size: 12.5px; line-height: 1.5; }
+.ac-confirm strong { color: #fff; }
+.ac-confirm > div { display: flex; justify-content: flex-end; gap: 8px; }
+.ac-confirm .vx-btn { height: 32px; padding: 0 12px; font-size: 12.5px; }
+
+.ac-btn-danger, .ac-btn-danger:hover { border-color: rgba(248, 113, 113, 0.5); background: rgba(248, 113, 113, 0.16); color: #fecaca; }

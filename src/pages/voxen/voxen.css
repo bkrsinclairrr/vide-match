@@ -37,17 +37,26 @@
 .vx ::selection { background: rgba(251, 191, 36, 0.35); }
 .vx .tnum { font-variant-numeric: tabular-nums; }
 
-/* Fundo: brilho dourado parado (sem blur animado) e grade sutil */
+/* Fundo: aurora dourada que deriva devagar (só transform, sem blur animado) e grade sutil */
 .vx-backdrop {
   position: fixed;
   inset: 0;
   z-index: 0;
+  overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(900px 520px at 18% -8%, rgba(245, 158, 11, 0.11), transparent 60%),
-    radial-gradient(700px 480px at 100% 12%, rgba(52, 211, 153, 0.05), transparent 60%),
-    radial-gradient(900px 600px at 60% 120%, rgba(251, 191, 36, 0.06), transparent 60%);
+    radial-gradient(900px 520px at 18% -8%, rgba(245, 158, 11, 0.07), transparent 60%),
+    radial-gradient(900px 600px at 60% 120%, rgba(251, 191, 36, 0.04), transparent 60%);
 }
+
+.vx-aurora { position: absolute; border-radius: 50%; will-change: transform; }
+.vx-aurora--a { left: -12%; top: -30%; width: 980px; height: 640px; background: radial-gradient(closest-side, rgba(245, 158, 11, 0.15), transparent); animation: vx-drift-a 28s ease-in-out infinite alternate; }
+.vx-aurora--b { right: -14%; top: 4%; width: 760px; height: 600px; background: radial-gradient(closest-side, rgba(52, 211, 153, 0.075), transparent); animation: vx-drift-b 34s ease-in-out infinite alternate; }
+.vx-aurora--c { left: 30%; bottom: -42%; width: 1000px; height: 700px; background: radial-gradient(closest-side, rgba(251, 191, 36, 0.08), transparent); animation: vx-drift-c 40s ease-in-out infinite alternate; }
+
+@keyframes vx-drift-a { to { transform: translate3d(14vw, 10vh, 0) scale(1.18); } }
+@keyframes vx-drift-b { to { transform: translate3d(-12vw, 16vh, 0) scale(0.9); } }
+@keyframes vx-drift-c { to { transform: translate3d(-16vw, -12vh, 0) scale(1.12); } }
 
 .vx-backdrop::after {
   content: "";
@@ -75,6 +84,7 @@
   padding: 22px 14px 16px;
   border-right: 1px solid var(--vx-border);
   background: linear-gradient(180deg, rgba(16, 14, 10, 0.96), rgba(9, 9, 11, 0.98));
+  transition: width 0.45s var(--vx-ease), padding 0.45s var(--vx-ease);
 }
 
 .vx-brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 22px; }
@@ -171,7 +181,7 @@
 
 /* ─── Topbar e conteúdo ───────────────────────────────────────────── */
 
-.vx-main { position: relative; z-index: 1; min-height: 100vh; margin-left: var(--vx-side-w); }
+.vx-main { position: relative; z-index: 1; min-height: 100vh; margin-left: var(--vx-side-w); transition: margin-left 0.45s var(--vx-ease); }
 
 .vx-top {
   position: sticky;
@@ -214,14 +224,16 @@
 
 
 .vx-page { position: relative; max-width: 1480px; margin: 0 auto; padding: 28px 28px 64px; }
-.vx-page-enter > * { animation: vx-rise 0.7s var(--vx-ease) both; }
+/* `backwards` (e não `both`): depois da entrada a animação solta o transform,
+   senão o hover que levanta cartões (translateY) nunca aparece. */
+.vx-page-enter > * { animation: vx-rise 0.7s var(--vx-ease) backwards; }
 .vx-page-enter > *:nth-child(2) { animation-delay: 70ms; }
 .vx-page-enter > *:nth-child(3) { animation-delay: 140ms; }
 .vx-page-enter > *:nth-child(4) { animation-delay: 210ms; }
 .vx-page-enter > *:nth-child(5) { animation-delay: 280ms; }
 .vx-page-enter > *:nth-child(n + 6) { animation-delay: 340ms; }
 
-.vx-stagger > * { animation: vx-rise 0.65s var(--vx-ease) both; animation-delay: calc(var(--i, 0) * 55ms); }
+.vx-stagger > * { animation: vx-rise 0.65s var(--vx-ease) backwards; animation-delay: calc(var(--i, 0) * 55ms); }
 
 @keyframes vx-rise {
   from { opacity: 0; transform: translateY(16px); }
@@ -246,6 +258,7 @@
 }
 
 .vx-card--flush { padding: 0; overflow: hidden; }
+.vx-readonly { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.28); gap: 5px; white-space: nowrap; }
 /* Cartão que acompanha a rolagem no desktop. Precisa ser classe própria: o
    `position: relative` do .vx-card venceria o `xl:sticky` do Tailwind. */
 @media (min-width: 1280px) { .vx-card.vx-sticky-xl { position: sticky; top: 88px; } }
@@ -293,10 +306,12 @@
   font-size: 12.5px;
   font-weight: 550;
   white-space: nowrap;
-  transition: color 0.2s, background 0.2s, border-color 0.2s;
+  transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.2s var(--vx-ease), box-shadow 0.3s;
 }
 
 .vx-chip:hover { color: var(--vx-text); border-color: var(--vx-border-2); }
+.vx-chip:active, .vx-tab:active, .vx-stage-btn:active:not(:disabled) { transform: scale(0.95); }
+.vx-chip.is-on { box-shadow: 0 0 18px -6px rgba(251, 191, 36, 0.55); }
 .vx-chip.is-on { border-color: rgba(251, 191, 36, 0.45); background: rgba(251, 191, 36, 0.13); color: var(--vx-gold-3); }
 
 .vx-tag {
@@ -499,7 +514,9 @@
 .vx-heat-hours, .vx-heat-row { display: grid; grid-template-columns: 34px repeat(24, minmax(12px, 1fr)); gap: 3px; min-width: 420px; }
 .vx-heat-hours span { color: var(--vx-dim); font-size: 9.5px; }
 .vx-heat-day { color: var(--vx-muted); font-size: 11px; font-weight: 600; line-height: 26px; }
-.vx-heat-cell { height: 26px; border-radius: 4px; animation: vx-pop 0.5s var(--vx-ease) both; }
+.vx-heat-cell { height: 26px; border-radius: 4px; animation: vx-pop 0.5s var(--vx-ease) backwards; transition: transform 0.18s var(--vx-ease), box-shadow 0.18s; }
+.vx-heat-cell:hover { position: relative; z-index: 1; transform: scale(1.3); box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.75), 0 6px 16px rgba(0, 0, 0, 0.5); }
+.vx-heat:not(.is-in) .vx-heat-cell { animation-play-state: paused; }
 
 /* ─── Tabela ──────────────────────────────────────────────────────── */
 
@@ -826,25 +843,6 @@
 .vx-gate-form { display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
 .vx-gate-card { width: 100%; max-width: 380px; animation: vx-rise 0.8s var(--vx-ease) both 0.1s; }
 
-.vx-gate-orbit {
-  position: absolute;
-  right: -160px;
-  bottom: -160px;
-  width: 560px;
-  height: 560px;
-  border-radius: 50%;
-  border: 1px dashed rgba(251, 191, 36, 0.18);
-  animation: vx-spin 80s linear infinite;
-}
-
-.vx-gate-orbit::after {
-  content: "";
-  position: absolute;
-  inset: 70px;
-  border-radius: 50%;
-  border: 1px dashed rgba(255, 255, 255, 0.08);
-}
-
 .vx-splash { display: flex; min-height: 100vh; align-items: center; justify-content: center; }
 .vx-splash-mark { animation: vx-breathe 1.6s ease-in-out infinite; }
 
@@ -865,6 +863,8 @@
   .vx-menu-btn { display: inline-flex; }
   .vx-top { padding: 0 16px; }
   .vx-page { padding: 20px 16px 96px; }
+  .vx-shell .vx-page { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+  .vx-shell .vx-menu-btn { display: none; }
   .vx-gate { grid-template-columns: 1fr; }
   .vx-gate-art { display: none; }
 }
@@ -891,6 +891,323 @@
   .vx-area-line { stroke-dashoffset: 0; }
 }
 
+/* ─── Movimento e acabamento ──────────────────────────────────────── */
+
+/* Rolagem interna discreta (tabelas, listas) */
+.vx { scrollbar-color: rgba(255, 255, 255, 0.12) transparent; }
+
+/* Cartões: brilho que segue o cursor. --mx/--my vêm de usePointerGlow (motion.ts). */
+.vx-card:not(.mb-scoreboard)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(520px circle at var(--mx, 50%) var(--my, -60%), rgba(251, 191, 36, 0.055), transparent 42%);
+  opacity: 0;
+  transition: opacity 0.45s;
+  pointer-events: none;
+}
+
+.vx-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  padding: 1px;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, -60%), rgba(253, 230, 138, 0.6), transparent 72%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0;
+  transition: opacity 0.45s;
+  pointer-events: none;
+}
+
+.vx-card--flush::after { inset: 0; }
+.vx-card:hover::before, .vx-card:hover::after { opacity: 1; }
+
+/* Indicadores (KPI) */
+.vx-kpi-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.vx-kpi-icon { transition: transform 0.5s var(--vx-ease), box-shadow 0.5s; }
+.vx-card:hover .vx-kpi-icon { transform: scale(1.08) rotate(-6deg); box-shadow: 0 0 22px -6px currentColor; }
+
+/* Cartão de atleta: inclinação 3D leve e reflexo sob o cursor */
+.vx-pcard { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
+.vx-pcard:hover {
+  transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-4px);
+  transition: transform 0.18s ease-out, border-color 0.3s, background 0.3s;
+  box-shadow: 0 22px 40px -22px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(251, 191, 36, 0.1);
+}
+.vx-pcard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(200px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.08), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.35s;
+  pointer-events: none;
+}
+.vx-pcard:hover::after { opacity: 1; }
+.vx-pcard .vx-avatar { transition: transform 0.45s var(--vx-ease), box-shadow 0.45s; }
+.vx-pcard:hover .vx-avatar { transform: scale(1.06); box-shadow: 0 0 28px -6px rgba(251, 191, 36, 0.6); }
+.vx-pcard-rank { position: absolute; top: 11px; left: 12px; color: var(--vx-dim); font-size: 11px; font-weight: 800; letter-spacing: 0.02em; }
+.vx-pcard-rank.is-top { color: var(--vx-gold-3); text-shadow: 0 0 12px rgba(251, 191, 36, 0.6); }
+
+/* Botões */
+.vx-btn svg { transition: transform 0.3s var(--vx-ease); }
+.vx-btn:hover:not(:disabled) .lucide-arrow-right, .vx-btn:hover:not(:disabled) .lucide-arrow-up-right { transform: translateX(3px); }
+.vx-btn--gold { position: relative; overflow: hidden; isolation: isolate; }
+.vx-btn--gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
+  transform: translateX(-130%);
+  transition: transform 0.9s var(--vx-ease);
+  pointer-events: none;
+}
+.vx-btn--gold:hover:not(:disabled)::after { transform: translateX(130%); }
+.vx-refresh svg { transition: transform 0.5s var(--vx-ease); }
+.vx-refresh:hover:not(.vx-spin) svg { transform: rotate(120deg); }
+.vx-tab { transition: color 0.2s, background 0.25s, box-shadow 0.25s, transform 0.2s var(--vx-ease); }
+
+/* Menu lateral */
+.vx-brand { overflow: hidden; }
+.vx-nav-label { overflow: hidden; white-space: nowrap; }
+.vx-nav-text { overflow: hidden; min-width: 0; text-overflow: ellipsis; white-space: nowrap; }
+.vx-nav-item svg { transition: transform 0.35s var(--vx-ease), filter 0.35s; }
+.vx-nav-item:hover svg { transform: translateX(2px) scale(1.06); }
+.vx-nav-item.is-active svg { filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.55)); }
+.vx-nav > .vx-nav-label:first-of-type { margin-top: 0; }
+
+.vx-collapse-btn {
+  position: absolute;
+  top: 34px;
+  right: -13px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--vx-border-2);
+  background: #151411;
+  color: var(--vx-muted);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  transition: color 0.2s, border-color 0.2s, transform 0.3s var(--vx-ease);
+}
+.vx-collapse-btn:hover { color: var(--vx-gold-3); border-color: rgba(251, 191, 36, 0.5); transform: scale(1.1); }
+.vx-collapse-btn svg { width: 14px; height: 14px; }
+
+@media (min-width: 1024px) {
+  .vx-shell.is-collapsed { --vx-side-w: 80px; }
+  .vx-shell .vx-brand-word, .vx-shell .vx-brand-sub, .vx-shell .vx-nav-text, .vx-shell .vx-user-info { animation: vx-fade 0.35s ease 0.18s backwards; }
+  .is-collapsed .vx-brand { justify-content: center; padding-left: 0; padding-right: 0; }
+  .is-collapsed .vx-brand > span > span:last-child { display: none; }
+  .is-collapsed .vx-nav-label { height: 1px; margin: 12px 8px; font-size: 0; background: var(--vx-border); }
+  .is-collapsed .vx-nav-item { justify-content: center; gap: 0; padding: 0; }
+  .is-collapsed .vx-nav-text, .is-collapsed .vx-nav-count, .is-collapsed .vx-user-info { display: none; }
+  .is-collapsed .vx-user { flex-direction: column; gap: 8px; padding: 8px 0; }
+  .is-collapsed .vx-nav-item::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: 50%;
+    left: calc(100% + 14px);
+    z-index: 60;
+    padding: 6px 10px;
+    border-radius: 9px;
+    border: 1px solid var(--vx-border-2);
+    background: #17161a;
+    color: var(--vx-text);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    transform: translate(-6px, -50%);
+    transition: opacity 0.2s, transform 0.25s var(--vx-ease);
+    pointer-events: none;
+  }
+  .is-collapsed .vx-nav-item:hover::after, .is-collapsed .vx-nav-item:focus-visible::after { opacity: 1; transform: translate(0, -50%); }
+}
+
+/* Barra do topo */
+.vx-top { transition: background 0.3s, box-shadow 0.3s, border-color 0.3s; }
+.vx-top.is-scrolled { border-bottom-color: rgba(255, 255, 255, 0.09); background: rgba(9, 9, 10, 0.86); box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.9); }
+.vx-top-title { animation: vx-title-in 0.5s var(--vx-ease) both; }
+
+@keyframes vx-title-in {
+  from { opacity: 0; transform: translateY(6px); filter: blur(3px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+.vx-progress {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 0;
+  height: 2px;
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0), var(--vx-gold) 40%, #fde68a);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.7);
+  opacity: 0;
+  pointer-events: none;
+}
+.vx-progress.is-run { animation: vx-progress-run 2.6s cubic-bezier(0.1, 0.75, 0.2, 1) forwards; }
+.vx-progress.is-done { animation: vx-progress-done 0.6s ease forwards; }
+
+@keyframes vx-progress-run { from { width: 0; opacity: 1; } to { width: 86%; opacity: 1; } }
+@keyframes vx-progress-done { from { width: 86%; opacity: 1; } 45% { width: 100%; opacity: 1; } to { width: 100%; opacity: 0; } }
+
+/* Busca rápida (Ctrl K): o diálogo é renderizado fora do .vx */
+.vx-palette { border-color: rgba(251, 191, 36, 0.2) !important; background: rgba(14, 13, 11, 0.94) !important; -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+.vx-palette [cmdk-item][data-selected="true"] { background: rgba(251, 191, 36, 0.1); color: #fde68a; }
+
+/* Cartões abaixo da dobra entram ao rolar (useScrollReveal) */
+.vx-rv { transition: opacity 0.75s var(--vx-ease), transform 0.85s var(--vx-ease), border-color 0.3s, box-shadow 0.3s, background 0.3s; }
+.vx-rv:not(.is-in) { opacity: 0; transform: translateY(28px) scale(0.985); }
+.vx-page-enter > .vx-rv { animation: none; }
+.vx-rv:not(.is-in) *, .vx-rv:not(.is-in) *::before, .vx-rv:not(.is-in) *::after { animation-play-state: paused !important; }
+.vx-card--hover.vx-rv.is-in:hover { transition: transform 0.35s var(--vx-ease), border-color 0.3s, box-shadow 0.3s; }
+
+/* Gráficos */
+.vx-area:not(.is-in) .vx-area-line, .vx-area:not(.is-in) .vx-area-fill { animation-play-state: paused; }
+.vx-area-dot, .vx-area-tip { transition: left 0.16s ease-out, top 0.16s ease-out; }
+
+.vx-area-live {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.9), 0 0 14px currentColor;
+  opacity: 0;
+  pointer-events: none;
+  animation: vx-fade 0.5s ease forwards 1.6s;
+}
+.vx-area-live::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: vx-ping 2.2s ease-out infinite 1.8s;
+}
+.vx-area:not(.is-in) .vx-area-live, .vx-area:not(.is-in) .vx-area-live::after { animation-play-state: paused; }
+
+@keyframes vx-ping {
+  from { opacity: 0.9; transform: scale(0.4); }
+  to { opacity: 0; transform: scale(1.7); }
+}
+
+.vx-spark { display: block; flex-shrink: 0; }
+.vx-spark-line { stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.35)); }
+.vx-spark-fill, .vx-spark-dot { opacity: 0; }
+.vx-spark.is-in .vx-spark-line { animation: vx-draw 1.4s var(--vx-ease) forwards 0.35s; }
+.vx-spark.is-in .vx-spark-fill { animation: vx-fade 1s ease forwards 0.9s; }
+.vx-spark.is-in .vx-spark-dot { animation: vx-fade 0.4s ease forwards 1.5s; }
+
+.vx-donut-slice { cursor: default; }
+.vx-donut.has-active .vx-donut-slice:not(.is-active) { opacity: 0.28; }
+.vx-legend li { padding: 3px 6px; margin: 0 -6px; border-radius: 8px; transition: opacity 0.25s, background 0.25s; }
+.vx-legend.has-active li:not(.is-active) { opacity: 0.4; }
+.vx-legend li.is-active { background: rgba(255, 255, 255, 0.05); }
+
+.vx-meter-fill { position: relative; overflow: hidden; }
+.vx-meter-fill::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent); opacity: 0; transform: translateX(-100%); }
+.vx-meter.is-in .vx-meter-fill::after { animation: vx-sheen 1.2s ease-in-out calc(var(--d, 0ms) + 0.9s) 1 both; }
+
+@keyframes vx-sheen {
+  from { opacity: 1; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(100%); }
+}
+
+/* Tabelas: faixa dourada na linha sob o cursor */
+.vx-table tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--vx-gold); }
+
+/* Estados vazios respiram */
+.vx-empty-icon { animation: vx-float 5s ease-in-out infinite; }
+@keyframes vx-float { 50% { transform: translateY(-4px); } }
+
+/* Cabeçalho da visão geral */
+.vx-hello { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 9px; margin: 0; color: var(--vx-muted); font-size: 13px; }
+.vx-gold-text { background: linear-gradient(100deg, #fde68a, #fbbf24 40%, #fff7d6 50%, #f59e0b 60%, #fde68a); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: vx-gold-flow 5s ease-in-out infinite; }
+@keyframes vx-gold-flow { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0 0; } }
+.vx-donut-detail { display: flex; flex-direction: column; align-items: center; animation: vx-detail-in 0.35s var(--vx-ease) both; }
+@keyframes vx-detail-in { from { opacity: 0; transform: scale(0.85); } }
+
+/* Indicador "ao vivo" */
+.vx-live { position: relative; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--vx-green); box-shadow: 0 0 10px var(--vx-green); }
+.vx-live::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid var(--vx-green); animation: vx-ping 2s ease-out infinite; }
+
+/* Carregando */
+.vx-splash-inner { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.vx-splash-orbit { position: relative; display: grid; place-items: center; width: 100px; height: 100px; }
+.vx-splash-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgba(251, 191, 36, 0.12); border-top-color: var(--vx-gold); box-shadow: 0 0 40px -10px rgba(251, 191, 36, 0.5); animation: vx-spin 1.1s cubic-bezier(0.5, 0.15, 0.5, 0.85) infinite; }
+.vx-splash-bar { position: relative; width: 140px; height: 3px; overflow: hidden; border-radius: 99px; background: rgba(255, 255, 255, 0.06); }
+.vx-splash-bar::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; border-radius: inherit; background: linear-gradient(90deg, transparent, var(--vx-gold), transparent); animation: vx-slide 1.2s ease-in-out infinite; }
+
+@keyframes vx-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+/* Abas do celular */
+.vx-tabbar { display: none; }
+
+@media (max-width: 1023px) {
+  .vx-tabbar {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 35;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 2px;
+    padding: 6px;
+    border-radius: 20px;
+    border: 1px solid var(--vx-border-2);
+    background: rgba(14, 13, 11, 0.88);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    transition: transform 0.45s var(--vx-ease), opacity 0.3s;
+    animation: vx-tabbar-in 0.6s var(--vx-ease) backwards 0.2s;
+  }
+  .vx-tabbar.is-hidden { opacity: 0; transform: translateY(calc(100% + 24px)); pointer-events: none; }
+  .vx-collapse-btn { display: none; }
+  .vx-tab-item { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; padding: 7px 0 6px; border-radius: 14px; color: var(--vx-dim); font-size: 10.5px; font-weight: 650; transition: color 0.25s, background 0.25s; }
+  .vx-tab-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vx-tab-item svg { width: 20px; height: 20px; transition: transform 0.35s var(--vx-ease), filter 0.35s; }
+  .vx-tab-item:active svg { transform: scale(0.88); }
+  .vx-tab-item.is-active { color: var(--vx-gold-3); background: rgba(251, 191, 36, 0.11); }
+  .vx-tab-item.is-active svg { transform: translateY(-1px); filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.6)); }
+  .vx-shell .vx-floatbar { bottom: calc(88px + env(safe-area-inset-bottom)); }
+}
+
+@keyframes vx-tabbar-in { from { opacity: 0; transform: translateY(30px); } }
+
+@media (max-width: 640px) {
+  .vx-chips--scroll {
+    flex-wrap: nowrap;
+    width: calc(100% + 32px);
+    margin: 0 -16px;
+    padding: 2px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 28px), transparent);
+  }
+  .vx-chips--scroll::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vx-aurora, .vx-empty-icon, .vx-live::after, .vx-gold-text { animation: none !important; }
+  .vx-spark-line { stroke-dashoffset: 0; }
+  .vx-spark-fill, .vx-spark-dot, .vx-area-live { opacity: 1; }
+}
+
 /* ─── Impressão (ficha do atleta) ─────────────────────────────────── */
 
 /* A ficha sai com o mesmo visual escuro da tela: as cores de fundo são
@@ -899,7 +1216,11 @@
 @media print {
   @page { size: A4; margin: 10mm; }
   html, body, .vx { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #070708 !important; }
-  .vx-side, .vx-top, .vx-backdrop, .vx-no-print, .vx-floatbar, .vx-scrim { display: none !important; }
+  .vx-side, .vx-top, .vx-backdrop, .vx-no-print, .vx-floatbar, .vx-scrim, .vx-tabbar, .vx-collapse-btn, .vx-progress { display: none !important; }
+  .vx-rv { opacity: 1 !important; transform: none !important; }
+  .vx-card::before, .vx-card::after, .vx-pcard::after { display: none !important; }
+  .vx-spark-line { stroke-dashoffset: 0; }
+  .vx-spark-fill, .vx-spark-dot { opacity: 1; }
   .vx-main { margin: 0; }
   .vx-page { max-width: none; padding: 0; }
   .vx-grid { gap: 10px; }
@@ -907,3 +1228,12 @@
   .vx *, .vx *::before, .vx *::after { animation: none !important; transition: none !important; }
   .vx-area-line { stroke-dashoffset: 0; }
 }
+
+/* Excluir cadastro (perfil do atleta na VOXEN) */
+.pp-danger:hover:not(:disabled) { color: #fecaca; border-color: rgba(248, 113, 113, 0.5); background: rgba(248, 113, 113, 0.12); }
+.pp-confirm { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-top: 16px; padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(248, 113, 113, 0.3); background: rgba(40, 14, 14, 0.7); animation: vx-fade 0.25s ease both; }
+.pp-confirm p { flex: 1; min-width: 240px; margin: 0; color: var(--vx-muted); font-size: 13px; line-height: 1.5; }
+.pp-confirm strong { color: #fff; }
+.pp-confirm > div { display: flex; gap: 8px; }
+.pp-danger-solid, .pp-danger-solid:hover { border-color: rgba(248, 113, 113, 0.55); background: rgba(248, 113, 113, 0.2); color: #fecaca; }
+.vx-stage-btn:disabled { cursor: default; }

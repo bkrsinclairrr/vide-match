@@ -5,12 +5,18 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Trophy, Mail, Lock, User, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { emailSchema, nameSchema, validateCredentials } from "@/lib/security"
 import { friendlyAuthError } from "@/lib/funnel"
 
+/** Só caminhos internos (nada de //outro-site): é para onde a pessoa volta depois de entrar. */
+const safeNext = (value: string | null) => (value && value.startsWith("/") && !value.startsWith("//") ? value : null)
+
 export default function Login() {
+  const [params] = useSearchParams()
+  // Sem destino, /dashboard encaminha: atleta para /minha-area e equipe para /voxen.
+  const after = safeNext(params.get("next")) ?? "/dashboard"
   const [isLoading, setIsLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [email, setEmail] = useState("")
@@ -37,7 +43,7 @@ export default function Login() {
     if (error) {
       toast({ title: "Erro ao entrar", description: friendlyAuthError(error.message), variant: "destructive" })
     } else {
-      navigate("/voxen")
+      navigate(after)
     }
   }
 
@@ -64,7 +70,7 @@ export default function Login() {
         description: "Verifique sua caixa de entrada e entre após confirmar o endereço.",
       })
     } else {
-      navigate("/voxen")
+      navigate(after)
     }
   }
 

@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react"
 import { prefersReducedMotion } from "@/hooks/useScrollAnimations"
+import { useInView } from "./motion"
 
 /* ------------------------------------------------------------------ */
 /* Contador animado                                                    */
@@ -31,9 +32,12 @@ export function useCountUp(target: number, duration = 1100) {
   return value
 }
 
+/** Conta do zero até o valor quando aparece na tela. */
 export function CountUp({ value, decimals = 0, suffix = "" }: { value: number; decimals?: number; suffix?: string }) {
-  const v = useCountUp(value)
-  return <>{v.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}</>
+  const ref = useRef<HTMLSpanElement>(null)
+  const seen = useInView(ref)
+  const v = useCountUp(seen ? value : 0)
+  return <span ref={ref}>{v.toLocaleString("pt-BR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}</span>
 }
 
 /** Liga `true` no frame seguinte à montagem — para barras crescerem do zero. */
@@ -139,10 +143,13 @@ export function Ring({
 }) {
   const r = (size - stroke) / 2
   const len = 2 * Math.PI * r
-  const on = useMounted()
+  const ref = useRef<HTMLDivElement>(null)
+  const seen = useInView(ref)
+  const mounted = useMounted()
+  const on = seen && mounted
   const pct = Math.max(0, Math.min(1, value / max))
   return (
-    <div className="vx-ring" style={{ width: size, height: size }}>
+    <div ref={ref} className="vx-ring" style={{ width: size, height: size }}>
       <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
         <circle
@@ -257,13 +264,43 @@ function smoothPath(points: [number, number][]) {
   return d
 }
 
+/** Linha pequena para os indicadores (sem eixos). Desenha quando aparece na tela. */
+export function Sparkline({
+  data, color = "#fbbf24", width = 96, height = 34,
+}: { data: number[]; color?: string; width?: number; height?: number }) {
+  const ref = useRef<SVGSVGElement>(null)
+  const seen = useInView(ref)
+  const gid = useId().replace(/:/g, "")
+  if (data.length < 2) return null
+  const max = Math.max(1, ...data)
+  const pad = 3
+  const pts = data.map((v, i) => [(i / (data.length - 1)) * width, pad + (height - pad * 2) * (1 - v / max)] as [number, number])
+  const line = smoothPath(pts)
+  const last = pts[pts.length - 1]
+  return (
+    <svg ref={ref} viewBox={`0 0 ${width} ${height}`} width={width} height={height} className={`vx-spark ${seen ? "is-in" : ""}`} aria-hidden="true" overflow="visible">
+      <defs>
+        <linearGradient id={`${gid}-s`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${line} L ${width} ${height} L 0 ${height} Z`} fill={`url(#${gid}-s)`} className="vx-spark-fill" />
+      <path d={line} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" pathLength={1} className="vx-spark-line" />
+      <circle cx={last[0]} cy={last[1]} r="2.6" fill={color} className="vx-spark-dot" />
+    </svg>
+  )
+}
+
 export function AreaChart({
-  data, height = 220, color = "#fbbf24", format = (v: number) => String(v),
+  data, height = 220, color = "#fbbf24", format = (v: number) => String(v), live = false,
 }: {
   data: { label: string; value: number }[]
   height?: number
   color?: string
   format?: (v: number) => string
+  /** Ponto pulsando no último valor (série que chega até hoje). */
+  live?: boolean
 }) {
   const W = 720
   const H = height
@@ -277,6 +314,8 @@ export function AreaChart({
   const gid = useId().replace(/:/g, "")
   const [hover, setHover] = useState<number | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const seen = useInView(wrapRef)
+  const lastPt = pts[pts.length - 1]
   const ticks = useMemo(() => {
     const n = data.length
     if (n <= 1) return []
@@ -292,7 +331,7 @@ export function AreaChart({
   }
 
   return (
-    <div ref={wrapRef} className="vx-area" onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
+    <div ref={wrapRef} className={`vx-area ${seen ? "is-in" : ""}`} onPointerMove={onMove} onPointerLeave={() => setHover(null)}>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ height }} aria-hidden="true">
         <defs>
           <linearGradient id={`${gid}-fill`} x1="0" y1="0" x2="0" y2="1">
@@ -309,6 +348,9 @@ export function AreaChart({
           <line x1={pts[hover][0]} x2={pts[hover][0]} y1={padT} y2={H - padB} className="vx-area-cursor" vectorEffect="non-scaling-stroke" />
         )}
       </svg>
+      {live && lastPt && hover === null && (
+        <span className="vx-area-live" style={{ left: `${(lastPt[0] / W) * 100}%`, top: lastPt[1], background: color, color }} aria-hidden="true" />
+      )}
       {hover !== null && pts[hover] && (
         <>
           <span className="vx-area-dot" style={{ left: `${(pts[hover][0] / W) * 100}%`, top: pts[hover][1], background: color }} />
@@ -331,22 +373,31 @@ export function AreaChart({
 /* Rosca                                                               */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Rosca. Com `onActive`, cada fatia reage ao ponteiro (as outras esmaecem) e o
+ * chamador mostra o detalhe da fatia ativa no centro e na legenda.
+ */
 export function Donut({
-  slices, size = 180, stroke = 22, center,
+  slices, size = 180, stroke = 22, center, active = null, onActive,
 }: {
   slices: { label: string; value: number; color: string }[]
   size?: number
   stroke?: number
   center?: ReactNode
+  active?: number | null
+  onActive?: (i: number | null) => void
 }) {
   const r = (size - stroke) / 2
   const len = 2 * Math.PI * r
   const total = slices.reduce((a, s) => a + s.value, 0) || 1
-  const on = useMounted()
+  const ref = useRef<HTMLDivElement>(null)
+  const seen = useInView(ref)
+  const mounted = useMounted()
+  const on = seen && mounted
   let acc = 0
   return (
-    <div className="vx-ring" style={{ width: size, height: size }}>
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
+    <div ref={ref} className={`vx-ring vx-donut ${active !== null ? "has-active" : ""}`} style={{ width: size, height: size }} onPointerLeave={() => onActive?.(null)}>
+      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true" overflow="visible">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={stroke} />
         {slices.map((s, i) => {
           const frac = s.value / total
@@ -360,7 +411,9 @@ export function Donut({
               cx={size / 2} cy={size / 2} r={r} fill="none" stroke={s.color} strokeWidth={stroke}
               strokeDasharray={`${on ? dash : 0} ${len}`} strokeDashoffset={offset}
               transform={`rotate(-90 ${size / 2} ${size / 2})`}
-              style={{ transition: `stroke-dasharray 1.1s cubic-bezier(0.16,1,0.3,1) ${i * 70}ms` }}
+              className={`vx-donut-slice ${active === i ? "is-active" : ""}`}
+              style={{ transition: `stroke-dasharray 1.1s cubic-bezier(0.16,1,0.3,1) ${i * 70}ms, stroke-width 0.3s, opacity 0.3s` }}
+              onPointerEnter={onActive ? () => onActive(i) : undefined}
             />
           )
         })}
@@ -375,9 +428,12 @@ export function Donut({
 /* ------------------------------------------------------------------ */
 
 export function Meter({ value, color, height = 6, delay = 0 }: { value: number; color: string; height?: number; delay?: number }) {
-  const on = useMounted()
+  const ref = useRef<HTMLDivElement>(null)
+  const seen = useInView(ref)
+  const mounted = useMounted()
+  const on = seen && mounted
   return (
-    <div className="vx-meter" style={{ height }}>
+    <div ref={ref} className={`vx-meter ${on ? "is-in" : ""}`} style={{ height, "--d": `${delay}ms` } as React.CSSProperties}>
       <div
         className="vx-meter-fill"
         style={{
@@ -399,8 +455,10 @@ const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 
 export function HeatGrid({ matrix }: { matrix: number[][] }) {
   const max = Math.max(1, ...matrix.flat())
+  const ref = useRef<HTMLDivElement>(null)
+  const seen = useInView(ref)
   return (
-    <div className="vx-heat" role="img" aria-label="Entradas por dia da semana e hora">
+    <div ref={ref} className={`vx-heat ${seen ? "is-in" : ""}`} role="img" aria-label="Entradas por dia da semana e hora">
       <div className="vx-heat-hours">
         <span />
         {Array.from({ length: 24 }, (_, h) => <span key={h}>{h % 3 === 0 ? `${h}h` : ""}</span>)}

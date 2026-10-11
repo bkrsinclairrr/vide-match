@@ -12,7 +12,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext"
 import { WHATSAPP_NUMBER } from "@/lib/funnel"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
-import { PageSkeleton, VoxenMark, VoxenWordmark } from "@/pages/voxen/ui"
+import { ZyronMark } from "@/pages/site/ZyronMark"
+import { PageSkeleton } from "@/pages/voxen/ui"
 import { SetupMissingError, getPreviewAccount, getSource, type DataSource } from "./api"
 import { loadAccountByAtletaId, loadAccountByUserId, loadOwnAccount, withMember, type AthleteAccount } from "./account"
 import { categoryOf, gameOf, reportOf, type Game, type Report } from "./game"
@@ -88,7 +89,7 @@ export function useAthlete() {
 function Splash() {
   return (
     <div className="vx-splash relative z-[1]">
-      <div className="vx-splash-mark"><VoxenMark size={56} /></div>
+      <div className="vx-splash-mark"><ZyronMark size={56} /></div>
     </div>
   )
 }
@@ -154,7 +155,10 @@ async function loadClient(opts: { preview: boolean; asMember: string | null; own
   if (asMember?.startsWith("atleta:")) {
     const account = await loadAccountByAtletaId(Number(asMember.slice(7)))
     if (!account) throw new Error("Atleta não encontrado.")
-    const member = account.userId ? await source.findByUser(account.userId) : null
+    // Sem as tabelas de membros (migração pendente) ou sem cadastro, segue só com a conta.
+    const member = account.userId
+      ? await source.findByUser(account.userId).catch((err) => { if (err instanceof SetupMissingError) return null; throw err })
+      : null
     const membership = member ? await membershipOf(member.id) : null
     return { source, account: membership ? withMember(account, membership.bundle.member) : account, membership }
   }
@@ -319,14 +323,14 @@ function Shell({ asMember, previewing }: { asMember: string | null; previewing: 
           <Suspense fallback={<PageSkeleton />}>
             <div key={location.pathname} className="vx-page-enter">
               <Routes>
-                <Route path="cliente" element={<StartPage />} />
-                <Route path="cliente/oportunidades" element={<OpportunitiesPage />} />
-                <Route path="cliente/conquistas" element={<AchievementsPage />} />
-                <Route path="cliente/comparativo" element={<AthleteComparePage />} />
-                <Route path="cliente/partidas" element={<MemberOnly page="partidas"><MatchesPage /></MemberOnly>} />
-                <Route path="cliente/partidas/:id" element={<MemberOnly page="partidas"><MatchPage /></MemberOnly>} />
-                <Route path="cliente/desempenho" element={<MemberOnly page="desempenho"><PerformancePage /></MemberOnly>} />
-                <Route path="cliente/perfil" element={<AthleteProfilePage />} />
+                <Route index element={<StartPage />} />
+                <Route path="oportunidades" element={<OpportunitiesPage />} />
+                <Route path="conquistas" element={<AchievementsPage />} />
+                <Route path="comparativo" element={<AthleteComparePage />} />
+                <Route path="partidas" element={<MemberOnly page="partidas"><MatchesPage /></MemberOnly>} />
+                <Route path="partidas/:id" element={<MemberOnly page="partidas"><MatchPage /></MemberOnly>} />
+                <Route path="desempenho" element={<MemberOnly page="desempenho"><PerformancePage /></MemberOnly>} />
+                <Route path="perfil" element={<AthleteProfilePage />} />
                 <Route path="*" element={<Navigate to={CLIENT_BASE} replace />} />
               </Routes>
             </div>
@@ -352,7 +356,15 @@ function ClientSidebar({ open, email, onSignOut }: { open: boolean; email: strin
 
   return (
     <aside className={`vx-side ${open ? "is-open" : ""}`} aria-label="Navegação da sua área">
-      <div className="vx-brand"><VoxenWordmark sub="Minha área" /></div>
+      <div className="vx-brand">
+        <span className="flex items-center gap-3">
+          <ZyronMark size={36} />
+          <span>
+            <span className="vx-brand-word block">ZYRON</span>
+            <span className="vx-brand-sub block">Minha área</span>
+          </span>
+        </span>
+      </div>
 
       <div className="mb-side-profile">
         <MemberAvatar member={{ fullName: account.name, photoUrl: account.avatarUrl, kind: "membro" }} size={46} ring="#fbbf24" />
