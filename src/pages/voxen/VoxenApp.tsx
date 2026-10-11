@@ -9,16 +9,18 @@ import {
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
-import { CLIENT_BASE, clearAsMember, readAsMember } from "@/pages/membros/paths"
+import { clearAsMember } from "@/pages/membros/paths"
+import { useAccessLevel } from "@/hooks/useAccessLevel"
+import { useDevPreview } from "@/lib/devPreview"
 import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
-import { LEVEL_LABEL, levelFromRoles, type StaffRole } from "./access"
+import { LEVEL_LABEL, type StaffRole } from "./access"
 import { positionCode } from "./data"
 import { Avatar, PageSkeleton, ScoreChip, VoxenMark, VoxenWordmark, playerPath } from "./ui"
-import LoginScreen from "./LoginScreen"
+import { AccessCheckError, StaffLogin, StaffOnly } from "./StaffGate"
 
 const Overview = lazy(() => import("./pages/Overview"))
 const PlayersPage = lazy(() => import("./pages/PlayersPage"))
@@ -30,7 +32,6 @@ const AdminMember = lazy(() => import("./pages/members/AdminMember"))
 const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
 const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
 const AccountsPage = lazy(() => import("./pages/accounts/AccountsPage"))
-const ClientArea = lazy(() => import("@/pages/membros/ClientArea"))
 
 const NAV = [
   { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true },
@@ -41,115 +42,43 @@ const NAV = [
   { to: "/voxen/contas", label: "Contas e acessos", icon: ShieldCheck, end: false },
 ]
 
-const DEMO_KEY = "voxen:demo"
-
-/**
- * Dados locais, sem login. Só existe no `npm run dev` (liga com /voxen?demo),
- * para desenvolver sem banco; no build de produção o bloco some.
- */
-function useDemoMode() {
-  const { search } = useLocation()
-  return useMemo(() => {
-    if (!import.meta.env.DEV) return false
-    try {
-      if (new URLSearchParams(search).has("demo")) sessionStorage.setItem(DEMO_KEY, "1")
-      return sessionStorage.getItem(DEMO_KEY) === "1"
-    } catch {
-      return false
-    }
-  }, [search])
-}
-
-/** No `npm run dev`, /voxen?demo&papel=executivo testa a visão somente leitura. */
-function useDemoRole(): StaffRole {
-  const { search } = useLocation()
-  return useMemo(() => {
-    if (!import.meta.env.DEV) return "admin"
-    try {
-      const p = new URLSearchParams(search).get("papel")
-      if (p) sessionStorage.setItem("voxen:demo-role", p)
-      return sessionStorage.getItem("voxen:demo-role") === "executivo" ? "executive" : "admin"
-    } catch {
-      return "admin"
-    }
-  }, [search])
-}
-
 export default function VoxenApp() {
-  const demo = useDemoMode()
-  const demoRole = useDemoRole()
+  const dev = useDevPreview()
 
   useEffect(() => {
     document.documentElement.classList.add("dark")
     const prev = document.title
-    document.title = "VOXEN · Scouting Zyron"
+    document.title = "VOXEN · Equipe Zyron"
     return () => { document.title = prev }
   }, [])
 
   return (
     <div className="vx">
       <div className="vx-backdrop" aria-hidden="true" />
-      {demo ? <Portal role={demoRole} demo /> : <AccessGate />}
+      {dev.demo ? <Workspace demo role={dev.role} /> : <AccessGate />}
     </div>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/* Acesso: login + papel de admin                                      */
+/* Acesso: login da equipe + papel (administrador ou executivo)        */
 /* ------------------------------------------------------------------ */
 
-type Role = StaffRole | "client"
-type RoleState = { userId: string | null; status: "checking" | Role }
-
+/**
+ * A VOXEN é só da equipe. Sem sessão, mostra o login da equipe; conta de atleta
+ * recebe um aviso com o caminho para a área dela (/minha-area). A RLS do banco é
+ * quem garante os dados; esta tela só evita telas sem sentido.
+ */
 function AccessGate() {
   const { session, user, loading } = useAuth()
-  const [role, setRole] = useState<RoleState>({ userId: null, status: "checking" })
-
-  useEffect(() => {
-    if (!user) return
-    let cancelled = false
-    setRole({ userId: user.id, status: "checking" })
-    // Lê todos os papéis da própria conta (a RLS libera) e fica com o maior: admin > executivo > atleta.
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .then(({ data, error }) => {
-        if (cancelled) return
-        const level = error ? "user" : levelFromRoles((data ?? []).map((r) => String(r.role)))
-        setRole({ userId: user.id, status: level === "user" ? "client" : level })
-      })
-    return () => { cancelled = true }
-  }, [user])
+  const { level, loading: levelLoading, failed, retry } = useAccessLevel()
 
   if (loading) return <Splash />
-  if (!session || !user) return <LoginScreen />
-  if (role.userId !== user.id || role.status === "checking") return <Splash />
-  return <Portal role={role.status} demo={false} />
-}
-
-/**
- * Um login, duas áreas: a equipe (administrador ou executivo) usa o painel; o
- * cliente da Zyron só enxerga a própria área, em /voxen/cliente. A equipe também
- * abre essa área ("ver como"), sempre em modo leitura. A RLS do banco é quem
- * garante os dados; o roteamento aqui só evita telas sem sentido.
- */
-function Portal({ role, demo }: { role: Role; demo: boolean }) {
-  const { pathname, search } = useLocation()
-  const inClient = pathname === CLIENT_BASE || pathname.startsWith(`${CLIENT_BASE}/`)
-  const isAdmin = role !== "client"
-  const asMember = useMemo(() => (isAdmin && inClient ? readAsMember(search) : null), [isAdmin, inClient, search])
-
-  // Saiu da área do cliente: o "ver como" não deve vazar para a próxima visita.
-  useEffect(() => { if (!inClient) clearAsMember() }, [inClient])
-
-  if (!inClient) return role !== "client" ? <Workspace demo={demo} role={role} /> : <Navigate to={CLIENT_BASE} replace />
-  if (isAdmin && !asMember && !demo) return <Navigate to="/voxen/membros" replace />
-  return (
-    <Suspense fallback={<Splash />}>
-      <ClientArea preview={demo} asMember={asMember} isAdmin={isAdmin} />
-    </Suspense>
-  )
+  if (!session || !user) return <StaffLogin />
+  if (failed) return <AccessCheckError onRetry={retry} />
+  if (levelLoading || !level) return <Splash />
+  if (level === "user") return <StaffOnly email={user.email ?? ""} />
+  return <Workspace demo={false} role={level} />
 }
 
 function Splash() {
@@ -165,6 +94,8 @@ function Splash() {
 /* ------------------------------------------------------------------ */
 
 function Workspace({ demo, role }: { demo: boolean; role: StaffRole }) {
+  // O "ver como" de /minha-area não deve vazar para a próxima visita.
+  useEffect(() => { clearAsMember() }, [])
   return (
     <VoxenProvider demo={demo} role={role}>
       <Shell />

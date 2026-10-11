@@ -152,7 +152,7 @@ export function MemberForm({
         <input className="vx-input" value={v.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder={isMember ? "Nome completo" : "Ex.: Referência · Meia de elite Sub-20"} required />
       </FormField>
       {isMember && (
-        <FormField label="E-mail de acesso *" hint="O atleta cria a senha em /membros com este e-mail." wide>
+        <FormField label="E-mail de acesso *" hint="O atleta cria a conta em /login com este e-mail." wide>
           <input className="vx-input" type="email" value={v.email ?? ""} onChange={(e) => set("email", e.target.value)} placeholder="nome@gmail.com" required />
         </FormField>
       )}

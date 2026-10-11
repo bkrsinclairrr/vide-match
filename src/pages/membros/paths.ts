@@ -1,15 +1,14 @@
 /**
- * Caminhos da parte da VOXEN que o cliente da Zyron acessa depois de entrar.
- * O mesmo login (/voxen) serve a equipe e os clientes: quem é admin cai no
- * painel; quem é cliente cai aqui.
+ * Caminhos da área do atleta. Ela é a casa de quem entra com a conta do Zyron
+ * (login em /login) e fica fora da VOXEN, que é só da equipe (/voxen).
  */
-export const CLIENT_BASE = "/voxen/cliente"
+export const CLIENT_BASE = "/minha-area"
 
 const AS_MEMBER_KEY = "zyron:cliente:como"
 
 /**
- * Id do membro que um admin está vendo ("ver como membro"). Vem de ?como= e
- * fica na sessão da aba para sobreviver à navegação interna.
+ * Id de quem a equipe está vendo ("ver como"). Vem de ?como= e fica na sessão
+ * da aba para sobreviver à navegação interna.
  */
 export function readAsMember(search: string): string | null {
   const como = new URLSearchParams(search).get("como")

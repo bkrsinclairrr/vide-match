@@ -5,6 +5,7 @@ import {
   Trash2, UserRoundSearch, X,
 } from "lucide-react"
 import { getSource } from "@/pages/membros/api"
+import { CLIENT_BASE } from "@/pages/membros/paths"
 import { useToast } from "@/hooks/use-toast"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { useVoxen } from "../store"
@@ -107,7 +108,7 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
           {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
           <MemberButton p={p} />
           {p.source === "conta" && (
-            <Link to={`/voxen/cliente?como=${encodeURIComponent(p.key)}`} className="vx-btn" title="Abre a área do cliente exatamente como o atleta a vê" target="_blank" rel="noopener noreferrer">
+            <Link to={`${CLIENT_BASE}?como=${encodeURIComponent(p.key)}`} className="vx-btn" title="Abre a área do cliente exatamente como o atleta a vê" target="_blank" rel="noopener noreferrer">
               <Eye /> Ver como atleta
             </Link>
           )}

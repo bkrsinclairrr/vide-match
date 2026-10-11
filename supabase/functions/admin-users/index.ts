@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
         let invited = false;
         if (!id) {
           const { data, error } = await adminClient.auth.admin.inviteUserByEmail(email, {
-            redirectTo: `${allowedOrigin}/voxen`,
+            redirectTo: `${allowedOrigin}/reset-password`, // o convidado define a senha aqui e depois cai na VOXEN
             data: fullName ? { full_name: fullName } : undefined,
           });
           if (error) throw new HttpError(400, "Não foi possível enviar o convite para este e-mail.");

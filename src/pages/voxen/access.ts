@@ -2,7 +2,7 @@
  * Níveis de acesso da VOXEN.
  *   admin      faz tudo: editar, mudar, excluir, gerir contas e acessos.
  *   executive  vê tudo na VOXEN, mas não altera nada (somente leitura).
- *   user       atleta: só a própria área (/voxen/cliente).
+ *   user       atleta: só a própria área (/minha-area), com login em /login.
  * O banco é quem garante isso (RLS e a função admin-users); a interface só
  * esconde o que a pessoa não pode usar.
  */

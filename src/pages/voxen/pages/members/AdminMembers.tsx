@@ -106,7 +106,7 @@ export default function AdminMembers() {
           <h2 className="vx-card-title">{kind === "membro" ? (prefill ? `Tornar ${prefill.fullName} membro` : "Cadastrar membro") : "Criar perfil de referência"}</h2>
           <p className="vx-card-sub" style={{ marginBottom: 20 }}>
             {kind === "membro"
-              ? "O acesso é liberado pelo e-mail: o atleta entra em /voxen, cria a senha e já vê as partidas publicadas."
+              ? "O acesso é liberado pelo e-mail: o atleta cria a conta em /login com este e-mail e já vê as partidas publicadas em Minha área."
               : "Referências não têm login. Cadastre partidas e ações delas como de um atleta: os membros comparam o próprio jogo com elas."}
           </p>
           <MemberForm key={`${kind}-${fromKey ?? ""}`} kind={kind} initial={kind === "membro" ? prefill : undefined} onSave={create}
