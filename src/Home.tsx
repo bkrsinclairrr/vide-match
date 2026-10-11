@@ -24,7 +24,6 @@ const Dashboard = lazy(() => import("./pages/Dashboard"))
 const Login = lazy(() => import("./pages/Login"))
 const ResetPassword = lazy(() => import("./pages/ResetPassword"))
 const Onboarding = lazy(() => import("./pages/Onboarding"))
-const Admin = lazy(() => import("./pages/Admin"))
 const Upload = lazy(() => import("./pages/Upload"))
 const Analysis = lazy(() => import("./pages/Analysis"))
 const Match = lazy(() => import("./pages/Match"))
@@ -38,6 +37,9 @@ const SiteHome = lazy(() => import("./pages/site/SiteHome"))
 
 /** VOXEN: a plataforma da equipe (administradores e executivos), com login próprio em /voxen. */
 const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
+
+/** Entrada só de administradores (/admin): login sem cadastro que leva direto à VOXEN. */
+const AdminEntry = lazy(() => import("./pages/admin/AdminEntry"))
 
 /** Minha área: a casa de quem entra com a conta do Zyron (login em /login). */
 const MinhaArea = lazy(() => import("./pages/membros/MinhaArea"))
@@ -159,7 +161,7 @@ const Home = () => {
                 <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
                 <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/admin" element={<AdminEntry />} />
                 <Route path="/voxen/cliente/*" element={<LegacyAreaRedirect from="/voxen/cliente" />} />
                 <Route path="/membros/*" element={<LegacyAreaRedirect from="/membros" />} />
                 <Route path="/minha-area/*" element={<MinhaArea />} />
