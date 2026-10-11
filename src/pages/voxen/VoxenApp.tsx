@@ -1,11 +1,10 @@
 import "@fontsource-variable/inter"
 import "./voxen.css"
 
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react"
-import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
+import { lazy, Suspense, useEffect, useRef, useState } from "react"
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  ArrowUpRight, BadgeCheck, ChevronsLeft, ChevronsRight, Eye, GitCompareArrows, LayoutDashboard, LogOut, Menu, RefreshCw,
-  Search, ShieldAlert, ShieldCheck, Shirt, Users, X,
+  BadgeCheck, Eye, GitCompareArrows, LayoutDashboard, LogOut, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -19,8 +18,9 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
 import { LEVEL_LABEL, type StaffRole } from "./access"
 import { positionCode } from "./data"
-import { usePointerGlow, useScrollReveal, useScrolled } from "./motion"
-import { Avatar, PageSkeleton, ScoreChip, VoxenMark, VoxenWordmark, playerPath } from "./ui"
+import { usePointerGlow } from "./motion"
+import { AppShell, Splash, useCommandShortcut, type NavItem, type Shortcut, type TabItem } from "./shell"
+import { Avatar, PageSkeleton, ScoreChip, VoxenWordmark, playerPath } from "./ui"
 import { AccessCheckError, StaffLogin, StaffOnly } from "./StaffGate"
 
 const Overview = lazy(() => import("./pages/Overview"))
@@ -34,24 +34,22 @@ const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
 const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
 const AccountsPage = lazy(() => import("./pages/accounts/AccountsPage"))
 
-const NAV = [
-  { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true },
-  { to: "/voxen/jogadores", label: "Jogadores", icon: Users, end: false },
-  { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, end: false },
-  { to: "/voxen/elenco", label: "Elenco", icon: Shirt, end: false },
-  { to: "/voxen/comparativo", label: "Comparativo", icon: GitCompareArrows, end: false },
-  { to: "/voxen/contas", label: "Contas e acessos", icon: ShieldCheck, end: false },
+const NAV: NavItem[] = [
+  { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true, section: "Plataforma" },
+  { to: "/voxen/jogadores", label: "Jogadores", icon: Users, section: "Plataforma" },
+  { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, section: "Plataforma" },
+  { to: "/voxen/elenco", label: "Elenco", icon: Shirt, section: "Plataforma" },
+  { to: "/voxen/comparativo", label: "Comparativo", icon: GitCompareArrows, section: "Plataforma" },
+  { to: "/voxen/contas", label: "Contas e acessos", icon: ShieldCheck, section: "Administração" },
 ]
 
 /** Barra de abas do celular: as quatro telas mais usadas e o menu completo. */
-const TABS = [
+const TABS: TabItem[] = [
   { to: "/voxen", label: "Início", icon: LayoutDashboard, end: true },
-  { to: "/voxen/jogadores", label: "Jogadores", icon: Users, end: false },
-  { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, end: false },
-  { to: "/voxen/contas", label: "Contas", icon: ShieldCheck, end: false },
+  { to: "/voxen/jogadores", label: "Jogadores", icon: Users },
+  { to: "/voxen/membros", label: "Membros", icon: BadgeCheck },
+  { to: "/voxen/contas", label: "Contas", icon: ShieldCheck },
 ]
-
-const COLLAPSE_KEY = "voxen:menu-recolhido"
 
 export default function VoxenApp() {
   const dev = useDevPreview()
@@ -90,26 +88,12 @@ function AccessGate() {
   const { session, user, loading } = useAuth()
   const { level, loading: levelLoading, failed, retry } = useAccessLevel()
 
-  if (loading) return <Splash />
+  if (loading) return <Splash label="Carregando a VOXEN" />
   if (!session || !user) return <StaffLogin />
   if (failed) return <AccessCheckError onRetry={retry} />
-  if (levelLoading || !level) return <Splash />
+  if (levelLoading || !level) return <Splash label="Carregando a VOXEN" />
   if (level === "user") return <StaffOnly email={user.email ?? ""} />
   return <Workspace demo={false} role={level} />
-}
-
-function Splash() {
-  return (
-    <div className="vx-splash relative z-[1]" role="status" aria-label="Carregando a VOXEN">
-      <div className="vx-splash-inner">
-        <div className="vx-splash-orbit">
-          <span className="vx-splash-ring" aria-hidden="true" />
-          <div className="vx-splash-mark"><VoxenMark size={52} /></div>
-        </div>
-        <span className="vx-splash-bar" aria-hidden="true" />
-      </div>
-    </div>
-  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -145,42 +129,13 @@ function useTitle() {
   return { kicker: "Painel", title: "Visão geral" }
 }
 
-function readCollapsed() {
-  try { return localStorage.getItem(COLLAPSE_KEY) === "1" } catch { return false }
-}
-
 function Shell() {
   const { players, loading, reload, demo, error, role, canEdit } = useVoxen()
   const { user, signOut } = useAuth()
   const { toast } = useToast()
-  const location = useLocation()
-  const [open, setOpen] = useState(false)
   const [palette, setPalette] = useState(false)
-  const [collapsed, setCollapsed] = useState(readCollapsed)
   const { kicker, title } = useTitle()
-  const scrolled = useScrolled()
-  const mainRef = useRef<HTMLElement>(null)
-  useScrollReveal(mainRef)
-
-  useEffect(() => { setOpen(false) }, [location.pathname])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault()
-        setPalette((v) => !v)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [])
-
-  const toggleCollapsed = () => {
-    setCollapsed((v) => {
-      try { localStorage.setItem(COLLAPSE_KEY, v ? "0" : "1") } catch { /* sem armazenamento: só nesta visita */ }
-      return !v
-    })
-  }
+  useCommandShortcut(() => setPalette((v) => !v))
 
   const refresh = async () => {
     if (await reload()) toast({ title: "Dados atualizados", description: "A base de atletas foi recarregada agora." })
@@ -189,238 +144,66 @@ function Shell() {
   const email = demo ? (role === "admin" ? "equipe@aizyron.com" : "executivo@aizyron.com") : user?.email ?? ""
   const onSignOut = demo ? undefined : () => void signOut()
 
-  return (
-    <div className={`vx-shell ${collapsed ? "is-collapsed" : ""}`}>
-      {open && <div className="vx-scrim" onClick={() => setOpen(false)} />}
-      <Sidebar open={open} collapsed={collapsed} onToggle={toggleCollapsed} count={players.length} role={role} email={email} onSignOut={onSignOut} />
-
-      <div className="vx-main">
-        <header className={`vx-top ${scrolled ? "is-scrolled" : ""}`}>
-          <button type="button" className="vx-icon-btn vx-menu-btn" onClick={() => setOpen(true)} aria-label="Abrir menu">
-            <Menu />
-          </button>
-          <div key={title} className="vx-top-title">
-            <span className="vx-top-kicker">{kicker}</span>
-            <h1 className="vx-top-h1">{title}</h1>
-          </div>
-          {!canEdit && (
-            <span className="vx-tag vx-readonly" title="O seu acesso é de executivo: você vê tudo, mas não altera nada.">
-              <Eye className="h-3 w-3" /> Somente leitura
-            </span>
-          )}
-          <button type="button" className="vx-search" onClick={() => setPalette(true)} aria-label="Buscar atleta">
-            <Search />
-            <span>Buscar atleta, e-mail ou telefone</span>
-            <span className="vx-kbd">Ctrl K</span>
-          </button>
-          <button
-            type="button"
-            className={`vx-icon-btn vx-refresh ${loading ? "vx-spin" : ""}`}
-            onClick={() => void refresh()}
-            aria-label="Atualizar dados"
-            title="Atualizar dados"
-          >
-            <RefreshCw />
-          </button>
-          <RouteProgress busy={loading} routeKey={location.pathname} />
-        </header>
-
-        <main ref={mainRef} className="vx-page">
-          {error ? (
-            <div className="vx-card">
-              <div className="vx-empty">
-                <span className="vx-empty-icon"><ShieldAlert className="h-6 w-6" /></span>
-                <strong className="text-white">Não foi possível carregar os atletas</strong>
-                <span>{error}</span>
-                <button type="button" className="vx-btn vx-btn--gold mt-2" onClick={() => void refresh()}>Tentar de novo</button>
-              </div>
-            </div>
-          ) : loading && !players.length ? (
-            <PageSkeleton />
-          ) : (
-            <Suspense fallback={<PageSkeleton />}>
-              <div key={location.pathname} className="vx-page-enter">
-                <Routes>
-                  <Route index element={<Overview />} />
-                  <Route path="jogadores" element={<PlayersPage />} />
-                  <Route path="jogadores/:key" element={<PlayerProfile />} />
-                  <Route path="elenco" element={<Squad />} />
-                  <Route path="comparativo" element={<Compare />} />
-                  <Route path="contas" element={<AccountsPage />} />
-                  <Route path="membros" element={<AdminMembers />} />
-                  <Route path="membros/comparar" element={<AdminCompare />} />
-                  <Route path="membros/:id" element={<AdminMember />} />
-                  <Route path="membros/:id/partidas/:matchId" element={<AdminMatch />} />
-                  <Route path="*" element={<Navigate to="/voxen" replace />} />
-                </Routes>
-              </div>
-            </Suspense>
-          )}
-        </main>
-      </div>
-
-      <TabBar onMore={() => setOpen(true)} />
-      <Palette open={palette} onOpenChange={setPalette} onRefresh={() => void refresh()} onSignOut={onSignOut} />
-    </div>
-  )
-}
-
-/**
- * Linha dourada sob a barra do topo: corre ao trocar de página e enquanto os
- * dados recarregam. Só um sinal visual; o conteúdo já tem esqueleto próprio.
- */
-function RouteProgress({ busy, routeKey }: { busy: boolean; routeKey: string }) {
-  const [phase, setPhase] = useState<"idle" | "run" | "done">(busy ? "run" : "idle")
-  const busyRef = useRef(busy)
-  const first = useRef(true)
-  busyRef.current = busy
-
-  useEffect(() => {
-    if (first.current) {
-      first.current = false
-      return
-    }
-    setPhase("run")
-    const t = window.setTimeout(() => { if (!busyRef.current) setPhase("done") }, 380)
-    return () => window.clearTimeout(t)
-  }, [routeKey])
-
-  useEffect(() => {
-    if (busy) setPhase("run")
-    else setPhase((p) => (p === "run" ? "done" : p))
-  }, [busy])
-
-  useEffect(() => {
-    if (phase !== "done") return
-    const t = window.setTimeout(() => setPhase("idle"), 700)
-    return () => window.clearTimeout(t)
-  }, [phase])
-
-  return <span className={`vx-progress is-${phase}`} aria-hidden="true" />
-}
-
-function Sidebar({
-  open, collapsed, onToggle, count, email, role, onSignOut,
-}: {
-  open: boolean
-  collapsed: boolean
-  onToggle: () => void
-  count: number
-  email: string
-  role: StaffRole
-  onSignOut?: () => void
-}) {
-  const { pathname } = useLocation()
-  const navRef = useRef<HTMLElement>(null)
-  const [pill, setPill] = useState<{ y: number; visible: boolean }>({ y: 0, visible: false })
-
-  const activeIndex = NAV.findIndex((item) => (item.end ? pathname === item.to || pathname === `${item.to}/` : pathname.startsWith(item.to)))
-
-  useLayoutEffect(() => {
-    const nav = navRef.current
-    if (!nav) return
-    const measure = () => {
-      const el = nav.querySelectorAll<HTMLElement>(".vx-nav-item")[activeIndex]
-      if (!el) setPill((p) => ({ ...p, visible: false }))
-      else setPill({ y: el.offsetTop, visible: true })
-    }
-    measure()
-    // Recolher/expandir (ou cruzar a largura do celular) muda a altura dos rótulos: mede de novo.
-    if (typeof ResizeObserver === "undefined") return
-    const ro = new ResizeObserver(measure)
-    ro.observe(nav)
-    return () => ro.disconnect()
-  }, [activeIndex, collapsed])
-
-  const main = NAV.slice(0, -1)
-  const admin = NAV[NAV.length - 1]
-
-  const item = ({ to, label, icon: Icon, end }: (typeof NAV)[number]) => (
-    <NavLink key={to} to={to} end={end} data-tip={label} className={({ isActive }) => `vx-nav-item ${isActive ? "is-active" : ""}`}>
-      <Icon />
-      <span className="vx-nav-text">{label}</span>
-      {to === "/voxen/jogadores" && <span className="vx-nav-count tnum">{count}</span>}
-    </NavLink>
-  )
+  const nav = NAV.map((item) => (item.to === "/voxen/jogadores" ? { ...item, badge: players.length } : item))
+  const shortcuts: Shortcut[] = [
+    ...(role === "admin" ? [{ label: "Painel de administração", to: "/admin" }] : []),
+    { label: "Abrir o funil", href: "/avaliacao" },
+    { label: "Site da Zyron", href: "/" },
+  ]
 
   return (
-    <aside className={`vx-side ${open ? "is-open" : ""}`} aria-label="Navegação da VOXEN">
-      <div className="vx-brand"><VoxenWordmark /></div>
-      <button
-        type="button"
-        className="vx-collapse-btn"
-        onClick={onToggle}
-        aria-label={collapsed ? "Expandir o menu" : "Recolher o menu"}
-        title={collapsed ? "Expandir o menu" : "Recolher o menu"}
-      >
-        {collapsed ? <ChevronsRight /> : <ChevronsLeft />}
-      </button>
-
-      <nav ref={navRef} className="vx-nav">
-        <span className="vx-nav-pill" style={{ transform: `translateY(${pill.y}px)`, opacity: pill.visible ? 1 : 0 }} aria-hidden="true" />
-        <p className="vx-nav-label">Plataforma</p>
-        {main.map(item)}
-        <p className="vx-nav-label">Administração</p>
-        {item(admin)}
-      </nav>
-
-      <p className="vx-nav-label">Atalhos</p>
-      <nav className="vx-nav">
-        <a href="/avaliacao" target="_blank" rel="noopener noreferrer" className="vx-nav-item" data-tip="Abrir o funil">
-          <ArrowUpRight /> <span className="vx-nav-text">Abrir o funil</span>
-        </a>
-        <a href="/" target="_blank" rel="noopener noreferrer" className="vx-nav-item" data-tip="Site da Zyron">
-          <ArrowUpRight /> <span className="vx-nav-text">Site da Zyron</span>
-        </a>
-      </nav>
-
-      <div className="vx-side-foot">
-        <div className="vx-user">
-          <Avatar name={email || "Admin"} size={34} />
-          <div className="vx-user-info min-w-0 flex-1">
-            <div className="vx-user-email">{email}</div>
-            <div className="vx-user-role">{LEVEL_LABEL[role]}</div>
+    <AppShell
+      brand={<VoxenWordmark />}
+      nav={nav}
+      tabs={TABS}
+      shortcuts={shortcuts}
+      email={email}
+      roleLabel={LEVEL_LABEL[role]}
+      onSignOut={onSignOut}
+      kicker={kicker}
+      title={title}
+      chip={!canEdit && (
+        <span className="vx-tag vx-readonly" title="O seu acesso é de executivo: você vê tudo, mas não altera nada.">
+          <Eye className="h-3 w-3" /> Somente leitura
+        </span>
+      )}
+      searchLabel="Buscar atleta, e-mail ou telefone"
+      onSearch={() => setPalette(true)}
+      onRefresh={() => void refresh()}
+      loading={loading}
+      collapseKey="voxen:menu-recolhido"
+      ariaLabel="Navegação da VOXEN"
+      extra={<Palette open={palette} onOpenChange={setPalette} onRefresh={() => void refresh()} onSignOut={onSignOut} />}
+    >
+      {error ? (
+        <div className="vx-card">
+          <div className="vx-empty">
+            <span className="vx-empty-icon"><ShieldAlert className="h-6 w-6" /></span>
+            <strong className="text-white">Não foi possível carregar os atletas</strong>
+            <span>{error}</span>
+            <button type="button" className="vx-btn vx-btn--gold mt-2" onClick={() => void refresh()}>Tentar de novo</button>
           </div>
-          {onSignOut && (
-            <button type="button" className="vx-icon-btn" onClick={onSignOut} aria-label="Sair" title="Sair">
-              <LogOut />
-            </button>
-          )}
         </div>
-      </div>
-    </aside>
-  )
-}
-
-/** Abas fixas no rodapé (só no celular). Some ao rolar para baixo e volta ao subir. */
-function TabBar({ onMore }: { onMore: () => void }) {
-  const [hidden, setHidden] = useState(false)
-
-  useEffect(() => {
-    let lastY = window.scrollY
-    const onScroll = () => {
-      const y = window.scrollY
-      if (Math.abs(y - lastY) < 6) return
-      setHidden(y > lastY && y > 120)
-      lastY = y
-    }
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [])
-
-  return (
-    <nav className={`vx-tabbar ${hidden ? "is-hidden" : ""}`} aria-label="Navegação rápida">
-      {TABS.map(({ to, label, icon: Icon, end }) => (
-        <NavLink key={to} to={to} end={end} className={({ isActive }) => `vx-tab-item ${isActive ? "is-active" : ""}`}>
-          <Icon />
-          <span>{label}</span>
-        </NavLink>
-      ))}
-      <button type="button" className="vx-tab-item" onClick={onMore} aria-label="Abrir o menu completo">
-        <Menu />
-        <span>Mais</span>
-      </button>
-    </nav>
+      ) : loading && !players.length ? (
+        <PageSkeleton />
+      ) : (
+        <Suspense fallback={<PageSkeleton />}>
+          <Routes>
+            <Route index element={<Overview />} />
+            <Route path="jogadores" element={<PlayersPage />} />
+            <Route path="jogadores/:key" element={<PlayerProfile />} />
+            <Route path="elenco" element={<Squad />} />
+            <Route path="comparativo" element={<Compare />} />
+            <Route path="contas" element={<AccountsPage />} />
+            <Route path="membros" element={<AdminMembers />} />
+            <Route path="membros/comparar" element={<AdminCompare />} />
+            <Route path="membros/:id" element={<AdminMember />} />
+            <Route path="membros/:id/partidas/:matchId" element={<AdminMatch />} />
+            <Route path="*" element={<Navigate to="/voxen" replace />} />
+          </Routes>
+        </Suspense>
+      )}
+    </AppShell>
   )
 }
 
@@ -432,7 +215,7 @@ function Palette({
   onRefresh: () => void
   onSignOut?: () => void
 }) {
-  const { players } = useVoxen()
+  const { players, role } = useVoxen()
   const navigate = useNavigate()
   const go = (to: string) => {
     onOpenChange(false)
@@ -457,6 +240,11 @@ function Palette({
                   <Icon className="mr-2 h-4 w-4" /> {label}
                 </CommandItem>
               ))}
+              {role === "admin" && (
+                <CommandItem value="pagina painel de administracao admin" onSelect={() => go("/admin")}>
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Painel de administração
+                </CommandItem>
+              )}
             </CommandGroup>
             <CommandGroup heading="Ações">
               <CommandItem value="acao atualizar dados recarregar" onSelect={() => run(onRefresh)}>
