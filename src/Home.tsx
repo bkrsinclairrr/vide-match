@@ -37,6 +37,9 @@ const SiteHome = lazy(() => import("./pages/site/SiteHome"))
 /** VOXEN: plataforma interna dos admins com os atletas da base (login + papel admin). */
 const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
 
+/** Área de membros: atletas com acesso liberado pela equipe (login próprio). */
+const MembersApp = lazy(() => import("./pages/membros/MembersApp"))
+
 /**
  * Funil aberto (/avaliacao). Roda em paralelo ao tradicional, sem alterá-lo:
  * entrada pública → formulário público → vídeos → resultado e WhatsApp.
@@ -137,6 +140,7 @@ const Home = () => {
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="/voxen/*" element={<VoxenApp />} />
+                <Route path="/membros/*" element={<MembersApp />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

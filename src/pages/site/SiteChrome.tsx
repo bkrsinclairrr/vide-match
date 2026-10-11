@@ -375,11 +375,13 @@ export function FinalCtaSection({ to }: { to: To }) {
  * WhatsApp, para não abrir saídas antes do formulário.
  */
 export function SiteFooter({
-  links = [], onNavigate, showWhatsApp = true,
+  links = [], onNavigate, showWhatsApp = true, showMembers = false,
 }: {
   links?: SectionLink[]
   onNavigate?: NavigateHandler
   showWhatsApp?: boolean
+  /** Atalho para a área de membros (clientes). Fora do funil, para não abrir saídas. */
+  showMembers?: boolean
 }) {
   return (
     <footer className="zs-footer">
@@ -395,6 +397,7 @@ export function SiteFooter({
                 {link.label}
               </a>
             ))}
+            {showMembers && <Link to="/membros" className="zs-footer-link">Área de membros</Link>}
             <Link to="/termos" className="zs-footer-link">Termos de Uso</Link>
             <Link to="/privacidade" className="zs-footer-link">Privacidade</Link>
           </nav>

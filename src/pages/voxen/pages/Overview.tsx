@@ -118,7 +118,7 @@ export default function Overview() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="text-[13px] text-zinc-400">
-            {demo ? "Dados de demonstração" : "Atualizado " + (data ? timeAgo(data.loadedAt.toISOString()) : "")}
+            {demo ? "Dados de teste (local)" : "Atualizado " + (data ? timeAgo(data.loadedAt.toISOString()) : "")}
           </p>
           <h2 className="mt-1 text-[26px] font-bold tracking-[-0.02em]">
             {stats.today > 0 ? <>Hoje chegaram <span className="text-amber-300">{stats.today}</span> atleta{stats.today === 1 ? "" : "s"}.</> : "Sua base de atletas"}

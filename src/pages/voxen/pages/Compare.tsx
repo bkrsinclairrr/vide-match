@@ -187,7 +187,7 @@ export default function Compare() {
           </section>
 
           <div className="vx-grid mb-[18px] items-start xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-            <section className="vx-card xl:sticky xl:top-[88px]">
+            <section className="vx-card vx-sticky-xl">
               <CardHead
                 title="Comparação no radar"
                 actions={

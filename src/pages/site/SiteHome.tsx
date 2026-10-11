@@ -287,7 +287,7 @@ export default function SiteHome() {
         <FinalCtaSection to={evaluation} />
       </main>
 
-      <SiteFooter links={NAV_LINKS} onNavigate={goTo} />
+      <SiteFooter links={NAV_LINKS} onNavigate={goTo} showMembers />
     </div>
   )
 }

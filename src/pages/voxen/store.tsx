@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useToast } from "@/hooks/use-toast"
 import {
-  buildDemoData, buildPercentiles, loadVoxenData, saveMeta,
+  buildPercentiles, loadVoxenData, saveMeta,
   type Percentiles, type Player, type PlayerMeta, type VoxenData,
 } from "./data"
 
@@ -37,10 +37,10 @@ export function VoxenProvider({ demo, children }: { demo: boolean; children: Rea
     setLoading(true)
     setError(null)
     try {
-      // A condição fica escrita aqui, por extenso, de propósito: só assim ela é resolvida na
-      // compilação e o gerador de dados fictícios some do bundle do site (ver demoFlag.ts).
-      const loaded = (import.meta.env.DEV || import.meta.env.VITE_VOXEN_DEMO === "1") && demo
-        ? buildDemoData()
+      // Import dinâmico dentro da condição: no build de produção ela vira `false`
+      // e o gerador de dados de teste nem entra no bundle.
+      const loaded = import.meta.env.DEV && demo
+        ? (await import("./testData")).buildDemoData()
         : await loadVoxenData()
       dataRef.current = loaded
       setData(loaded)

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
-  ArrowLeft, Check, ClipboardList, Copy, GitCompareArrows, Mail, NotebookPen, Pencil, Printer, Radar, Save,
+  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, GitCompareArrows, Mail, NotebookPen, Pencil, Printer, Radar, Save,
   UserRoundSearch, X,
 } from "lucide-react"
+import { getSource } from "@/pages/membros/api"
 import { useToast } from "@/hooks/use-toast"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { useVoxen } from "../store"
@@ -15,6 +16,34 @@ import { Meter, Pitch, RadarChart, Ring, CountUp } from "../charts"
 import { Avatar, CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
 
 const norm = (score: number) => (score - 64) / 34
+
+/** Lead que virou cliente: abre o cadastro de membro preenchido ou o membro já criado. */
+function MemberButton({ p }: { p: Player }) {
+  const { demo } = useVoxen()
+  const navigate = useNavigate()
+  const leadId = p.key.startsWith("lead:") ? p.key.slice(5) : null
+  const [memberId, setMemberId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!leadId) return
+    let cancelled = false
+    getSource(demo)
+      .then((s) => s.findByLead(leadId))
+      .then((m) => { if (!cancelled) setMemberId(m?.id ?? null) })
+      .catch(() => undefined) // área de membros ainda não ativada: o botão leva ao aviso
+    return () => { cancelled = true }
+  }, [leadId, demo])
+
+  if (memberId) {
+    return <Link to={`/voxen/membros/${memberId}`} className="vx-btn"><BadgeCheck /> Ver membro</Link>
+  }
+  return (
+    <button type="button" className="vx-btn" title="Cadastrar na área de membros com os dados do funil"
+      onClick={() => navigate(`/voxen/membros?${new URLSearchParams({ de: p.key })}`)}>
+      <BadgeCheck /> Tornar membro
+    </button>
+  )
+}
 
 function Header({ p }: { p: Player }) {
   const { updateMeta } = useVoxen()
@@ -58,6 +87,7 @@ function Header({ p }: { p: Player }) {
         <div className="vx-no-print flex flex-wrap items-center gap-2">
           {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="vx-btn vx-btn--wpp"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>}
           {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
+          <MemberButton p={p} />
           {p.email && <a href={`mailto:${p.email}`} className="vx-icon-btn" aria-label={`E-mail para ${p.email}`} title={p.email}><Mail /></a>}
           <button type="button" className="vx-icon-btn" aria-label="Comparar com outros" title="Comparar" onClick={() => navigate(comparePath([p.key]))}><GitCompareArrows /></button>
           <button type="button" className="vx-icon-btn" aria-label="Imprimir ficha" title="Imprimir ficha" onClick={() => window.print()}><Printer /></button>
@@ -204,7 +234,7 @@ function NotesCard({ p }: { p: Player }) {
     <section className="vx-card">
       <CardHead
         title={<span className="inline-flex items-center gap-2"><NotebookPen className="h-4 w-4 text-amber-300" /> Notas da equipe</span>}
-        sub={demo ? "Demonstração: as notas não são gravadas" : data?.sharedMeta ? "Compartilhadas com todos os admins" : "Salvas neste navegador até a atualização do banco"}
+        sub={demo ? "Teste local: as notas não são gravadas" : data?.sharedMeta ? "Compartilhadas com todos os admins" : "Salvas neste navegador até a atualização do banco"}
         actions={<span className="text-[12px] text-zinc-500" aria-live="polite">{saved ? <span className="inline-flex items-center gap-1 text-emerald-400"><Check className="h-3.5 w-3.5" /> Salvo</span> : "Salvando..."}</span>}
       />
       <textarea

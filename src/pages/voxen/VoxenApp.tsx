@@ -4,7 +4,7 @@ import "./voxen.css"
 import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  ArrowLeft, ArrowUpRight, GitCompareArrows, LayoutDashboard, Lock, LogOut, Mail, Menu, RefreshCw,
+  ArrowLeft, ArrowUpRight, BadgeCheck, GitCompareArrows, LayoutDashboard, Lock, LogOut, Mail, Menu, RefreshCw,
   Search, ShieldAlert, Shirt, Users, X,
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
@@ -16,7 +16,6 @@ import {
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
 import { positionCode } from "./data"
-import { DEMO_ONLY, SITE_BASE } from "./demoFlag"
 import { Avatar, PageSkeleton, ScoreChip, VoxenMark, VoxenWordmark, playerPath } from "./ui"
 
 const Overview = lazy(() => import("./pages/Overview"))
@@ -24,10 +23,15 @@ const PlayersPage = lazy(() => import("./pages/PlayersPage"))
 const PlayerProfile = lazy(() => import("./pages/PlayerProfile"))
 const Compare = lazy(() => import("./pages/Compare"))
 const Squad = lazy(() => import("./pages/Squad"))
+const AdminMembers = lazy(() => import("./pages/members/AdminMembers"))
+const AdminMember = lazy(() => import("./pages/members/AdminMember"))
+const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
+const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
 
 const NAV = [
   { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true },
   { to: "/voxen/jogadores", label: "Jogadores", icon: Users, end: false },
+  { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, end: false },
   { to: "/voxen/elenco", label: "Elenco", icon: Shirt, end: false },
   { to: "/voxen/comparativo", label: "Comparativo", icon: GitCompareArrows, end: false },
 ]
@@ -35,14 +39,12 @@ const NAV = [
 const DEMO_KEY = "voxen:demo"
 
 /**
- * Modo demonstração: dados fictícios, sem login. Só existe no `npm run dev`
- * (liga com /voxen?demo) e no build separado de demonstração, onde está
- * sempre ligado (ver demoFlag.ts). No build de produção do site o bloco some.
+ * Teste local: dados fictícios, sem login. Só existe no `npm run dev` (liga
+ * com /voxen?demo); no build de produção o bloco some.
  */
 function useDemoMode() {
   const { search } = useLocation()
   return useMemo(() => {
-    if (DEMO_ONLY) return true
     if (!import.meta.env.DEV) return false
     try {
       if (new URLSearchParams(search).has("demo")) sessionStorage.setItem(DEMO_KEY, "1")
@@ -59,7 +61,7 @@ export default function VoxenApp() {
   useEffect(() => {
     document.documentElement.classList.add("dark")
     const prev = document.title
-    document.title = DEMO_ONLY ? "VOXEN · Demonstração" : "VOXEN · Scouting Zyron"
+    document.title = "VOXEN · Scouting Zyron"
     return () => { document.title = prev }
   }, [])
 
@@ -228,6 +230,11 @@ function useTitle() {
   if (pathname.startsWith("/voxen/jogadores")) return { kicker: "Base de atletas", title: "Jogadores" }
   if (pathname.startsWith("/voxen/elenco")) return { kicker: "Por posição", title: "Elenco" }
   if (pathname.startsWith("/voxen/comparativo")) return { kicker: "Lado a lado", title: "Comparativo" }
+  if (pathname.startsWith("/voxen/membros/comparar")) return { kicker: "Área de membros", title: "Comparar perfis" }
+  if (pathname.endsWith("/partidas/nova")) return { kicker: "Área de membros", title: "Nova partida" }
+  if (pathname.includes("/partidas/")) return { kicker: "Área de membros", title: "Partida e lances" }
+  if (pathname.startsWith("/voxen/membros/")) return { kicker: "Área de membros", title: "Perfil" }
+  if (pathname.startsWith("/voxen/membros")) return { kicker: "Área de membros", title: "Membros" }
   return { kicker: "Painel", title: "Visão geral" }
 }
 
@@ -255,7 +262,7 @@ function Shell() {
   return (
     <>
       {open && <div className="vx-scrim" onClick={() => setOpen(false)} />}
-      <Sidebar open={open} count={players.length} email={demo ? "demonstracao@voxen" : user?.email ?? ""} onSignOut={demo ? undefined : () => void signOut()} />
+      <Sidebar open={open} count={players.length} email={demo ? "teste local" : user?.email ?? ""} onSignOut={demo ? undefined : () => void signOut()} />
 
       <div className="vx-main">
         <header className="vx-top">
@@ -266,7 +273,7 @@ function Shell() {
             <span className="vx-top-kicker">{kicker}</span>
             <h1 className="vx-top-h1">{title}</h1>
           </div>
-          {demo && <span className="vx-badge-demo">Demonstração</span>}
+          {demo && <span className="vx-badge-demo">Teste local</span>}
           <button type="button" className="vx-search" onClick={() => setPalette(true)} aria-label="Buscar atleta">
             <Search />
             <span>Buscar atleta, e-mail ou telefone</span>
@@ -304,6 +311,10 @@ function Shell() {
                   <Route path="jogadores/:key" element={<PlayerProfile />} />
                   <Route path="elenco" element={<Squad />} />
                   <Route path="comparativo" element={<Compare />} />
+                  <Route path="membros" element={<AdminMembers />} />
+                  <Route path="membros/comparar" element={<AdminCompare />} />
+                  <Route path="membros/:id" element={<AdminMember />} />
+                  <Route path="membros/:id/partidas/:matchId" element={<AdminMatch />} />
                   <Route path="*" element={<Navigate to="/voxen" replace />} />
                 </Routes>
               </div>
@@ -352,10 +363,13 @@ function Sidebar({ open, count, email, onSignOut }: { open: boolean; count: numb
 
       <p className="vx-nav-label">Atalhos</p>
       <nav className="vx-nav">
-        <a href={`${SITE_BASE}/avaliacao`} target="_blank" rel="noopener noreferrer" className="vx-nav-item">
+        <a href="/membros" target="_blank" rel="noopener noreferrer" className="vx-nav-item">
+          <ArrowUpRight /> Área de membros
+        </a>
+        <a href="/avaliacao" target="_blank" rel="noopener noreferrer" className="vx-nav-item">
           <ArrowUpRight /> Abrir o funil
         </a>
-        <a href={`${SITE_BASE}/`} target="_blank" rel="noopener noreferrer" className="vx-nav-item">
+        <a href="/" target="_blank" rel="noopener noreferrer" className="vx-nav-item">
           <ArrowUpRight /> Site da Zyron
         </a>
       </nav>
