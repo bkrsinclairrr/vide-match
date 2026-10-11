@@ -25,6 +25,8 @@ type VoxenStore = {
   editPlayer: (key: string, edit: PlayerEdit) => Promise<{ partial: boolean }>
   /** Exclui o registro (só administrador). */
   removePlayer: (key: string) => Promise<void>
+  /** Exclui vários de uma vez e recarrega só no fim. `failed`: chaves que o banco recusou (com o motivo da primeira falha). */
+  removePlayers: (keys: string[]) => Promise<{ removed: number; failed: string[]; reason: string | null }>
 }
 
 const Ctx = createContext<VoxenStore | null>(null)
@@ -139,6 +141,32 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
     await reload()
   }, [demo, role, reload])
 
+  const removePlayers = useCallback(async (keys: string[]) => {
+    const current = dataRef.current
+    if (!canEditAs(role) || !current) throw new Error("Você não tem permissão para excluir.")
+    const wanted = new Set(keys)
+    if (demo) {
+      const updated = { ...current, players: current.players.filter((p) => !wanted.has(p.key)) }
+      dataRef.current = updated
+      setData(updated)
+      return { removed: keys.length, failed: [] as string[], reason: null }
+    }
+    const failed: string[] = []
+    let reason: string | null = null
+    let removed = 0
+    for (const player of current.players.filter((p) => wanted.has(p.key))) {
+      try {
+        await deletePlayer(player)
+        removed++
+      } catch (err) {
+        failed.push(player.key)
+        reason ??= err instanceof Error ? err.message : String(err)
+      }
+    }
+    await reload()
+    return { removed, failed, reason }
+  }, [demo, role, reload])
+
   const value = useMemo<VoxenStore>(() => {
     const players = data?.players ?? []
     return {
@@ -155,8 +183,9 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
       updateMeta,
       editPlayer,
       removePlayer,
+      removePlayers,
     }
-  }, [data, loading, error, demo, role, reload, updateMeta, editPlayer, removePlayer])
+  }, [data, loading, error, demo, role, reload, updateMeta, editPlayer, removePlayer, removePlayers])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

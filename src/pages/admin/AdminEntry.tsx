@@ -2,8 +2,8 @@ import "@fontsource-variable/inter"
 import "@/pages/voxen/voxen.css"
 import "./admin.css"
 
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type RefObject } from "react"
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom"
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties, type FormEvent, type RefObject } from "react"
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import {
   AlertCircle, ArrowLeft, ArrowRight, Check, Eye, EyeOff, KeyRound, Loader2, Lock, LogOut, Mail, MailCheck, RefreshCw,
   ShieldCheck, ShieldX,
@@ -13,20 +13,25 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useAccessLevel } from "@/hooks/useAccessLevel"
 import { prefersReducedMotion } from "@/hooks/useScrollAnimations"
 import { friendlyAuthError } from "@/lib/funnel"
+import { useDevPreview } from "@/lib/devPreview"
 import { usePointerGlow } from "@/pages/voxen/motion"
 
 /*
  * Entrada dos administradores (aizyron.com/admin). Só login, sem criar conta:
  * o acesso de administrador é dado por outro administrador em Contas e acessos.
- * Administrador entra e vai direto para a VOXEN; executivo e atleta recebem o
- * caminho certo. O banco (RLS) é quem protege os dados; esta tela só orienta.
+ * Administrador entra e vê a central de administração (AdminApp) neste mesmo
+ * endereço; executivo e atleta recebem o caminho certo. O banco (RLS) é quem
+ * protege os dados; esta tela só orienta.
  */
+
+/** A central de administração só é baixada depois do login de um administrador. */
+const AdminApp = lazy(() => import("./console/AdminApp"))
 
 const REMEMBER_KEY = "zyron:admin-email"
 
-/** Destino depois do login: só caminhos da VOXEN. */
+/** Destino depois do login: só caminhos da própria central (/admin...). */
 function safeNext(raw: string | null) {
-  return raw && /^\/voxen(\/|\?|$)/.test(raw) ? raw : "/voxen"
+  return raw && /^\/admin(\/|\?|$)/.test(raw) ? raw : null
 }
 
 function readRemembered() {
@@ -40,47 +45,100 @@ function remember(email: string | null) {
   } catch { /* sem armazenamento: só não lembra o e-mail */ }
 }
 
-type Phase = "splash" | "form" | "verifying" | "success" | "redirect" | "denied" | "error"
+type Phase = "splash" | "form" | "verifying" | "success" | "app" | "denied" | "error"
 
 export default function AdminEntry() {
+  const dev = useDevPreview()
+  // Dados locais para desenvolver a central sem banco (a condição por extenso tira isto do site publicado).
+  if (import.meta.env.DEV && dev.demo) {
+    return <Suspense fallback={null}><AdminApp demo /></Suspense>
+  }
+  return <Gate />
+}
+
+/** Decide o que mostrar: login, avisos de conta sem acesso ou a central de administração. */
+function Gate() {
   const { session, user, loading, signOut } = useAuth()
   const { level, loading: levelLoading, failed, retry } = useAccessLevel()
   const [params] = useSearchParams()
   const next = safeNext(params.get("next"))
   const navigate = useNavigate()
-  const rootRef = useRef<HTMLDivElement>(null)
+  const { pathname } = useLocation()
   const [signedHere, setSignedHere] = useState(false)
-  const [leaving, setLeaving] = useState(false)
-  usePointerGlow(rootRef)
-  useParallax(rootRef)
+  const [entered, setEntered] = useState(false)
   useAdminDocument()
+
+  // Saiu da conta (aqui ou de dentro da central): a próxima entrada começa do zero.
+  useEffect(() => {
+    if (!loading && !session) {
+      setSignedHere(false)
+      setEntered(false)
+    }
+  }, [loading, session])
 
   const phase: Phase =
     loading ? "splash"
       : !session || !user ? "form"
         : failed ? "error"
           : levelLoading || !level ? (signedHere ? "verifying" : "splash")
-            : level === "admin" ? (signedHere ? "success" : "redirect")
+            : level === "admin" ? (signedHere && !entered ? "success" : "app")
               : "denied"
 
-  // Acabou de entrar: "Acesso liberado", a tela sai com uma transição e a VOXEN abre.
+  const finishEntry = () => {
+    setEntered(true)
+    if (next && next !== pathname) navigate(next, { replace: true })
+  }
+
+  if (phase === "app") {
+    return (
+      <Suspense fallback={<div className="vx"><div className="vx-splash"><div className="vx-splash-inner"><span className="vx-splash-bar" /></div></div></div>}>
+        <AdminApp />
+      </Suspense>
+    )
+  }
+
+  return (
+    <GateScreen
+      phase={phase}
+      level={level}
+      email={user?.email ?? ""}
+      onAttempt={setSignedHere}
+      onRetry={retry}
+      onFinish={finishEntry}
+      onSignOut={async () => { setSignedHere(false); await signOut() }}
+    />
+  )
+}
+
+function GateScreen({
+  phase, level, email, onAttempt, onRetry, onFinish, onSignOut,
+}: {
+  phase: Exclude<Phase, "app">
+  level: string | null
+  email: string
+  onAttempt: (on: boolean) => void
+  onRetry: () => void
+  onFinish: () => void
+  onSignOut: () => void
+}) {
+  const rootRef = useRef<HTMLDivElement>(null)
+  const [leaving, setLeaving] = useState(false)
+  const finish = useRef(onFinish)
+  finish.current = onFinish
+  usePointerGlow(rootRef)
+  useParallax(rootRef)
+
+  // Acabou de entrar: "Acesso liberado", a tela sai com uma transição e a central abre.
   useEffect(() => {
     if (phase !== "success") return
     const quick = prefersReducedMotion()
     const t1 = window.setTimeout(() => setLeaving(true), quick ? 0 : 950)
-    const t2 = window.setTimeout(() => navigate(next, { replace: true }), quick ? 60 : 1550)
+    const t2 = window.setTimeout(() => finish.current(), quick ? 60 : 1550)
     return () => {
       window.clearTimeout(t1)
       window.clearTimeout(t2)
     }
-  }, [phase, navigate, next])
-
-  if (phase === "redirect") return <Navigate to={next} replace />
-
-  const leave = async () => {
-    setSignedHere(false)
-    await signOut()
-  }
+  }, [phase])
 
   return (
     <div ref={rootRef} className={`vx ad ${leaving ? "is-leaving" : ""}`}>
@@ -92,9 +150,9 @@ export default function AdminEntry() {
             <span className="ad-splash-bar" aria-hidden="true" />
           </div>
         ) : phase === "denied" || phase === "error" ? (
-          <Denied kind={phase === "error" ? "error" : level === "executive" ? "executive" : "user"} email={user?.email ?? ""} onRetry={retry} onSignOut={() => void leave()} />
+          <Denied kind={phase === "error" ? "error" : level === "executive" ? "executive" : "user"} email={email} onRetry={onRetry} onSignOut={onSignOut} />
         ) : (
-          <AdminForm status={phase === "verifying" ? "verifying" : phase === "success" ? "success" : "idle"} onAttempt={setSignedHere} />
+          <AdminForm status={phase === "verifying" ? "verifying" : phase === "success" ? "success" : "idle"} onAttempt={onAttempt} />
         )}
       </main>
     </div>

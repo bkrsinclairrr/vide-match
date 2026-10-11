@@ -161,7 +161,7 @@ const Home = () => {
                 <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
                 <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
-                <Route path="/admin" element={<AdminEntry />} />
+                <Route path="/admin/*" element={<AdminEntry />} />
                 <Route path="/voxen/cliente/*" element={<LegacyAreaRedirect from="/voxen/cliente" />} />
                 <Route path="/membros/*" element={<LegacyAreaRedirect from="/membros" />} />
                 <Route path="/minha-area/*" element={<MinhaArea />} />
