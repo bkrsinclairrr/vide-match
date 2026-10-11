@@ -8,6 +8,7 @@
  * Phase de jeu (1)", por Like tears in rain, CC BY-SA 4.0 (Wikimedia Commons).
  */
 import type { DataSource, EventInput, MatchInput, MemberInput, ProfileListItem } from "./api"
+import type { AthleteAccount } from "./account"
 import { ACTION_KEYS, type ActionKey, type Bundle, type Match, type MatchEvent, type Member } from "./model"
 
 const TEST_VIDEO =
@@ -244,6 +245,10 @@ export const fixtureSource: DataSource = {
     return delay(state.members.find((m) => m.leadId === leadId) ?? null)
   },
 
+  async findByUser(userId) {
+    return delay(state.members.find((m) => m.userId === userId) ?? null)
+  },
+
   async saveMember(input: MemberInput) {
     const now = new Date().toISOString()
     const existing = input.id ? state.members.find((m) => m.id === input.id) : undefined
@@ -297,4 +302,23 @@ export const fixtureSource: DataSource = {
     state.events = state.events.filter((e) => e.id !== id)
     return delay(undefined)
   },
+}
+
+/** Conta de quem entrou mas ainda não tem a análise de partidas liberada. */
+export const FIXTURE_ACCOUNT: AthleteAccount = {
+  userId: "00000000-0000-4000-8000-0000000000a1",
+  atletaId: 1,
+  email: "rafaelmendes.15@gmail.com",
+  name: "Rafael Mendes Monteiro",
+  firstName: "Rafael",
+  avatarUrl: null,
+  position: "Lateral Esquerdo",
+  age: 15,
+  heightCm: 159,
+  weightKg: 56,
+  foot: "Canhoto",
+  nationality: "Brasil",
+  city: "Salvador - BA",
+  hasProfile: true,
+  seed: "00000000-0000-4000-8000-0000000000a1",
 }

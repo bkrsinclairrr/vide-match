@@ -12,7 +12,8 @@ import { HeatMap } from "../components/Field"
 import { MatchThumb } from "../components/MatchThumb"
 import { MemberAvatar, RatingChip, ResultBadge, Shield } from "../components/bits"
 
-export default function HomePage() {
+/** `embedded`: dentro do Início do cliente, que já mostra o perfil no topo. */
+export default function HomePage({ embedded = false }: { embedded?: boolean }) {
   const { member, summary, whatsapp } = useMember()
   const navigate = useNavigate()
   const [slide, setSlide] = useState(0)
@@ -46,14 +47,16 @@ export default function HomePage() {
     <div className="mb-home">
       {/* Coluna do atleta */}
       <aside className="mb-home-side">
-        <section className="vx-card mb-profile-card">
-          <div aria-hidden="true" className="mb-profile-glow" />
-          <MemberAvatar member={member} size={92} ring="#fbbf24" />
-          <h2 className="mt-4 text-[20px] font-bold leading-tight">{member.fullName}</h2>
-          <p className="mt-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-amber-300">{member.position ?? "Atleta"}</p>
-          <p className="mt-1 text-[12.5px] text-zinc-400">{[member.category, age ? `${age} anos` : null, member.team].filter(Boolean).join(" · ")}</p>
-          <span className="mb-member-badge"><Sparkles className="h-3.5 w-3.5" /> Membro Zyron</span>
-        </section>
+        {!embedded && (
+          <section className="vx-card mb-profile-card">
+            <div aria-hidden="true" className="mb-profile-glow" />
+            <MemberAvatar member={member} size={92} ring="#fbbf24" />
+            <h2 className="mt-4 text-[20px] font-bold leading-tight">{member.fullName}</h2>
+            <p className="mt-1 text-[13px] font-semibold uppercase tracking-[0.08em] text-amber-300">{member.position ?? "Atleta"}</p>
+            <p className="mt-1 text-[12.5px] text-zinc-400">{[member.category, age ? `${age} anos` : null, member.team].filter(Boolean).join(" · ")}</p>
+            <span className="mb-member-badge"><Sparkles className="h-3.5 w-3.5" /> Membro Zyron</span>
+          </section>
+        )}
 
         <section className="vx-card">
           <CardHead title="Sua temporada" sub={`${t.matches} partida${t.matches === 1 ? "" : "s"} analisada${t.matches === 1 ? "" : "s"}`} />

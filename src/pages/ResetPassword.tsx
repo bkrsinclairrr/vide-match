@@ -62,7 +62,7 @@ export default function ResetPassword() {
       toast({ title: "Erro ao salvar", description: friendlyAuthError(error.message), variant: "destructive" })
     } else {
       toast({ title: "Senha atualizada!", description: "Você já pode entrar com a nova senha." })
-      navigate("/dashboard")
+      navigate("/voxen")
     }
   }
 

@@ -10,7 +10,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { STAT_KEYS, buildStats, overallFrom, type StatResult } from "@/lib/funnel"
-import { buildAccountSeed } from "@/lib/resultIdentity"
 
 // Tabelas e colunas novas ainda não estão nos tipos gerados.
 const db = supabase as unknown as SupabaseClient
@@ -354,8 +353,8 @@ function fromAthlete(row: AthleteRow, names: Map<string, string>, meta: Map<stri
     age: num(row.idade), height: num(row.altura), weight: num(row.peso), foot: str(row.melhor_pe),
     nationality: str(row.nacionalidade), position: str(row.posicao), city: str(row.cidade),
   }
-  // Mesmo cálculo da tela de resultado para quem tem conta.
-  const stats = buildStats(row.user_id ? buildAccountSeed(row.user_id) : key)
+  // Mesmo relatório que a pessoa vê na /analysis e na área dela: indicadores pelo id da conta.
+  const stats = buildStats(row.user_id ?? key)
   return {
     key,
     source: "conta",

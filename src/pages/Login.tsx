@@ -37,7 +37,7 @@ export default function Login() {
     if (error) {
       toast({ title: "Erro ao entrar", description: friendlyAuthError(error.message), variant: "destructive" })
     } else {
-      navigate("/dashboard")
+      navigate("/voxen")
     }
   }
 
@@ -64,7 +64,7 @@ export default function Login() {
         description: "Verifique sua caixa de entrada e entre após confirmar o endereço.",
       })
     } else {
-      navigate("/dashboard")
+      navigate("/voxen")
     }
   }
 
@@ -72,7 +72,7 @@ export default function Login() {
     setGoogleLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}/voxen` },
     })
     if (error) {
       toast({ title: "Erro ao entrar com Google", description: error.message, variant: "destructive" })

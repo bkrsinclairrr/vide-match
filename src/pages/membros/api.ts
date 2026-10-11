@@ -6,6 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { isAction, type Bundle, type Match, type MatchEvent, type Member, type MemberKind } from "./model"
+import type { AthleteAccount } from "./account"
 
 // Tabelas novas ainda não estão nos tipos gerados do Supabase.
 const db = supabase as unknown as SupabaseClient
@@ -36,6 +37,8 @@ export interface DataSource {
   getBundle(id: string, publishedOnly: boolean): Promise<Bundle | null>
   listProfiles(): Promise<ProfileListItem[]>
   findByLead(leadId: string): Promise<Member | null>
+  /** Cadastro de membro ligado a uma conta (o admin vendo um atleta como ele vê). */
+  findByUser(userId: string): Promise<Member | null>
   saveMember(input: MemberInput): Promise<Member>
   saveMatch(input: MatchInput): Promise<Match>
   deleteMatch(id: string): Promise<void>
@@ -239,6 +242,12 @@ const supabaseSource: DataSource = {
     return data ? toMember(data) : null
   },
 
+  async findByUser(userId) {
+    const { data, error } = await db.from("zyron_members").select("*").eq("user_id", userId).eq("kind", "membro").maybeSingle()
+    check(error)
+    return data ? toMember(data) : null
+  },
+
   async saveMember(input) {
     const row = memberRow(input)
     const res = input.id
@@ -286,6 +295,15 @@ const supabaseSource: DataSource = {
     const { error } = await db.from("zyron_match_events").delete().eq("id", id)
     check(error)
   },
+}
+
+/** Conta de teste sem acesso à análise de partidas (só no `npm run dev`; some do build). */
+export async function getPreviewAccount(): Promise<AthleteAccount | null> {
+  if (import.meta.env.DEV) {
+    const { FIXTURE_ACCOUNT } = await import("./fixtures")
+    return FIXTURE_ACCOUNT
+  }
+  return null
 }
 
 /**

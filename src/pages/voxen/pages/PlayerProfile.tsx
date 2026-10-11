@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
-  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, GitCompareArrows, Mail, NotebookPen, Pencil, Printer, Radar, Save,
+  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, Eye, GitCompareArrows, Mail, NotebookPen, Pencil, Printer, Radar, Save,
   UserRoundSearch, X,
 } from "lucide-react"
 import { getSource } from "@/pages/membros/api"
@@ -88,6 +88,11 @@ function Header({ p }: { p: Player }) {
           {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="vx-btn vx-btn--wpp"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>}
           {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
           <MemberButton p={p} />
+          {p.source === "conta" && (
+            <Link to={`/voxen/cliente?como=${encodeURIComponent(p.key)}`} className="vx-btn" title="Abre a área do cliente exatamente como o atleta a vê" target="_blank" rel="noopener noreferrer">
+              <Eye /> Ver como atleta
+            </Link>
+          )}
           {p.email && <a href={`mailto:${p.email}`} className="vx-icon-btn" aria-label={`E-mail para ${p.email}`} title={p.email}><Mail /></a>}
           <button type="button" className="vx-icon-btn" aria-label="Comparar com outros" title="Comparar" onClick={() => navigate(comparePath([p.key]))}><GitCompareArrows /></button>
           <button type="button" className="vx-icon-btn" aria-label="Imprimir ficha" title="Imprimir ficha" onClick={() => window.print()}><Printer /></button>

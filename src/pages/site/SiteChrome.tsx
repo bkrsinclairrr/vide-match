@@ -50,7 +50,7 @@ export function SiteNav({
   const { session } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
   const hasMenu = links.length > 0
-  const account = session ? { to: "/dashboard", label: "Meu painel" } : { to: "/login", label: "Entrar" }
+  const account = session ? { to: "/voxen", label: "Minha área" } : { to: "/login", label: "Entrar" }
 
   useEffect(() => {
     if (!menuOpen) return
