@@ -40,12 +40,12 @@ export const RADAR_CLUBS = [
 export const clubLogo = (slug: string) => `/clubs/${slug}.webp`
 
 /**
- * Atleta de demonstração usado no "print" do painel e no card da seção
+ * Atleta em destaque usado no "print" do painel e no card da seção
  * Para atletas — o mesmo Gabriel Rocha (meia-atacante) que já aparece
  * nos depoimentos de atletas da /avaliacao. A média dos 10 indicadores
  * dá a nota geral exibida (87), na mesma faixa 76–95 do relatório real.
  */
-export const DEMO_ATHLETE = {
+export const FEATURED_ATHLETE = {
   name: "Gabriel Rocha",
   fullName: "Gabriel Rocha da Silva",
   age: 19,

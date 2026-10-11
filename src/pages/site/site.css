@@ -914,6 +914,64 @@ html.zyron-scroll-root body {
 }
 
 .zs-check-text { color: rgba(255, 255, 255, 0.85); font-size: 17px; line-height: 1.5; }
+.zs-check-text strong, .zs-split-copy > p strong { color: #fff; font-weight: 650; }
+
+/* Olhômetro × Zyron: o inimigo em comum, logo abaixo da arte dos atletas. */
+.zs-versus { margin-top: 96px; }
+
+.zs-versus-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 760px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.zs-versus-head h3 {
+  margin: 22px 0 14px;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.zs-versus-head p { margin: 0; color: var(--zs-muted); font-size: 17px; line-height: 1.55; text-wrap: balance; }
+
+.zs-versus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 920px; margin: 0 auto; }
+
+.zs-versus-col {
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid var(--zs-border);
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.zs-versus-col--good {
+  border-color: var(--zs-gold-a30);
+  background: linear-gradient(160deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.03) 60%);
+  box-shadow: 0 24px 60px -32px rgba(245, 158, 11, 0.45);
+}
+
+.zs-versus-title {
+  margin: 0 0 18px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.zs-versus-col--bad .zs-versus-title { color: #f87171; }
+.zs-versus-col--good .zs-versus-title { color: var(--zs-gold-300); }
+
+.zs-versus-col ul { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.zs-versus-col li { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; line-height: 1.45; }
+.zs-versus-col li svg { flex-shrink: 0; width: 22px; height: 22px; margin-top: 1px; padding: 4px; border-radius: 50%; }
+.zs-versus-col--bad li { color: rgba(255, 255, 255, 0.6); }
+.zs-versus-col--bad li svg { color: #f87171; background: rgba(248, 113, 113, 0.12); }
+.zs-versus-col--good li { color: rgba(255, 255, 255, 0.92); }
+.zs-versus-col--good li svg { color: var(--zs-gold-300); background: var(--zs-gold-a20); }
 
 .zs-panel {
   position: relative;
@@ -1486,6 +1544,8 @@ html.zyron-scroll-root body {
   .zs-checklist { align-self: stretch; text-align: left; }
   .zs-split--alt .zs-split-grid { display: flex; flex-direction: column-reverse; }
   .zs-split--alt .zs-split-grid > * { width: 100%; }
+  .zs-versus { margin-top: 72px; }
+  .zs-versus-head h3 { font-size: 32px; }
 }
 
 @media (max-width: 767px) {
@@ -1524,6 +1584,13 @@ html.zyron-scroll-root body {
   .zs-split-copy h2 { font-size: 34px; }
   .zs-split-copy > p { font-size: 16px; }
   .zs-check-text { font-size: 15px; }
+  .zs-versus { margin-top: 56px; }
+  .zs-versus-head { margin-bottom: 28px; }
+  .zs-versus-head h3 { font-size: 26px; }
+  .zs-versus-head p { font-size: 15px; }
+  .zs-versus-grid { grid-template-columns: 1fr; gap: 14px; }
+  .zs-versus-col { padding: 22px; }
+  .zs-versus-col li { font-size: 15px; }
 
   .zs-ap { min-height: 0; padding: 16px; }
   .zs-fp { min-height: 0; flex-direction: column; align-items: stretch; gap: 16px; padding: 18px; }

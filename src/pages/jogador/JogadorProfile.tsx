@@ -333,7 +333,7 @@ export default function JogadorProfile() {
                     style={inputStyle}
                     value={playerData.email}
                     onChange={(e) => setPlayerData({ ...playerData, email: e.target.value })}
-                    placeholder="nome@exemplo.com"
+                    placeholder="nome@gmail.com"
                   />
                 </div>
               </div>

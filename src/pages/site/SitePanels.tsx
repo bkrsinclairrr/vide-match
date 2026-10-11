@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { Check, CheckCheck, Radar, SendHorizontal, User } from "lucide-react"
 import { prefersReducedMotion } from "@/hooks/useScrollAnimations"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
-import { DEMO_ATHLETE as A, clubLogo } from "./siteData"
+import { FEATURED_ATHLETE as A, clubLogo } from "./siteData"
 import { ZyronMark } from "./ZyronMark"
 
 /** Liga `is-active` uma única vez, quando o painel entra na tela. */
@@ -230,7 +230,7 @@ export function FamilyPanel() {
   const F = FAMILY_ATHLETE
 
   return (
-    <div className="zs-panel" role="group" aria-label="Demonstração: a família recebe o resultado da avaliação pela equipe Zyron">
+    <div className="zs-panel" role="group" aria-label="Perfil do atleta e conversa com a equipe Zyron: a família recebe o resultado da avaliação">
       <div ref={ref} className={`zs-fp ${active ? "is-active" : ""}`}>
         <div className="zs-fp-profile">
           <div className="mb-6 flex items-center gap-4">
