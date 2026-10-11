@@ -37,7 +37,7 @@ export default function Login() {
     if (error) {
       toast({ title: "Erro ao entrar", description: friendlyAuthError(error.message), variant: "destructive" })
     } else {
-      navigate("/dashboard")
+      navigate("/voxen")
     }
   }
 
@@ -64,7 +64,7 @@ export default function Login() {
         description: "Verifique sua caixa de entrada e entre após confirmar o endereço.",
       })
     } else {
-      navigate("/dashboard")
+      navigate("/voxen")
     }
   }
 
@@ -72,7 +72,7 @@ export default function Login() {
     setGoogleLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}/dashboard` }, // já permitido no Supabase; /dashboard encaminha para a VOXEN
     })
     if (error) {
       toast({ title: "Erro ao entrar com Google", description: error.message, variant: "destructive" })
@@ -184,7 +184,7 @@ export default function Login() {
                       <Input
                         id="forgot-email"
                         type="email"
-                        placeholder="nome@exemplo.com"
+                        placeholder="nome@gmail.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
@@ -218,7 +218,7 @@ export default function Login() {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="nome@exemplo.com"
+                      placeholder="nome@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
@@ -320,7 +320,7 @@ export default function Login() {
                     <Input
                       id="reg-email"
                       type="email"
-                      placeholder="nome@exemplo.com"
+                      placeholder="nome@gmail.com"
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"

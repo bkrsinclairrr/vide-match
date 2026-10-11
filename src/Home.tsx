@@ -10,6 +10,7 @@ import RequireJogadorAccess from "@/pages/jogador/RequireJogadorAccess"
 
 import { lazy, Suspense, useEffect } from "react"
 import { useLocation } from "react-router-dom"
+import { CLIENT_BASE } from "./pages/membros/paths"
 
 /**
  * Cada rota vira seu próprio chunk (code splitting). Antes, abrir o
@@ -33,6 +34,21 @@ const NotFound = lazy(() => import("./pages/NotFound"))
 
 /** Home institucional pública em "/" — leva o visitante ao funil de avaliação. */
 const SiteHome = lazy(() => import("./pages/site/SiteHome"))
+
+/** VOXEN: plataforma interna dos admins com os atletas da base (login + papel admin). */
+const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
+
+/** Quem entra com a conta cai na VOXEN (a área dele ou, para a equipe, o painel). O painel antigo segue em /dashboard?classico. */
+function DashboardEntry() {
+  const { search } = useLocation()
+  return new URLSearchParams(search).has("classico") ? <Dashboard /> : <Navigate to="/voxen" replace />
+}
+
+/** Endereço antigo da área do membro: leva ao mesmo lugar dentro da VOXEN. */
+function MembersRedirect() {
+  const { pathname, search } = useLocation()
+  return <Navigate to={`${CLIENT_BASE}${pathname.slice("/membros".length)}${search}`} replace />
+}
 
 /**
  * Funil aberto (/avaliacao). Roda em paralelo ao tradicional, sem alterá-lo:
@@ -71,10 +87,9 @@ const ScrollToTop = () => {
 }
 
 /**
- * Pré-busca em segundo plano, só quando o navegador está ocioso, os
- * chunks de /dashboard e /onboarding — o par de páginas que o usuário
- * quase sempre visita em sequência. Sem isso, a PRIMEIRA navegação para
- * cada uma delas espera a rede baixar o chunk (e o gsap+lenis
+ * Pré-busca em segundo plano, só quando o navegador está ocioso, o
+ * chunk de /onboarding — a página que quem entra mais visita. Sem isso, a PRIMEIRA navegação para
+ * ela espera a rede baixar o chunk (e o gsap+lenis
  * compartilhado) do zero, o que pode parecer uma travada mesmo com o
  * bundle já otimizado. Como é `import()` puro, o resultado nem precisa
  * ser usado — só aquecer o cache do navegador já resolve.
@@ -86,7 +101,6 @@ const usePrefetchCoreRoutes = () => {
       return ric ? ric(cb) : window.setTimeout(cb, 1200)
     }
     idle(() => {
-      import("./pages/Dashboard")
       import("./pages/Onboarding")
     })
   }, [])
@@ -126,13 +140,15 @@ const Home = () => {
                 <Route path="/jogador/resultado" element={<RequireJogadorAccess><JogadorResult /></RequireJogadorAccess>} />
 
                 {/* Protected routes - require authentication */}
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/dashboard" element={<ProtectedRoute><DashboardEntry /></ProtectedRoute>} />
                 <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                 <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
                 <Route path="/analysis" element={<ProtectedRoute><Analysis /></ProtectedRoute>} />
                 <Route path="/match" element={<ProtectedRoute><Match /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                <Route path="/voxen/*" element={<VoxenApp />} />
+                <Route path="/membros/*" element={<MembersRedirect />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
