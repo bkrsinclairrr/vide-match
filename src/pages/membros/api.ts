@@ -1,6 +1,6 @@
 /**
  * Acesso a dados da área de membros e da gestão na VOXEN. Uma interface só
- * (DataSource), servida pelo Supabase — ou, no `npm run dev` com ?preview,
+ * (DataSource), servida pelo Supabase — ou, no `npm run dev` com ?demo,
  * por dados de teste em memória (fixtures.ts, que não entra no build).
  */
 import type { SupabaseClient } from "@supabase/supabase-js"

@@ -20,13 +20,14 @@ export function VoxenMark({ size = 36 }: { size?: number }) {
   )
 }
 
-export function VoxenWordmark({ size = 36, sub = true }: { size?: number; sub?: boolean }) {
+/** `sub`: texto sob o nome (true usa o padrão; false esconde). */
+export function VoxenWordmark({ size = 36, sub = true }: { size?: number; sub?: boolean | string }) {
   return (
     <span className="flex items-center gap-3">
       <VoxenMark size={size} />
       <span>
         <span className="vx-brand-word block">VOXEN</span>
-        {sub && <span className="vx-brand-sub block">Scouting · Zyron</span>}
+        {sub && <span className="vx-brand-sub block">{typeof sub === "string" ? sub : "Scouting · Zyron"}</span>}
       </span>
     </span>
   )

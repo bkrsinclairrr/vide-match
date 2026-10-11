@@ -10,6 +10,7 @@ import RequireJogadorAccess from "@/pages/jogador/RequireJogadorAccess"
 
 import { lazy, Suspense, useEffect } from "react"
 import { useLocation } from "react-router-dom"
+import { CLIENT_BASE } from "./pages/membros/paths"
 
 /**
  * Cada rota vira seu próprio chunk (code splitting). Antes, abrir o
@@ -37,8 +38,11 @@ const SiteHome = lazy(() => import("./pages/site/SiteHome"))
 /** VOXEN: plataforma interna dos admins com os atletas da base (login + papel admin). */
 const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
 
-/** Área de membros: atletas com acesso liberado pela equipe (login próprio). */
-const MembersApp = lazy(() => import("./pages/membros/MembersApp"))
+/** Endereço antigo da área do membro: leva ao mesmo lugar dentro da VOXEN. */
+function MembersRedirect() {
+  const { pathname, search } = useLocation()
+  return <Navigate to={`${CLIENT_BASE}${pathname.slice("/membros".length)}${search}`} replace />
+}
 
 /**
  * Funil aberto (/avaliacao). Roda em paralelo ao tradicional, sem alterá-lo:
@@ -140,7 +144,7 @@ const Home = () => {
                 <Route path="/history" element={<ProtectedRoute><History /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                 <Route path="/voxen/*" element={<VoxenApp />} />
-                <Route path="/membros/*" element={<MembersApp />} />
+                <Route path="/membros/*" element={<MembersRedirect />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

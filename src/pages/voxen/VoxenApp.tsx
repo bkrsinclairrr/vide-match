@@ -1,15 +1,15 @@
 import "@fontsource-variable/inter"
 import "./voxen.css"
 
-import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react"
-import { Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  ArrowLeft, ArrowUpRight, BadgeCheck, GitCompareArrows, LayoutDashboard, Lock, LogOut, Mail, Menu, RefreshCw,
+  ArrowUpRight, BadgeCheck, GitCompareArrows, LayoutDashboard, LogOut, Menu, RefreshCw,
   Search, ShieldAlert, Shirt, Users, X,
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
-import { friendlyAuthError } from "@/lib/funnel"
+import { CLIENT_BASE, clearAsMember, readAsMember } from "@/pages/membros/paths"
 import {
   Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command"
@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
 import { positionCode } from "./data"
 import { Avatar, PageSkeleton, ScoreChip, VoxenMark, VoxenWordmark, playerPath } from "./ui"
+import LoginScreen from "./LoginScreen"
 
 const Overview = lazy(() => import("./pages/Overview"))
 const PlayersPage = lazy(() => import("./pages/PlayersPage"))
@@ -27,6 +28,7 @@ const AdminMembers = lazy(() => import("./pages/members/AdminMembers"))
 const AdminMember = lazy(() => import("./pages/members/AdminMember"))
 const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
 const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
+const ClientArea = lazy(() => import("@/pages/membros/ClientArea"))
 
 const NAV = [
   { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true },
@@ -39,8 +41,8 @@ const NAV = [
 const DEMO_KEY = "voxen:demo"
 
 /**
- * Teste local: dados fictícios, sem login. Só existe no `npm run dev` (liga
- * com /voxen?demo); no build de produção o bloco some.
+ * Dados locais, sem login. Só existe no `npm run dev` (liga com /voxen?demo),
+ * para desenvolver sem banco; no build de produção o bloco some.
  */
 function useDemoMode() {
   const { search } = useLocation()
@@ -68,7 +70,7 @@ export default function VoxenApp() {
   return (
     <div className="vx">
       <div className="vx-backdrop" aria-hidden="true" />
-      {demo ? <Workspace demo /> : <AccessGate />}
+      {demo ? <Portal role="admin" demo /> : <AccessGate />}
     </div>
   )
 }
@@ -77,16 +79,17 @@ export default function VoxenApp() {
 /* Acesso: login + papel de admin                                      */
 /* ------------------------------------------------------------------ */
 
-type AdminState = { userId: string | null; status: "checking" | "admin" | "denied" }
+type Role = "admin" | "client"
+type RoleState = { userId: string | null; status: "checking" | Role }
 
 function AccessGate() {
   const { session, user, loading } = useAuth()
-  const [admin, setAdmin] = useState<AdminState>({ userId: null, status: "checking" })
+  const [role, setRole] = useState<RoleState>({ userId: null, status: "checking" })
 
   useEffect(() => {
     if (!user) return
     let cancelled = false
-    setAdmin({ userId: user.id, status: "checking" })
+    setRole({ userId: user.id, status: "checking" })
     supabase
       .from("user_roles")
       .select("role")
@@ -94,116 +97,45 @@ function AccessGate() {
       .eq("role", "admin")
       .then(({ data, error }) => {
         if (cancelled) return
-        setAdmin({ userId: user.id, status: !error && data && data.length > 0 ? "admin" : "denied" })
+        setRole({ userId: user.id, status: !error && data && data.length > 0 ? "admin" : "client" })
       })
     return () => { cancelled = true }
   }, [user])
 
   if (loading) return <Splash />
   if (!session || !user) return <LoginScreen />
-  if (admin.userId !== user.id || admin.status === "checking") return <Splash />
-  if (admin.status === "denied") return <Denied email={user.email ?? ""} />
-  return <Workspace demo={false} />
+  if (role.userId !== user.id || role.status === "checking") return <Splash />
+  return <Portal role={role.status} demo={false} />
+}
+
+/**
+ * Um login, duas áreas: a equipe (admin) usa o painel; o cliente da Zyron só
+ * enxerga a própria área, em /voxen/cliente. O admin também abre essa área
+ * ("ver como membro"), sempre em modo leitura. A RLS do banco é quem garante
+ * os dados; o roteamento aqui só evita telas sem sentido.
+ */
+function Portal({ role, demo }: { role: Role; demo: boolean }) {
+  const { pathname, search } = useLocation()
+  const inClient = pathname === CLIENT_BASE || pathname.startsWith(`${CLIENT_BASE}/`)
+  const isAdmin = role === "admin"
+  const asMember = useMemo(() => (isAdmin && inClient ? readAsMember(search) : null), [isAdmin, inClient, search])
+
+  // Saiu da área do cliente: o "ver como" não deve vazar para a próxima visita.
+  useEffect(() => { if (!inClient) clearAsMember() }, [inClient])
+
+  if (!inClient) return isAdmin ? <Workspace demo={demo} /> : <Navigate to={CLIENT_BASE} replace />
+  if (isAdmin && !asMember && !demo) return <Navigate to="/voxen/membros" replace />
+  return (
+    <Suspense fallback={<Splash />}>
+      <ClientArea preview={demo} asMember={asMember} isAdmin={isAdmin} />
+    </Suspense>
+  )
 }
 
 function Splash() {
   return (
     <div className="vx-splash relative z-[1]">
       <div className="vx-splash-mark"><VoxenMark size={56} /></div>
-    </div>
-  )
-}
-
-function LoginScreen() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault()
-    setBusy(true)
-    setError(null)
-    const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-    setBusy(false)
-    if (err) setError(friendlyAuthError(err.message))
-  }
-
-  return (
-    <div className="vx-gate relative z-[1]">
-      <aside className="vx-gate-art">
-        <div className="vx-gate-orbit" aria-hidden="true" />
-        <VoxenWordmark size={40} />
-        <div className="relative max-w-[520px]">
-          <p className="text-[13px] font-bold uppercase tracking-[0.16em] text-amber-300">Área restrita</p>
-          <h1 className="mt-4 text-[44px] font-extrabold leading-[1.06] tracking-[-0.03em]">
-            Todos os atletas da Zyron,{" "}
-            <span className="bg-gradient-to-b from-white via-amber-200 to-amber-500 bg-clip-text text-transparent">em um só lugar.</span>
-          </h1>
-          <p className="mt-5 text-[16px] leading-relaxed text-zinc-400">
-            Perfis, relatórios, avaliação do scout, comparativos e o andamento de cada contato — para a equipe decidir
-            com dados quem merece a próxima oportunidade.
-          </p>
-        </div>
-        <p className="relative text-[12px] text-zinc-500">© 2026 Zyron · Acesso exclusivo de administradores</p>
-      </aside>
-
-      <section className="vx-gate-form">
-        <form onSubmit={submit} className="vx-gate-card" noValidate>
-          <div className="mb-8 lg:hidden"><VoxenWordmark /></div>
-          <h2 className="text-[24px] font-bold tracking-[-0.02em]">Entrar na VOXEN</h2>
-          <p className="mt-1.5 text-[13.5px] text-zinc-400">Use a mesma conta de administrador da Zyron.</p>
-
-          <label className="mt-7 block text-[12px] font-semibold text-zinc-400" htmlFor="vx-email">E-mail</label>
-          <div className="relative mt-2">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-            <input id="vx-email" type="email" autoComplete="username" required value={email}
-              onChange={(e) => setEmail(e.target.value)} className="vx-input vx-input--icon" placeholder="voce@zyron.com" />
-          </div>
-
-          <label className="mt-4 block text-[12px] font-semibold text-zinc-400" htmlFor="vx-pass">Senha</label>
-          <div className="relative mt-2">
-            <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-            <input id="vx-pass" type="password" autoComplete="current-password" required value={password}
-              onChange={(e) => setPassword(e.target.value)} className="vx-input vx-input--icon" placeholder="••••••••" />
-          </div>
-
-          {error && (
-            <p role="alert" className="mt-4 rounded-xl border border-red-400/25 bg-red-500/10 px-3 py-2.5 text-[12.5px] text-red-300">{error}</p>
-          )}
-
-          <button type="submit" disabled={busy || !email || !password} className="vx-btn vx-btn--gold mt-6 h-11 w-full text-[14px]">
-            {busy ? "Entrando..." : "Entrar"}
-          </button>
-          <div className="mt-5 flex items-center justify-between text-[12.5px]">
-            <Link to="/reset-password" className="text-zinc-400 hover:text-amber-300">Esqueci a senha</Link>
-            <Link to="/" className="inline-flex items-center gap-1 text-zinc-400 hover:text-amber-300">
-              <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao site
-            </Link>
-          </div>
-        </form>
-      </section>
-    </div>
-  )
-}
-
-function Denied({ email }: { email: string }) {
-  const { signOut } = useAuth()
-  return (
-    <div className="vx-splash relative z-[1] px-6">
-      <div className="vx-card max-w-md text-center" style={{ animation: "vx-rise .7s var(--vx-ease) both" }}>
-        <span className="vx-empty-icon mx-auto" style={{ color: "#f87171", borderColor: "rgba(248,113,113,.3)", background: "rgba(248,113,113,.08)" }}>
-          <ShieldAlert className="h-6 w-6" />
-        </span>
-        <h1 className="mt-4 text-[20px] font-bold">Acesso restrito a administradores</h1>
-        <p className="mt-2 text-[13.5px] leading-relaxed text-zinc-400">
-          A conta <strong className="text-zinc-200">{email}</strong> não tem permissão de administrador na Zyron.
-        </p>
-        <div className="mt-6 flex justify-center gap-2">
-          <Link to="/" className="vx-btn">Voltar ao site</Link>
-          <button type="button" className="vx-btn vx-btn--gold" onClick={() => void signOut()}>Trocar de conta</button>
-        </div>
-      </div>
     </div>
   )
 }
@@ -262,7 +194,7 @@ function Shell() {
   return (
     <>
       {open && <div className="vx-scrim" onClick={() => setOpen(false)} />}
-      <Sidebar open={open} count={players.length} email={demo ? "teste local" : user?.email ?? ""} onSignOut={demo ? undefined : () => void signOut()} />
+      <Sidebar open={open} count={players.length} email={demo ? "equipe@aizyron.com" : user?.email ?? ""} onSignOut={demo ? undefined : () => void signOut()} />
 
       <div className="vx-main">
         <header className="vx-top">
@@ -273,7 +205,6 @@ function Shell() {
             <span className="vx-top-kicker">{kicker}</span>
             <h1 className="vx-top-h1">{title}</h1>
           </div>
-          {demo && <span className="vx-badge-demo">Teste local</span>}
           <button type="button" className="vx-search" onClick={() => setPalette(true)} aria-label="Buscar atleta">
             <Search />
             <span>Buscar atleta, e-mail ou telefone</span>
@@ -363,9 +294,6 @@ function Sidebar({ open, count, email, onSignOut }: { open: boolean; count: numb
 
       <p className="vx-nav-label">Atalhos</p>
       <nav className="vx-nav">
-        <a href="/membros" target="_blank" rel="noopener noreferrer" className="vx-nav-item">
-          <ArrowUpRight /> Área de membros
-        </a>
         <a href="/avaliacao" target="_blank" rel="noopener noreferrer" className="vx-nav-item">
           <ArrowUpRight /> Abrir o funil
         </a>

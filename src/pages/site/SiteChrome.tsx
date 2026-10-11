@@ -397,7 +397,7 @@ export function SiteFooter({
                 {link.label}
               </a>
             ))}
-            {showMembers && <Link to="/membros" className="zs-footer-link">Área de membros</Link>}
+            {showMembers && <Link to="/voxen/cliente" className="zs-footer-link">Área do membro</Link>}
             <Link to="/termos" className="zs-footer-link">Termos de Uso</Link>
             <Link to="/privacidade" className="zs-footer-link">Privacidade</Link>
           </nav>

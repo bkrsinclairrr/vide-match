@@ -2,7 +2,8 @@ import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowRight, Clapperboard } from "lucide-react"
 import { Empty } from "@/pages/voxen/ui"
-import { useMember } from "../MembersApp"
+import { useMember } from "../ClientArea"
+import { CLIENT_BASE } from "../paths"
 import { formatMatchDate, scoreline } from "../model"
 import { pct } from "../metrics"
 import { MatchThumb } from "../components/MatchThumb"
@@ -28,7 +29,7 @@ export default function MatchesPage() {
           const sl = scoreline(m.match)
           const okPct = pct(m.line.actionsOk, m.line.actions)
           return (
-            <Link key={m.match.id} to={`/membros/partidas/${m.match.id}`} className="vx-card vx-card--flush vx-card--hover mb-mcard" style={{ "--i": Math.min(i, 10) } as React.CSSProperties}>
+            <Link key={m.match.id} to={`${CLIENT_BASE}/partidas/${m.match.id}`} className="vx-card vx-card--flush vx-card--hover mb-mcard" style={{ "--i": Math.min(i, 10) } as React.CSSProperties}>
               <MatchThumb match={m.match} />
               <div className="p-4">
                 <div className="flex items-center gap-2 text-[11.5px] text-zinc-500">

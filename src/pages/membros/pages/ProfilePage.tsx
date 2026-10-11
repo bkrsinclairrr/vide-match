@@ -2,7 +2,7 @@ import { ClipboardList, UserRound } from "lucide-react"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { Meter, RadarChart } from "@/pages/voxen/charts"
 import { CardHead } from "@/pages/voxen/ui"
-import { useMember } from "../MembersApp"
+import { useMember } from "../ClientArea"
 import { SCOUT_GROUPS, ageFrom, fmt1, scoutGroupAverage } from "../model"
 import { MemberAvatar } from "../components/bits"
 

@@ -100,12 +100,15 @@ export function buildDemoData(): VoxenData {
     // poderia ser de uma pessoa real.
     const digits = `6190000${String(Math.floor(rand() * 9000 + 1000))}`
     const [fn, ...rest] = name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").split(" ")
+    const last = rest[rest.length - 1]
+    const suffix = Math.floor(rand() * 90 + 10)
+    const handle = [`${fn}.${last}${suffix}`, `${fn}${last}${suffix}`, `${fn}_${last}`, `${fn}.${last}`][Math.floor(rand() * 4)]
 
     players.push({
       key,
       source: "funil",
       name,
-      email: `${fn}.${rest[rest.length - 1]}${Math.floor(rand() * 90 + 10)}@example.com`,
+      email: `${handle}@gmail.com`,
       phone: digits,
       createdAt: created.toISOString(),
       profile,
@@ -128,11 +131,11 @@ export function buildDemoData(): VoxenData {
     })
   }
 
-  // Gabriel Rocha: o atleta de demonstração da home institucional.
+  // Gabriel Rocha: o atleta em destaque da home institucional.
   const g = players[0]
   Object.assign(g, {
     name: "Gabriel Rocha da Silva",
-    email: "gabriel.rocha@example.com",
+    email: "gabriel.rocha07@gmail.com",
     profile: { age: 19, height: 178, weight: 72, foot: "Canhoto", nationality: "Brasil", position: "Meia-Atacante", category: "Sub 20", state: "Distrito Federal", city: "Brasília - DF" },
     hasProfile: true,
     createdAt: new Date(now - 42 * 60000).toISOString(),

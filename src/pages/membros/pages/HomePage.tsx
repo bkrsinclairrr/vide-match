@@ -4,7 +4,8 @@ import { ArrowRight, ChevronLeft, ChevronRight, Clapperboard, Flame, Send, Spark
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { CountUp, Donut, Ring } from "@/pages/voxen/charts"
 import { CardHead, Empty } from "@/pages/voxen/ui"
-import { useMember } from "../MembersApp"
+import { useMember } from "../ClientArea"
+import { CLIENT_BASE } from "../paths"
 import { ageFrom, fmt1, formatMatchDate, formatShortDate, ratingColor, scoreline } from "../model"
 import { zoneInsights } from "../metrics"
 import { HeatMap } from "../components/Field"
@@ -73,7 +74,7 @@ export default function HomePage() {
           <ul className="mb-activity">
             {summary.matches.slice(0, 4).map((m) => (
               <li key={m.match.id}>
-                <Link to={`/membros/partidas/${m.match.id}`}>
+                <Link to={`${CLIENT_BASE}/partidas/${m.match.id}`}>
                   <span className="mb-activity-dot" style={{ background: ratingColor(m.rating) }} />
                   <span className="min-w-0 flex-1">
                     <b className="block truncate">Análise de {m.match.opponent}</b>
@@ -103,7 +104,7 @@ export default function HomePage() {
           {current && (() => {
             const sl = scoreline(current.match)
             return (
-              <button key={current.match.id} type="button" className="mb-carousel" onClick={() => navigate(`/membros/partidas/${current.match.id}`)}>
+              <button key={current.match.id} type="button" className="mb-carousel" onClick={() => navigate(`${CLIENT_BASE}/partidas/${current.match.id}`)}>
                 <MatchThumb match={current.match} big />
                 <div className="mb-carousel-info">
                   <span className="mb-carousel-comp">{current.match.competition ?? "Partida"} · {formatMatchDate(current.match.playedOn)}</span>
@@ -157,7 +158,7 @@ export default function HomePage() {
             </div>
             <div className="mb-form">
               {summary.matches.slice(0, 10).reverse().map((m, i) => (
-                <Link key={m.match.id} to={`/membros/partidas/${m.match.id}`} title={`${m.match.opponent} · nota ${fmt1(m.rating)}`}
+                <Link key={m.match.id} to={`${CLIENT_BASE}/partidas/${m.match.id}`} title={`${m.match.opponent} · nota ${fmt1(m.rating)}`}
                   style={{ background: ratingColor(m.rating), animationDelay: `${i * 50}ms` }}>
                   <span className="tnum">{fmt1(m.rating)}</span>
                 </Link>
@@ -170,7 +171,7 @@ export default function HomePage() {
           <CardHead
             title={<span className="inline-flex items-center gap-2"><Flame className="h-4 w-4 text-amber-300" /> Onde você mais atua</span>}
             sub={info ? `Zona mais ativa: ${info.topZone} · ${info.finalThird}% das ações no terço final` : "Mapa de todas as ações marcadas"}
-            actions={<Link to="/membros/desempenho" className="vx-btn">Desempenho <ArrowRight /></Link>}
+            actions={<Link to={`${CLIENT_BASE}/desempenho`} className="vx-btn">Desempenho <ArrowRight /></Link>}
           />
           <HeatMap events={summary.events} compact label={member.fullName} />
         </section>
@@ -179,11 +180,11 @@ export default function HomePage() {
       {/* Direita: últimas partidas */}
       <aside className="mb-home-side">
         <section className="vx-card">
-          <CardHead title="Últimas partidas" actions={<Link to="/membros/partidas" className="text-[12.5px] font-semibold text-amber-300 hover:underline">Ver todas</Link>} />
+          <CardHead title="Últimas partidas" actions={<Link to={`${CLIENT_BASE}/partidas`} className="text-[12.5px] font-semibold text-amber-300 hover:underline">Ver todas</Link>} />
           <ul className="mb-recent">
             {summary.matches.slice(0, 7).map((m) => (
               <li key={m.match.id}>
-                <Link to={`/membros/partidas/${m.match.id}`}>
+                <Link to={`${CLIENT_BASE}/partidas/${m.match.id}`}>
                   <ResultBadge match={m.match} />
                   <Shield name={m.match.opponent} size={26} />
                   <span className="min-w-0 flex-1">

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BarChart3 } from "lucide-react"
 import { Empty } from "@/pages/voxen/ui"
-import { useMember } from "../MembersApp"
+import { useMember } from "../ClientArea"
+import { CLIENT_BASE } from "../paths"
 import { summarizeProfile } from "../metrics"
 import { Board, BOARD_COLORS } from "../components/Board"
 import { PERIODS } from "../components/Stats"
@@ -30,7 +31,7 @@ export default function PerformancePage() {
           ))}
         </div>
       </div>
-      <Board key={period} cols={[{ summary, color: BOARD_COLORS[0] }]} onOpenMatch={(m) => navigate(`/membros/partidas/${m.match.id}`)} />
+      <Board key={period} cols={[{ summary, color: BOARD_COLORS[0] }]} onOpenMatch={(m) => navigate(`${CLIENT_BASE}/partidas/${m.match.id}`)} />
     </>
   )
 }

@@ -1,5 +1,5 @@
 /**
- * Dados de teste da área de membros, só para o `npm run dev` com ?preview.
+ * Dados de teste da área de membros, só para o `npm run dev` (/voxen?demo).
  * Este módulo é carregado por import dinâmico dentro de uma condição que o
  * build de produção resolve como falsa (api.ts → getSource), então nunca vai
  * para o site publicado.
@@ -94,19 +94,19 @@ type Seed = Omit<Member, "id" | "createdAt" | "updatedAt" | "userId" | "leadId" 
 
 const SEEDS: Seed[] = [
   {
-    id: "m-gabriel", kind: "membro", email: "gabriel.rocha@example.com", fullName: "Gabriel Rocha da Silva", birthDate: "2007-03-14",
+    id: "m-gabriel", kind: "membro", email: "gabriel.rocha07@gmail.com", fullName: "Gabriel Rocha da Silva", birthDate: "2007-03-14",
     position: "Meia-Atacante", category: "Sub 20", foot: "Canhoto", heightCm: 178, weightKg: 72, city: "Brasília - DF", team: "Real Brasília Sub-20",
     photoUrl: null, bio: null, matches: 10,
     scout: { marcacao: 3, desarme: 2.5, leitura: 3.5, jogo_aereo: 2.5, recomposicao: 3, velocidade: 3.5, aceleracao: 4, resistencia: 3.5, forca: 2.5, impulsao: 3, mov_sem_bola: 4.5, um_contra_um: 4, ultimo_passe: 4.5, profundidade: 4, presenca_area: 3.5, passe_curto: 4.5, passe_longo: 3.5, dominio: 4.5, conducao: 4, finalizacao: 3.5, cruzamento: 3 },
   },
   {
-    id: "m-arthur", kind: "membro", email: "arthur.lima@example.com", fullName: "Arthur Lima", birthDate: "2009-05-02",
+    id: "m-arthur", kind: "membro", email: "arthurlima.09@gmail.com", fullName: "Arthur Lima", birthDate: "2009-05-02",
     position: "Ponta Esquerda", category: "Sub 17", foot: "Canhoto", heightCm: 171, weightKg: 63, city: "Taguatinga - DF", team: "Capital FC Sub-17",
     photoUrl: null, bio: null, matches: 8,
     scout: { marcacao: 2.5, desarme: 2.5, leitura: 3, jogo_aereo: 2, recomposicao: 3.5, velocidade: 4.5, aceleracao: 4.5, resistencia: 3.5, forca: 2.5, impulsao: 3, mov_sem_bola: 4, um_contra_um: 4.5, ultimo_passe: 3.5, profundidade: 4.5, presenca_area: 3, passe_curto: 3.5, passe_longo: 3, dominio: 4, conducao: 4.5, finalizacao: 3.5, cruzamento: 4 },
   },
   {
-    id: "m-davi", kind: "membro", email: "davi.cardoso@example.com", fullName: "Davi Cardoso Alves", birthDate: "2009-01-21",
+    id: "m-davi", kind: "membro", email: "davi.cardoso.alves@gmail.com", fullName: "Davi Cardoso Alves", birthDate: "2009-01-21",
     position: "Zagueiro", category: "Sub 17", foot: "Destro", heightCm: 186, weightKg: 77, city: "Gama - DF", team: "Gama Sub-17",
     photoUrl: null, bio: null, matches: 9,
     scout: { marcacao: 4, desarme: 4, leitura: 4.5, jogo_aereo: 4.5, recomposicao: 3.5, velocidade: 3, aceleracao: 3, resistencia: 4, forca: 4.5, impulsao: 4, mov_sem_bola: 2, um_contra_um: 2, ultimo_passe: 2.5, profundidade: 2, presenca_area: 3, passe_curto: 4, passe_longo: 4, dominio: 3.5, conducao: 3, finalizacao: 2, cruzamento: 1.5 },

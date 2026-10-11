@@ -7,6 +7,7 @@ import { CATEGORIES, POSITIONS } from "@/data/football"
 import { RadarChart } from "@/pages/voxen/charts"
 import { useVoxen } from "@/pages/voxen/store"
 import { SetupMissingError, getSource, type DataSource, type MemberInput } from "@/pages/membros/api"
+import { CLIENT_BASE } from "@/pages/membros/paths"
 import { SCOUT_GROUPS, fmt1, scoutGroupAverage, type Member, type MemberKind } from "@/pages/membros/model"
 
 /** Fonte de dados da área de membros (testes locais quando a VOXEN está em ?demo/?preview). */
@@ -21,11 +22,11 @@ export function useAdminSource() {
   return source
 }
 
-/** Área de membros vista como o membro (só leitura, para admins). */
+/** Área do cliente vista como o membro (só leitura, para admins). */
 export function memberAreaUrl(memberId: string, path = "", demo = false) {
   const q = new URLSearchParams({ como: memberId })
-  if (import.meta.env.DEV && demo) q.set("preview", "")
-  return `/membros${path}?${q}`
+  if (import.meta.env.DEV && demo) q.set("demo", "")
+  return `${CLIENT_BASE}${path}?${q}`
 }
 
 export type Async<T> = { data: T | null; error: Error | null; loading: boolean; reload: () => void; setData: (fn: (d: T | null) => T | null) => void }
@@ -152,7 +153,7 @@ export function MemberForm({
       </FormField>
       {isMember && (
         <FormField label="E-mail de acesso *" hint="O atleta cria a senha em /membros com este e-mail." wide>
-          <input className="vx-input" type="email" value={v.email ?? ""} onChange={(e) => set("email", e.target.value)} placeholder="atleta@email.com" required />
+          <input className="vx-input" type="email" value={v.email ?? ""} onChange={(e) => set("email", e.target.value)} placeholder="nome@gmail.com" required />
         </FormField>
       )}
       <FormField label="Posição">

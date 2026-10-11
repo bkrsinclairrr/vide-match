@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { GitCompareArrows, Plus } from "lucide-react"
 import { Empty } from "@/pages/voxen/ui"
-import { useMember } from "../MembersApp"
+import { useMember } from "../ClientArea"
+import { CLIENT_BASE } from "../paths"
 import type { Bundle } from "../model"
 import { summarizeProfile } from "../metrics"
 import { Board, BOARD_COLORS, type BoardCol } from "../components/Board"
@@ -88,7 +89,7 @@ export default function ComparePage() {
         </div>
       ) : (
         <div className="mb-scroll-x">
-          <Board key={`${period}-${cols.length}`} cols={cols} onOpenMatch={(m) => m.match.memberId === bundle.member.id && navigate(`/membros/partidas/${m.match.id}`)} />
+          <Board key={`${period}-${cols.length}`} cols={cols} onOpenMatch={(m) => m.match.memberId === bundle.member.id && navigate(`${CLIENT_BASE}/partidas/${m.match.id}`)} />
         </div>
       )}
     </>

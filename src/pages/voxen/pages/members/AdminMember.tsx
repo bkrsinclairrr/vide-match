@@ -40,7 +40,7 @@ export default function AdminMember() {
   const isMember = member.kind === "membro"
   const lead = member.leadId ? byKey.get(`lead:${member.leadId}`) : undefined
   const age = ageFrom(member.birthDate)
-  const inviteText = `Olá, ${member.fullName.split(" ")[0]}! Seu acesso à área de membros da Zyron está liberado. Entre em ${window.location.origin}/membros, toque em “Primeiro acesso” e crie sua senha com o e-mail ${member.email}.`
+  const inviteText = `Olá, ${member.fullName.split(" ")[0]}! Seu acesso à plataforma da Zyron está liberado. Entre em ${window.location.origin}/voxen, toque em “Primeiro acesso” e crie sua senha com o e-mail ${member.email}.`
 
   const saveMember = async (input: MemberInput, message = "Dados salvos") => {
     if (!source) return

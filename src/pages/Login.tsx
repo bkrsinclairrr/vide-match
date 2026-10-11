@@ -184,7 +184,7 @@ export default function Login() {
                       <Input
                         id="forgot-email"
                         type="email"
-                        placeholder="nome@exemplo.com"
+                        placeholder="nome@gmail.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
@@ -218,7 +218,7 @@ export default function Login() {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="nome@exemplo.com"
+                      placeholder="nome@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
@@ -320,7 +320,7 @@ export default function Login() {
                     <Input
                       id="reg-email"
                       type="email"
-                      placeholder="nome@exemplo.com"
+                      placeholder="nome@gmail.com"
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"

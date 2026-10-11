@@ -3,7 +3,8 @@ import { Link, useParams } from "react-router-dom"
 import { ArrowLeft, MessageSquareQuote, Timer } from "lucide-react"
 import { Ring, CountUp } from "@/pages/voxen/charts"
 import { CardHead, Empty } from "@/pages/voxen/ui"
-import { useMember } from "../MembersApp"
+import { useMember } from "../ClientArea"
+import { CLIENT_BASE } from "../paths"
 import { formatMatchDate, positionCodeOf, ratingColor, scoreline } from "../model"
 import { summarizeMatch } from "../metrics"
 import { HeatMap } from "../components/Field"
@@ -22,7 +23,7 @@ export default function MatchPage() {
   const seek = useCallback((t: number) => player.current?.seek(Math.max(0, t - 2)), [])
 
   if (!match || !summary) {
-    return <div className="vx-card"><Empty icon={<ArrowLeft className="h-6 w-6" />} title="Partida não encontrada"><Link to="/membros/partidas" className="text-amber-300 underline">Voltar para partidas</Link></Empty></div>
+    return <div className="vx-card"><Empty icon={<ArrowLeft className="h-6 w-6" />} title="Partida não encontrada"><Link to={`${CLIENT_BASE}/partidas`} className="text-amber-300 underline">Voltar para partidas</Link></Empty></div>
   }
 
   const sl = scoreline(match)
@@ -32,7 +33,7 @@ export default function MatchPage() {
   return (
     <>
       <section className="vx-card mb-[18px] mb-scoreboard">
-        <Link to="/membros/partidas" className="vx-icon-btn" aria-label="Voltar para partidas"><ArrowLeft /></Link>
+        <Link to={`${CLIENT_BASE}/partidas`} className="vx-icon-btn" aria-label="Voltar para partidas"><ArrowLeft /></Link>
         <div className="mb-score-team">
           <Shield name={sl.left} size={46} />
           <span>{sl.left}</span>

@@ -234,7 +234,7 @@ function NotesCard({ p }: { p: Player }) {
     <section className="vx-card">
       <CardHead
         title={<span className="inline-flex items-center gap-2"><NotebookPen className="h-4 w-4 text-amber-300" /> Notas da equipe</span>}
-        sub={demo ? "Teste local: as notas não são gravadas" : data?.sharedMeta ? "Compartilhadas com todos os admins" : "Salvas neste navegador até a atualização do banco"}
+        sub={data?.sharedMeta ? "Compartilhadas com todos os admins" : "Salvas neste navegador até a atualização do banco"}
         actions={<span className="text-[12px] text-zinc-500" aria-live="polite">{saved ? <span className="inline-flex items-center gap-1 text-emerald-400"><Check className="h-3.5 w-3.5" /> Salvo</span> : "Salvando..."}</span>}
       />
       <textarea
