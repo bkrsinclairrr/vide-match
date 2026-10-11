@@ -25,6 +25,8 @@ export interface AccountsApi {
   list(): Promise<AccountList>
   setLevel(id: string, level: AccessLevel): Promise<void>
   invite(email: string, fullName: string, level: "admin" | "executive"): Promise<{ invited: boolean }>
+  /** Cria a conta já pronta para entrar, com a senha definida por quem cria. `created: false`: a pessoa já tinha conta e só ganhou o nível. */
+  createStaff(email: string, fullName: string, level: "admin" | "executive", password: string): Promise<{ created: boolean }>
   rename(id: string, fullName: string): Promise<void>
   setDisabled(id: string, disabled: boolean): Promise<void>
   remove(id: string): Promise<void>
@@ -93,6 +95,10 @@ const supabaseAccounts: AccountsApi = {
   async invite(email, fullName, level) {
     const data = await call<{ invited: boolean }>({ action: "invite_staff", email, fullName, level })
     return { invited: Boolean(data.invited) }
+  },
+  async createStaff(email, fullName, level, password) {
+    const data = await call<{ created: boolean }>({ action: "create_staff", email, fullName, level, password })
+    return { created: Boolean(data.created) }
   },
   async rename(id, fullName) {
     await call({ action: "update_user", targetUserId: id, fullName })

@@ -1,9 +1,9 @@
 import "./accounts.css"
 
-import { Fragment, useCallback, useEffect, useMemo, useState, type FormEvent } from "react"
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import {
-  Ban, Check, CheckCircle2, Crown, Eye, MailPlus, Pencil, Power, Search, ShieldCheck, Trash2, UserRound, Users, X,
+  Ban, Check, CheckCircle2, Crown, Eye, Pencil, Power, Search, ShieldCheck, Trash2, UserRound, Users, X,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, Empty, PageSkeleton } from "../../ui"
@@ -11,8 +11,10 @@ import { useVoxen } from "../../store"
 import { timeAgo } from "../../data"
 import { LEVEL_BLURB, LEVEL_LABEL, type AccessLevel } from "../../access"
 import { getAccountsApi, type AccountRow, type AccountsApi } from "./api"
+import { StaffCreator } from "./StaffCreator"
 
 type Tab = "equipe" | "atletas"
+type TeamFilter = "todos" | "admin" | "executive"
 
 const LEVELS: AccessLevel[] = ["admin", "executive", "user"]
 const LEVEL_ICON = { admin: Crown, executive: Eye, user: UserRound } as const
@@ -34,6 +36,7 @@ export default function AccountsPage() {
   const [meId, setMeId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>("equipe")
+  const [teamFilter, setTeamFilter] = useState<TeamFilter>("todos")
   const [query, setQuery] = useState("")
   const [busy, setBusy] = useState<string | null>(null)
   // Ação que pede confirmação antes de valer: dar/tirar administrador e excluir conta.
@@ -65,16 +68,19 @@ export default function AccountsPage() {
     const target = rows?.find((r) => r.id === focusId)
     if (!target) return
     setTab(target.level === "user" ? "atletas" : "equipe")
+    setTeamFilter("todos")
     window.setTimeout(() => document.getElementById(`ac-${target.id}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 250)
   }, [focusId, rows])
 
   const team = useMemo(() => (rows ?? []).filter((r) => r.level !== "user").sort((a, b) => LEVELS.indexOf(a.level) - LEVELS.indexOf(b.level) || a.fullName.localeCompare(b.fullName)), [rows])
   const athletes = useMemo(() => (rows ?? []).filter((r) => r.level === "user").sort((a, b) => b.createdAt.localeCompare(a.createdAt)), [rows])
   const admins = team.filter((r) => r.level === "admin").length
+  const executives = team.length - admins
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return (tab === "equipe" ? team : athletes).filter((r) => !q || `${r.fullName} ${r.email ?? ""}`.toLowerCase().includes(q))
-  }, [tab, team, athletes, query])
+    const base = tab === "equipe" ? team.filter((r) => teamFilter === "todos" || r.level === teamFilter) : athletes
+    return base.filter((r) => !q || `${r.fullName} ${r.email ?? ""}`.toLowerCase().includes(q))
+  }, [tab, team, athletes, query, teamFilter])
 
   const run = async (id: string, job: () => Promise<void>, done: string) => {
     if (!canEdit) return
@@ -116,9 +122,9 @@ export default function AccountsPage() {
     <>
       <div className="ac-kpis">
         {[
-          { label: "Atletas", value: athletes.length, icon: Users },
-          { label: "Equipe", value: team.length, icon: ShieldCheck },
           { label: "Administradores", value: admins, icon: Crown },
+          { label: "Executivos", value: executives, icon: Eye },
+          { label: "Atletas", value: athletes.length, icon: Users },
           { label: "Desativadas", value: disabledCount, icon: Ban },
         ].map((k) => (
           <section key={k.label} className="vx-card ac-kpi">
@@ -140,7 +146,7 @@ export default function AccountsPage() {
         })}
       </section>
 
-      {canEdit && api && <InviteForm api={api} onDone={load} />}
+      {canEdit && api && <StaffCreator api={api} onDone={load} />}
       {!canEdit && (
         <p className="ac-readonly"><Eye className="h-4 w-4" /> O seu acesso é de executivo: você vê as contas e os acessos, mas só um administrador pode alterar.</p>
       )}
@@ -155,6 +161,15 @@ export default function AccountsPage() {
               Atletas <span className="ml-1 text-zinc-500 tnum">{athletes.length}</span>
             </button>
           </div>
+          {tab === "equipe" && (
+            <div className="vx-chips" role="group" aria-label="Filtrar a equipe por nível">
+              {([["todos", "Todos", team.length], ["admin", "Administradores", admins], ["executive", "Executivos", executives]] as const).map(([key, label, n]) => (
+                <button key={key} type="button" aria-pressed={teamFilter === key} className={`vx-chip ${teamFilter === key ? "is-on" : ""}`} onClick={() => setTeamFilter(key)}>
+                  {label} <span className="tnum opacity-60">{n}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <div className="relative min-w-[200px] flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
             <input className="vx-input vx-input--icon" placeholder="Buscar por nome ou e-mail" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar contas" />
@@ -266,57 +281,11 @@ export default function AccountsPage() {
             </table>
           </div>
         ) : (
-          <Empty icon={<Users className="h-6 w-6" />} title={query ? "Nenhuma conta encontrada" : tab === "equipe" ? "Ninguém na equipe ainda" : "Nenhum atleta com conta ainda"}>
-            {tab === "atletas" ? "Quem criar uma conta no aizyron.com aparece aqui. Para dar acesso de equipe, escolha o nível na lista." : "Adicione alguém acima para começar."}
+          <Empty icon={<Users className="h-6 w-6" />} title={query ? "Nenhuma conta encontrada" : tab === "equipe" ? (teamFilter === "todos" ? "Ninguém na equipe ainda" : `Nenhum ${teamFilter === "admin" ? "administrador" : "executivo"} por aqui`) : "Nenhum atleta com conta ainda"}>
+            {tab === "atletas" ? "Quem criar uma conta no aizyron.com aparece aqui. Para dar acesso de equipe, escolha o nível na lista." : canEdit ? "Use “Adicionar à equipe” acima para criar uma conta." : "Só um administrador pode adicionar pessoas à equipe."}
           </Empty>
         )}
       </section>
     </>
-  )
-}
-
-/** Dar acesso de equipe: a pessoa já tem conta (vira admin/executivo na hora) ou recebe um convite por e-mail. */
-function InviteForm({ api, onDone }: { api: AccountsApi; onDone: () => Promise<void> }) {
-  const { toast } = useToast()
-  const [email, setEmail] = useState("")
-  const [name, setName] = useState("")
-  const [level, setLevel] = useState<"admin" | "executive">("executive")
-  const [saving, setSaving] = useState(false)
-  const valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!valid || saving) return
-    setSaving(true)
-    try {
-      const r = await api.invite(email.trim().toLowerCase(), name.trim(), level)
-      toast({
-        title: r.invited ? "Convite enviado" : "Acesso concedido",
-        description: r.invited ? `${email.trim()} recebe um e-mail para criar a senha.` : `${email.trim()} agora é ${LEVEL_LABEL[level].toLowerCase()}.`,
-      })
-      setEmail("")
-      setName("")
-      await onDone()
-    } catch (err) {
-      toast({ title: "Não foi possível adicionar", description: errMsg(err), variant: "destructive" })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <section className="vx-card mb-[18px]">
-      <h2 className="vx-card-title">Adicionar à equipe</h2>
-      <p className="vx-card-sub mb-4">Se a pessoa já tem conta, o acesso vale na hora. Se não, ela recebe um convite por e-mail.</p>
-      <form className="ac-invite" onSubmit={(e) => void submit(e)}>
-        <input className="vx-input" type="email" placeholder="email@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} aria-label="E-mail da pessoa" required />
-        <input className="vx-input" placeholder="Nome (opcional)" value={name} maxLength={120} onChange={(e) => setName(e.target.value)} aria-label="Nome da pessoa" />
-        <select className="vx-input vx-select" value={level} onChange={(e) => setLevel(e.target.value as "admin" | "executive")} aria-label="Nível de acesso">
-          <option value="executive">Executivo (só lê)</option>
-          <option value="admin">Administrador (faz tudo)</option>
-        </select>
-        <button type="submit" className="vx-btn vx-btn--gold" disabled={!valid || saving}><MailPlus /> {saving ? "Enviando..." : "Dar acesso"}</button>
-      </form>
-    </section>
   )
 }
