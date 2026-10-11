@@ -1,7 +1,7 @@
 import { useEffect, useRef, type MouseEvent } from "react"
 import { Link, useLocation } from "react-router-dom"
 import {
-  ArrowRight, BarChart3, Check, Cpu, MessageCircle, Shield, Sparkles, Target, Users,
+  ArrowRight, BarChart3, Check, Cpu, MessageCircle, Shield, Sparkles, Target, Users, X,
   type LucideIcon,
 } from "lucide-react"
 import { useScrollReveal, useSmoothScroll } from "@/hooks/useScrollAnimations"
@@ -85,12 +85,30 @@ const FEATURES: { icon: LucideIcon; title: string; desc: string; tile: string; g
   },
 ]
 
-const ATHLETE_POINTS = [
-  "Nota geral e 10 indicadores individuais gerados por IA.",
-  "Clubes do Brasil e da Europa compatíveis com o seu perfil.",
-  "A posição e a função em que o seu futebol mais rende.",
-  "Pontos a melhorar antes da próxima peneira.",
-  "Um relatório técnico que fala por você com clubes e empresários.",
+type Point = string | { lead: string; text: string }
+
+/** Na mesma ordem da arte ao lado: dados gerais, oportunidade e encaixe tático. */
+const ATHLETE_POINTS: Point[] = [
+  { lead: "Dados gerais.", text: "Nota geral e 10 indicadores individuais: o seu jogo em números, não em opinião." },
+  { lead: "Oportunidade.", text: "Clubes do Brasil e do mundo com a necessidade que o seu perfil resolve." },
+  { lead: "Encaixe tático.", text: "A posição e a função em que o seu futebol mais rende dentro do sistema de cada clube." },
+  { lead: "Evolução.", text: "O que treinar antes da próxima peneira para subir de nível." },
+  { lead: "Prova.", text: "Um relatório técnico que fala por você com clubes e empresários." },
+]
+
+/** O inimigo em comum de todo atleta de base: a decisão no olho. */
+const EYEBALL = [
+  "Alguns minutos de jogo viram uma decisão.",
+  "Cada avaliador enxerga uma coisa diferente.",
+  "Depende de indicação, de contato e de sorte.",
+  "O seu melhor jogo pode cair no dia errado.",
+]
+
+const WITH_ZYRON = [
+  "O seu perfil inteiro, lido pelo mesmo critério.",
+  "10 indicadores com nota, comparados a clubes do mundo.",
+  "Você chega com um relatório técnico na mão.",
+  "Vale em qualquer dia, para qualquer clube.",
 ]
 
 const FAMILY_POINTS = [
@@ -100,17 +118,20 @@ const FAMILY_POINTS = [
   "Acompanhamento da equipe Zyron pelo WhatsApp em cada etapa.",
 ]
 
-function CheckList({ items }: { items: string[] }) {
+function CheckList({ items }: { items: Point[] }) {
   return (
     <ul className="zs-checklist" data-anim-group="0.07">
-      {items.map((item) => (
-        <li key={item} className="zs-check">
-          <span className="zs-check-icon" aria-hidden="true">
-            <Check className="h-3.5 w-3.5" strokeWidth={3} />
-          </span>
-          <span className="zs-check-text">{item}</span>
-        </li>
-      ))}
+      {items.map((item) => {
+        const { lead, text } = typeof item === "string" ? { lead: "", text: item } : item
+        return (
+          <li key={text} className="zs-check">
+            <span className="zs-check-icon" aria-hidden="true">
+              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+            </span>
+            <span className="zs-check-text">{lead && <strong>{lead} </strong>}{text}</span>
+          </li>
+        )
+      })}
     </ul>
   )
 }
@@ -244,8 +265,9 @@ export default function SiteHome() {
                   <span className="zs-grad">que o clube procura.</span>
                 </h2>
                 <p>
-                  Uma avaliação completa para quem cansou de depender da sorte em peneira: a IA revela o seu nível real,
-                  a posição em que você mais rende e os clubes que combinam com o seu estilo.
+                  <strong>Todo clube do mundo tem uma necessidade em aberto</strong>, e com as suas características existe um
+                  time que precisa exatamente do que você faz. O que falta não é talento: é o seu jogo ser lido com precisão.
+                  A IA da Zyron transforma o que você faz em campo em dados que qualquer clube entende.
                 </p>
                 <CheckList items={ATHLETE_POINTS} />
                 <Link to={evaluation} className="zs-btn zs-btn--primary">
@@ -253,6 +275,35 @@ export default function SiteHome() {
                 </Link>
               </div>
               <AthletePanel />
+            </div>
+
+            <div className="zs-versus" data-anim="up">
+              <div className="zs-versus-head">
+                <span className="zs-label">O inimigo em comum</span>
+                <h3>O inimigo do seu talento se chama olhômetro.</h3>
+                <p>
+                  Todo atleta de base enfrenta o mesmo obstáculo: avaliação rápida, no achismo, que depende de sorte e de
+                  indicação. A Zyron existe para trocar o olhômetro por dados.
+                </p>
+              </div>
+              <div className="zs-versus-grid">
+                <div className="zs-versus-col zs-versus-col--bad">
+                  <p className="zs-versus-title">No olhômetro</p>
+                  <ul>
+                    {EYEBALL.map((t) => (
+                      <li key={t}><X strokeWidth={3} aria-hidden="true" /><span>{t}</span></li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="zs-versus-col zs-versus-col--good">
+                  <p className="zs-versus-title">Com a Zyron</p>
+                  <ul>
+                    {WITH_ZYRON.map((t) => (
+                      <li key={t}><Check strokeWidth={3} aria-hidden="true" /><span>{t}</span></li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </section>
