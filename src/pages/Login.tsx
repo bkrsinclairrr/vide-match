@@ -9,6 +9,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { emailSchema, nameSchema, validateCredentials } from "@/lib/security"
 import { friendlyAuthError } from "@/lib/authErrors"
+import { readFields } from "@/lib/formValues"
 
 /** Só caminhos internos (nada de //outro-site): é para onde a pessoa volta depois de entrar. */
 const safeNext = (value: string | null) => (value && value.startsWith("/") && !value.startsWith("//") ? value : null)
@@ -30,9 +31,11 @@ export default function Login() {
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const credentials = validateCredentials(email, password)
+    // Lê da tela (não do estado): a senha preenchida pelo navegador só chega ao estado depois de um clique.
+    const typed = readFields(e.currentTarget, { email, password })
+    const credentials = validateCredentials(typed.email, typed.password)
     if (!credentials) {
       toast({ title: "Dados inválidos", description: "Informe um e-mail válido e uma senha de 6 a 128 caracteres.", variant: "destructive" })
       return
@@ -47,10 +50,11 @@ export default function Login() {
     }
   }
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const credentials = validateCredentials(regEmail, regPassword)
-    const validName = nameSchema.safeParse(name.trim())
+    const typed = readFields(e.currentTarget, { name, email: regEmail, password: regPassword })
+    const credentials = validateCredentials(typed.email, typed.password)
+    const validName = nameSchema.safeParse(typed.name.trim())
     if (!credentials || !validName.success) {
       toast({ title: "Dados inválidos", description: "Informe nome válido, e-mail válido e uma senha de 6 a 128 caracteres.", variant: "destructive" })
       return
@@ -223,7 +227,9 @@ export default function Login() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="email"
+                      name="email"
                       type="email"
+                      autoComplete="username"
                       placeholder="nome@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -247,7 +253,9 @@ export default function Login() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="password"
+                      name="password"
                       type="password"
+                      autoComplete="current-password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -310,7 +318,9 @@ export default function Login() {
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="name"
+                      name="name"
                       type="text"
+                      autoComplete="name"
                       placeholder="João Silva"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -325,7 +335,9 @@ export default function Login() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="reg-email"
+                      name="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="nome@gmail.com"
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
@@ -340,7 +352,9 @@ export default function Login() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="reg-password"
+                      name="password"
                       type="password"
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
