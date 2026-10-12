@@ -25,7 +25,13 @@ export type SelfResult =
 
 export type ProfileListItem = Member & { matchCount: number; publishedCount: number; lastMatch: string | null }
 
-export type MemberInput = Partial<Omit<Member, "id" | "createdAt" | "updatedAt" | "userId">> & { id?: string; kind: MemberKind; fullName: string }
+export type MemberInput = Partial<Omit<Member, "id" | "createdAt" | "updatedAt" | "userId">> & {
+  id?: string
+  kind: MemberKind
+  fullName: string
+  /** Só ao criar: guarda a data em que a pessoa entrou (ex.: a data do cadastro no funil) em vez de "agora". */
+  createdAt?: string
+}
 export type MatchInput = Omit<Match, "id" | "createdAt" | "updatedAt"> & { id?: string }
 export type EventInput = Omit<MatchEvent, "id">
 
@@ -142,6 +148,8 @@ const memberRow = (m: MemberInput) => ({
   lead_id: m.leadId ?? null,
   active: m.active ?? true,
   updated_at: new Date().toISOString(),
+  // Só na criação (sem id): quem edita não mexe na data em que o perfil nasceu.
+  ...(m.createdAt && !m.id ? { created_at: m.createdAt } : {}),
 })
 
 const matchRow = (m: MatchInput) => ({
