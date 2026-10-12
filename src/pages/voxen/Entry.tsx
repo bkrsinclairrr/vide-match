@@ -7,6 +7,7 @@ import {
 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { friendlyAuthError } from "@/lib/authErrors"
+import { readFields } from "@/lib/formValues"
 import { VoxenWordmark } from "./ui"
 
 /*
@@ -114,6 +115,8 @@ function AthleteDoor() {
 
 type Mode = "entrar" | "senha"
 
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
+
 /** Login da equipe (administrador e executivo): sem criar conta. Quem entra na equipe é convidado por um administrador. */
 function TeamDoor({ onIntent }: { onIntent?: () => void }) {
   const [mode, setMode] = useState<Mode>("entrar")
@@ -125,8 +128,6 @@ function TeamDoor({ onIntent }: { onIntent?: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [sent, setSent] = useState(false)
   const intent = useRef(false)
-
-  const valid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()) && (mode === "senha" || password.length >= 6)
 
   /** A pessoa começou a usar o login da equipe: adianta o download do painel para o login abrir direto. */
   const warm = () => {
@@ -141,15 +142,28 @@ function TeamDoor({ onIntent }: { onIntent?: () => void }) {
     setSent(false)
   }
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!valid || busy) return
+    if (busy) return
+    // Lê da tela (não do estado): a senha preenchida pelo navegador só chega ao estado depois de um clique,
+    // e o botão nunca fica desligado por um campo que parece vazio.
+    const typed = readFields(e.currentTarget, { email, password })
+    const mail = typed.email.trim().toLowerCase()
+    if (!EMAIL.test(mail)) {
+      setError("Informe um e-mail válido.")
+      return
+    }
+    if (mode === "entrar" && typed.password.length < 6) {
+      setError("Informe a sua senha.")
+      return
+    }
+    setEmail(typed.email)
+    setPassword(typed.password)
     setBusy(true)
     setError(null)
-    const mail = email.trim().toLowerCase()
     try {
       if (mode === "entrar") {
-        const { error: err } = await supabase.auth.signInWithPassword({ email: mail, password })
+        const { error: err } = await supabase.auth.signInWithPassword({ email: mail, password: typed.password })
         if (err) {
           setError(/invalid login credentials/i.test(err.message)
             ? "E-mail ou senha incorretos. Confira os dados ou use “Esqueci a senha”."
@@ -189,7 +203,7 @@ function TeamDoor({ onIntent }: { onIntent?: () => void }) {
               <label htmlFor="sl-email">E-mail</label>
               <div className="ve-input">
                 <Mail aria-hidden="true" />
-                <input id="sl-email" type="email" inputMode="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@aizyron.com" />
+                <input id="sl-email" name="email" type="email" inputMode="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@aizyron.com" />
               </div>
             </div>
 
@@ -202,7 +216,7 @@ function TeamDoor({ onIntent }: { onIntent?: () => void }) {
                 <div className="ve-input">
                   <Lock aria-hidden="true" />
                   <input
-                    id="sl-pass" type={show ? "text" : "password"} autoComplete="current-password" required value={password} placeholder="Sua senha"
+                    id="sl-pass" name="password" type={show ? "text" : "password"} autoComplete="current-password" required value={password} placeholder="Sua senha"
                     onChange={(e) => setPassword(e.target.value)} onKeyUp={(e) => setCaps(e.getModifierState("CapsLock"))} onBlur={() => setCaps(false)}
                     aria-describedby={caps ? "sl-caps" : undefined}
                   />
@@ -216,7 +230,7 @@ function TeamDoor({ onIntent }: { onIntent?: () => void }) {
 
             {error && <p role="alert" className="ve-error"><AlertCircle /> {error}</p>}
 
-            <button type="submit" disabled={!valid || busy} className="vx-btn ve-team-btn">
+            <button type="submit" disabled={busy} className="vx-btn ve-team-btn">
               {busy ? <><Loader2 className="ve-spin" /> {mode === "entrar" ? "Entrando..." : "Enviando..."}</> : mode === "entrar" ? <>Entrar na VOXEN <ArrowRight /></> : "Enviar o link"}
             </button>
           </>

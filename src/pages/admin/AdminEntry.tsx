@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useAccessLevel } from "@/hooks/useAccessLevel"
 import { prefersReducedMotion } from "@/lib/reducedMotion"
 import { friendlyAuthError } from "@/lib/authErrors"
+import { readFields } from "@/lib/formValues"
 import { useDevPreview } from "@/lib/devPreview"
 import { usePointerGlow } from "@/pages/voxen/motion"
 
@@ -199,8 +200,6 @@ function AdminForm({ status, onAttempt }: { status: Status; onAttempt: (on: bool
   const d = (ms: number) => ({ "--d": swapped ? "0ms" : `${ms}ms` }) as CSSProperties
   const working = busy || status === "verifying"
   const done = status === "success"
-  const validEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
-  const valid = validEmail && (mode === "senha" || password.length >= 6)
 
   const go = (to: "entrar" | "senha") => {
     setMode(to)
@@ -222,16 +221,29 @@ function AdminForm({ status, onAttempt }: { status: Status; onAttempt: (on: bool
     setShake(true)
   }
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!valid || working || done) return
+    if (working || done) return
+    // Lê da tela (não do estado): a senha preenchida pelo navegador só chega ao estado depois de um clique,
+    // e o botão nunca fica desligado por um campo que parece vazio.
+    const typed = readFields(e.currentTarget, { email, password })
+    const mail = typed.email.trim().toLowerCase()
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) {
+      fail("Informe um e-mail válido.")
+      return
+    }
+    if (mode === "entrar" && typed.password.length < 6) {
+      fail("Informe a sua senha.")
+      return
+    }
+    setEmail(typed.email)
+    setPassword(typed.password)
     setBusy(true)
     setError(null)
-    const mail = email.trim().toLowerCase()
     try {
       if (mode === "entrar") {
         onAttempt(true)
-        const { error: err } = await supabase.auth.signInWithPassword({ email: mail, password })
+        const { error: err } = await supabase.auth.signInWithPassword({ email: mail, password: typed.password })
         if (err) {
           onAttempt(false)
           fail(/invalid login credentials/i.test(err.message)
@@ -315,7 +327,7 @@ function AdminForm({ status, onAttempt }: { status: Status; onAttempt: (on: bool
 
               {error && <p role="alert" className="ad-error"><AlertCircle aria-hidden="true" /> {error}</p>}
 
-              <button type="submit" disabled={!valid || working || done} className={`ad-submit ad-in ${done ? "is-success" : ""}`} style={d(560)}>
+              <button type="submit" disabled={working || done} className={`ad-submit ad-in ${done ? "is-success" : ""}`} style={d(560)}>
                 {done ? (
                   <><Check className="ad-submit-check" /> Acesso liberado</>
                 ) : working ? (
