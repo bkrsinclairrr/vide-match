@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { emailSchema, nameSchema, validateCredentials } from "@/lib/security"
-import { friendlyAuthError } from "@/lib/funnel"
+import { friendlyAuthError } from "@/lib/authErrors"
 
 /** Só caminhos internos (nada de //outro-site): é para onde a pessoa volta depois de entrar. */
 const safeNext = (value: string | null) => (value && value.startsWith("/") && !value.startsWith("//") ? value : null)
@@ -167,7 +167,7 @@ export default function Login() {
             <p className="text-muted-foreground text-sm">Insira seus dados para acessar sua conta</p>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={params.get("aba") === "cadastro" ? "register" : "login"} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
               <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">Entrar</TabsTrigger>
               <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">Criar conta</TabsTrigger>

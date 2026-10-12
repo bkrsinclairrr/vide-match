@@ -11,8 +11,8 @@ import {
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import { useAccessLevel } from "@/hooks/useAccessLevel"
-import { prefersReducedMotion } from "@/hooks/useScrollAnimations"
-import { friendlyAuthError } from "@/lib/funnel"
+import { prefersReducedMotion } from "@/lib/reducedMotion"
+import { friendlyAuthError } from "@/lib/authErrors"
 import { useDevPreview } from "@/lib/devPreview"
 import { usePointerGlow } from "@/pages/voxen/motion"
 

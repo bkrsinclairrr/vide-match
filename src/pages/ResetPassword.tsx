@@ -7,7 +7,7 @@ import { Trophy, Lock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { passwordSchema } from "@/lib/security"
-import { friendlyAuthError } from "@/lib/funnel"
+import { friendlyAuthError } from "@/lib/authErrors"
 
 /**
  * Destino do e-mail de recuperação de senha (Login e Dashboard mandam pra
