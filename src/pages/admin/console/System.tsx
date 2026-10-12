@@ -12,6 +12,7 @@ import { getAccountsApi } from "@/pages/voxen/pages/accounts/api"
 import { useAdminSource } from "@/pages/voxen/pages/members/shared"
 import { downloadFile, stamp } from "@/lib/exportFile"
 import { accountsCsv, membersCsv, playersCsv } from "./exports"
+import { SYNC_MIGRATION, SyncMissingError, getSyncStatus, type SyncStatus } from "./sync"
 
 const db = supabase as unknown as SupabaseClient
 const PROJECT = "mehmqibxzxfqdxqjnjad"
@@ -106,6 +107,22 @@ export default function System() {
       ? { key: "staff", label: "Permissões da equipe (executivo)", state: isMissing(staff.value.error) ? "fail" : "warn", detail: isMissing(staff.value.error) ? "A função is_staff não existe no banco." : staff.value.error.message, hint: isMissing(staff.value.error) ? "Rode a migração 20261011000000_contas_e_acessos.sql no editor SQL do Supabase." : undefined, ms: staff.ms }
       : { key: "staff", label: "Permissões da equipe (executivo)", state: staff.value.data === true ? "ok" : "warn", detail: staff.value.data === true ? "A sua conta é reconhecida como equipe pelo banco." : "O banco não reconhece a sua conta como equipe.", ms: staff.ms })
 
+    // Sincronização automática de membros: a função de estado existe e quantos cadastros reais aguardam.
+    type Probe = { s: SyncStatus | null; missing: boolean; msg?: string }
+    const sync = await timed<Probe>(async () => {
+      try {
+        return { s: await getSyncStatus(false), missing: false }
+      } catch (e) {
+        return { s: null, missing: e instanceof SyncMissingError, msg: e instanceof Error ? e.message : String(e) }
+      }
+    })
+    if (sync.value.s) {
+      const s = sync.value.s
+      push({ key: "sync", label: "Membros automáticos", state: s.pendentes > 0 ? "warn" : "ok", detail: `${s.automaticos} automáticos, ${s.da_equipe} da equipe, ${s.pendentes} aguardando.`, hint: s.pendentes > 0 ? "Em Membros, clique em “Sincronizar agora”." : undefined, ms: sync.ms })
+    } else {
+      push({ key: "sync", label: "Membros automáticos", state: sync.value.missing ? "warn" : "fail", detail: sync.value.missing ? "A sincronização automática não está ativa." : (sync.value.msg ?? "Não respondeu."), hint: sync.value.missing ? `Rode a migração ${SYNC_MIGRATION} no editor SQL do Supabase.` : undefined, ms: sync.ms })
+    }
+
     // Função de contas: listar prova que responde; criar sem dados prova a versão (sem criar nada).
     const list = await timed(() => supabase.functions.invoke("admin-users", { body: { action: "list_users" } }))
     if (list.value.error || (list.value.data as { error?: string } | null)?.error) {
@@ -189,7 +206,7 @@ export default function System() {
                 </li>
               )
             })}
-            {running && checks.length < 7 && <li className="is-run"><span className="cn-check-icon"><Loader2 className="cn-spin" /></span><div className="flex-1"><b>Verificando…</b></div></li>}
+            {running && checks.length < 8 &&<li className="is-run"><span className="cn-check-icon"><Loader2 className="cn-spin" /></span><div className="flex-1"><b>Verificando…</b></div></li>}
           </ul>
         </section>
 

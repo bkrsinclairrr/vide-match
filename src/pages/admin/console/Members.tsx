@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import {
-  CircleDot, Download, ExternalLink, Eye, Pencil, Plus, Power, Search, Trash2, UserCheck, Users,
+  CircleDot, Download, ExternalLink, Eye, Pencil, Plus, Power, Search, Trash2, UserCheck, Users, Zap,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Empty, PageSkeleton } from "@/pages/voxen/ui"
@@ -14,6 +14,7 @@ import { MemberForm, SetupNotice, inputFromMember, memberAreaUrl, useAdminSource
 import { downloadFile, stamp } from "@/lib/exportFile"
 import { BulkBar, Check, DangerConfirm, Drawer } from "./parts"
 import { membersCsv } from "./exports"
+import { SyncCard } from "./SyncCard"
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 type Status = "todos" | "ativos" | "inativos" | "sem-conta"
@@ -149,6 +150,8 @@ export default function Members() {
 
   return (
     <>
+      <SyncCard onChanged={list.reload} />
+
       <section className="vx-card cn-filters">
         <div className="vx-tabs" role="tablist" aria-label="Tipo de perfil">
           <button type="button" role="tab" aria-selected={kind === "membro"} className={`vx-tab ${kind === "membro" ? "is-on" : ""}`} onClick={() => setKind("membro")}>
@@ -301,6 +304,7 @@ function MemberRows({
           <button type="button" role="switch" aria-checked={m.active} className={`cn-switch ${m.active ? "is-on" : ""}`} onClick={onToggleActive} disabled={busy} aria-label={m.active ? `Desativar ${m.fullName}` : `Reativar ${m.fullName}`}>
             <span /> <em>{m.active ? "Ativo" : "Inativo"}</em>
           </button>
+          {isMember && m.autoSync && <span className="cn-auto" title="Criado e mantido pela sincronização automática. Se você editar os dados, ele passa a ser da equipe.">Auto</span>}
         </td>
         <td onClick={(e) => e.stopPropagation()}>
           <div className="ac-actions">
@@ -387,6 +391,9 @@ function MemberEditor({
         <section className="vx-card">
           <MemberForm kind={m.kind} initial={inputFromMember(m)} saving={busy} onSave={onSave} />
           {m.kind === "membro" && m.userId && <p className="mt-4 text-[12px] text-zinc-500">A conta de login está ligada a este perfil. Mudar o e-mail aqui não altera o e-mail da conta.</p>}
+          {m.kind === "membro" && m.autoSync && (
+            <p className="cn-auto-note"><Zap className="h-3.5 w-3.5" /> Este membro é automático: acompanha o cadastro do funil ou da conta. Se você salvar mudanças nos dados aqui, ele passa a ser só da equipe e deixa de ser sobrescrito.</p>
+          )}
         </section>
       ) : (
         <section className="vx-card">
