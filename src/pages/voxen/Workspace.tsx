@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  BadgeCheck, Eye, GitCompareArrows, LayoutDashboard, LogOut, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
+  BadgeCheck, Eye, GitCompareArrows, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -32,11 +32,13 @@ const AdminMember = lazy(() => import("./pages/members/AdminMember"))
 const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
 const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
 const AccountsPage = lazy(() => import("./pages/accounts/AccountsPage"))
+const AthletesPage = lazy(() => import("./pages/athletes/AthletesPage"))
 
 const NAV: NavItem[] = [
   { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true, section: "Plataforma" },
   { to: "/voxen/jogadores", label: "Jogadores", icon: Users, section: "Plataforma" },
   { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, section: "Plataforma" },
+  { to: "/voxen/atletas", label: "Atletas", icon: Medal, section: "Plataforma" },
   { to: "/voxen/elenco", label: "Elenco", icon: Shirt, section: "Plataforma" },
   { to: "/voxen/comparativo", label: "Comparativo", icon: GitCompareArrows, section: "Plataforma" },
   { to: "/voxen/contas", label: "Contas e acessos", icon: ShieldCheck, section: "Administração" },
@@ -47,7 +49,7 @@ const TABS: TabItem[] = [
   { to: "/voxen", label: "Início", icon: LayoutDashboard, end: true },
   { to: "/voxen/jogadores", label: "Jogadores", icon: Users },
   { to: "/voxen/membros", label: "Membros", icon: BadgeCheck },
-  { to: "/voxen/contas", label: "Contas", icon: ShieldCheck },
+  { to: "/voxen/atletas", label: "Atletas", icon: Medal },
 ]
 
 export default function Workspace({ demo, role }: { demo: boolean; role: StaffRole }) {
@@ -71,6 +73,7 @@ function useTitle() {
   if (pathname.startsWith("/voxen/elenco")) return { kicker: "Por posição", title: "Elenco" }
   if (pathname.startsWith("/voxen/comparativo")) return { kicker: "Lado a lado", title: "Comparativo" }
   if (pathname.startsWith("/voxen/contas")) return { kicker: "Administração", title: "Contas e acessos" }
+  if (pathname.startsWith("/voxen/atletas")) return { kicker: "Plataforma", title: "Atletas" }
   if (pathname.startsWith("/voxen/membros/comparar")) return { kicker: "Área de membros", title: "Comparar perfis" }
   if (pathname.endsWith("/partidas/nova")) return { kicker: "Área de membros", title: "Nova partida" }
   if (pathname.includes("/partidas/")) return { kicker: "Área de membros", title: "Partida e lances" }
@@ -145,6 +148,7 @@ function Shell() {
             <Route path="elenco" element={<Squad />} />
             <Route path="comparativo" element={<Compare />} />
             <Route path="contas" element={<AccountsPage />} />
+            <Route path="atletas" element={<AthletesPage />} />
             <Route path="membros" element={<AdminMembers />} />
             <Route path="membros/comparar" element={<AdminCompare />} />
             <Route path="membros/:id" element={<AdminMember />} />

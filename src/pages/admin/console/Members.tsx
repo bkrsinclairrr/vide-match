@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import {
-  CircleDot, Download, ExternalLink, Eye, Pencil, Plus, Power, Search, Trash2, UserCheck, Users, Zap,
+  CircleDot, Download, ExternalLink, Eye, Medal, Pencil, Plus, Power, Search, Trash2, UserCheck, Users, Zap,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Empty, PageSkeleton } from "@/pages/voxen/ui"
@@ -12,6 +12,10 @@ import { formatShortDate, positionCodeOf, resultOf, RESULT_COLORS, type Match, t
 import type { MemberInput, ProfileListItem } from "@/pages/membros/api"
 import { MemberForm, SetupNotice, inputFromMember, memberAreaUrl, useAdminSource, useSourceData } from "@/pages/voxen/pages/members/shared"
 import { downloadFile, stamp } from "@/lib/exportFile"
+import { useAthletes, type AthletesHook } from "@/pages/voxen/pages/athletes/api"
+import { SectorBadge, SectorCard } from "@/pages/voxen/pages/athletes/bits"
+import { draftFromMember, type Athlete } from "@/pages/voxen/pages/athletes/model"
+import { useSendToSector } from "@/pages/voxen/pages/athletes/useSendToSector"
 import { BulkBar, Check, DangerConfirm, Drawer } from "./parts"
 import { membersCsv } from "./exports"
 import { SyncCard } from "./SyncCard"
@@ -30,11 +34,17 @@ export default function Members() {
   const [status, setStatus] = useState<Status>(params.get("situacao") === "sem-conta" ? "sem-conta" : "todos")
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [creating, setCreating] = useState(params.get("novo") === "1")
-  const [editId, setEditId] = useState<string | null>(null)
+  const [editId, setEditId] = useState<string | null>(params.get("editar"))
   const [confirmRow, setConfirmRow] = useState<string | null>(null)
   const [confirmBulk, setConfirmBulk] = useState(false)
   const [busy, setBusy] = useState(false)
   const list = useSourceData(source, (s) => s.listProfiles(), [])
+  const sector = useAthletes()
+  const { send, sending } = useSendToSector(sector)
+  const sendToSector = async (items: ProfileListItem[]) => {
+    const r = await send(items.filter((m) => m.kind === "membro").map(draftFromMember))
+    return Boolean(r && (r.added.length || r.existing.length))
+  }
 
   const all = useMemo(() => list.data ?? [], [list.data])
   const counts = useMemo(() => ({
@@ -200,6 +210,7 @@ export default function Members() {
                   const picked = selected.has(m.id)
                   return (
                     <MemberRows key={m.id} m={m} picked={picked} confirming={confirmRow === m.id} busy={busy} demo={demo}
+                      inSector={m.kind === "membro" ? sector.forMember(m) : null} canSend={m.kind === "membro" && sector.canEdit && !sending} onSend={() => void sendToSector([m])}
                       onPick={() => toggle(m.id)} onEdit={() => { setEditId(m.id); setCreating(false) }} onToggleActive={() => void setActive(m, !m.active)}
                       onAskDelete={() => setConfirmRow(m.id)} onCancelDelete={() => setConfirmRow(null)} onDelete={() => void remove([m.id])} />
                   )
@@ -229,6 +240,12 @@ export default function Members() {
           <button type="button" className="vx-btn" disabled={busy} onClick={() => void setActiveMany(true)}><Power style={{ color: "#34d399" }} /> Reativar</button>
           <button type="button" className="vx-btn" disabled={busy} onClick={() => void setActiveMany(false)}><Power /> Desativar</button>
           <button type="button" className="vx-btn" onClick={() => exportRows(all.filter((m) => selected.has(m.id)), "perfis-selecionados")}><Download /> Exportar</button>
+          {kind === "membro" && sector.canEdit && (
+            <button type="button" className="vx-btn vx-btn--gold" disabled={sending}
+              onClick={() => void sendToSector(all.filter((m) => selected.has(m.id))).then((ok) => { if (ok) setSelected(new Set()) })}>
+              <Medal /> {sending ? "Enviando..." : "Enviar para Atletas"}
+            </button>
+          )}
           <button type="button" className="vx-btn cn-btn-danger" onClick={() => setConfirmBulk(true)}><Trash2 /> Excluir</button>
         </BulkBar>
       )}
@@ -248,7 +265,7 @@ export default function Members() {
       <Drawer open={Boolean(editing)} onClose={() => setEditId(null)} title={editing?.fullName ?? "Perfil"}
         subtitle={editing ? `${editing.kind === "membro" ? "Membro" : "Referência"}${editing.email ? ` · ${editing.email}` : ""}` : undefined}>
         {editing && source && (
-          <MemberEditor key={editing.id} m={editing} source={source} busy={busy} demo={demo}
+          <MemberEditor key={editing.id} m={editing} source={source} busy={busy} demo={demo} sector={sector} sending={sending} onSend={() => void sendToSector([editing])}
             onSave={async (input) => { await save(input, "Dados salvos") }} onDelete={() => void remove([editing.id])} onChanged={list.reload} />
         )}
       </Drawer>
@@ -259,13 +276,16 @@ export default function Members() {
 /* ------------------------------------------------------------------ */
 
 function MemberRows({
-  m, picked, confirming, busy, demo, onPick, onEdit, onToggleActive, onAskDelete, onCancelDelete, onDelete,
+  m, picked, confirming, busy, demo, inSector, canSend, onSend, onPick, onEdit, onToggleActive, onAskDelete, onCancelDelete, onDelete,
 }: {
   m: ProfileListItem
   picked: boolean
   confirming: boolean
   busy: boolean
   demo: boolean
+  inSector: Athlete | null
+  canSend: boolean
+  onSend: () => void
   onPick: () => void
   onEdit: () => void
   onToggleActive: () => void
@@ -281,8 +301,11 @@ function MemberRows({
         <td>
           <div className="flex items-center gap-3">
             <MemberAvatar member={m} size={34} />
-            <div className="min-w-0 max-w-[260px]">
-              <button type="button" className="block max-w-full truncate text-left text-[13.5px] font-semibold text-white hover:text-amber-300" onClick={(e) => { e.stopPropagation(); onEdit() }}>{m.fullName}</button>
+            <div className="min-w-0 max-w-[300px]">
+              <div className="flex min-w-0 items-center gap-2">
+                <button type="button" className="block min-w-0 truncate text-left text-[13.5px] font-semibold text-white hover:text-amber-300" onClick={(e) => { e.stopPropagation(); onEdit() }}>{m.fullName}</button>
+                <SectorBadge a={inSector} />
+              </div>
               <div className="truncate text-[11.5px] text-zinc-500">{m.email ?? m.team ?? "—"}</div>
             </div>
           </div>
@@ -309,6 +332,9 @@ function MemberRows({
         <td onClick={(e) => e.stopPropagation()}>
           <div className="ac-actions">
             <button type="button" className="vx-icon-btn" title="Editar" aria-label={`Editar ${m.fullName}`} onClick={onEdit}><Pencil /></button>
+            {isMember && !inSector && canSend && (
+              <button type="button" className="vx-icon-btn at-send-btn" title="Enviar para Atletas" aria-label={`Enviar ${m.fullName} para o setor Atletas`} onClick={onSend}><Medal /></button>
+            )}
             {isMember && <a className="vx-icon-btn" href={memberAreaUrl(m.id, "", demo)} target="_blank" rel="noopener noreferrer" title="Ver como membro" aria-label={`Ver a área de ${m.fullName}`}><Eye /></a>}
             <Link className="vx-icon-btn" to={`/voxen/membros/${m.id}`} target="_blank" title="Abrir na VOXEN" aria-label={`Abrir ${m.fullName} na VOXEN`}><ExternalLink /></Link>
             <button type="button" className="vx-icon-btn ac-danger" title="Excluir" aria-label={`Excluir ${m.fullName}`} onClick={onAskDelete}><Trash2 /></button>
@@ -331,12 +357,15 @@ function MemberRows({
 
 /** Gaveta do perfil: dados, partidas (publicar e excluir) e zona de risco. */
 function MemberEditor({
-  m, source, busy, demo, onSave, onDelete, onChanged,
+  m, source, busy, demo, sector, sending, onSend, onSave, onDelete, onChanged,
 }: {
   m: ProfileListItem
   source: NonNullable<ReturnType<typeof useAdminSource>>
   busy: boolean
   demo: boolean
+  sector: AthletesHook
+  sending: boolean
+  onSend: () => void
   onSave: (input: MemberInput) => Promise<void>
   onDelete: () => void
   onChanged: () => void
@@ -432,6 +461,10 @@ function MemberEditor({
             </ul>
           )}
         </section>
+      )}
+
+      {m.kind === "membro" && tab === "dados" && (
+        <SectorCard a={sector.forMember(m)} missing={sector.missing} canEdit={sector.canEdit} sending={sending} onSend={onSend} />
       )}
 
       {m.kind === "membro" && (
