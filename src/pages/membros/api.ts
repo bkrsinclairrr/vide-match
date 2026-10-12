@@ -90,6 +90,7 @@ export const toMember = (r: Row): Member => ({
   scout: r.scout && typeof r.scout === "object" ? (r.scout as Record<string, number>) : null,
   leadId: str(r.lead_id),
   active: r.active !== false,
+  autoSync: r.auto_sync === true,
   createdAt: r.created_at as string,
   updatedAt: r.updated_at as string,
 })

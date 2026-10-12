@@ -29,6 +29,8 @@ export type Member = {
   scout: Record<string, number> | null
   leadId: string | null
   active: boolean
+  /** Criado e mantido pela sincronização automática (vira `false` quando a equipe edita os dados). */
+  autoSync: boolean
   createdAt: string
   updatedAt: string
 }

@@ -91,7 +91,7 @@ const COMPETITIONS = ["Candangão Sub-20", "Copa Brasília", "Amistoso", "Copa A
 const iso = (d: Date) => d.toISOString().slice(0, 10)
 const stamp = new Date().toISOString()
 
-type Seed = Omit<Member, "id" | "createdAt" | "updatedAt" | "userId" | "leadId" | "active"> & { id: string; elite?: boolean; matches: number }
+type Seed = Omit<Member, "id" | "createdAt" | "updatedAt" | "userId" | "leadId" | "active" | "autoSync"> & { id: string; elite?: boolean; matches: number }
 
 const SEEDS: Seed[] = [
   {
@@ -142,7 +142,7 @@ function build() {
 
   for (const seed of SEEDS) {
     const { matches: count, elite, ...rest } = seed
-    members.push({ ...rest, userId: seed.kind === "membro" ? `user-${seed.id}` : null, leadId: null, active: true, createdAt: stamp, updatedAt: stamp })
+    members.push({ ...rest, userId: seed.kind === "membro" ? `user-${seed.id}` : null, leadId: null, active: true, autoSync: seed.kind === "membro" && seed.id.length % 2 === 0, createdAt: stamp, updatedAt: stamp })
     const role = ROLES[seed.position as string]
     const isZag = seed.position === "Zagueiro"
 
@@ -276,6 +276,7 @@ export const fixtureSource: DataSource = {
       scout: input.scout ?? existing?.scout ?? null,
       leadId: input.leadId ?? existing?.leadId ?? null,
       active: input.active ?? true,
+      autoSync: existing?.autoSync ?? false,
       createdAt: existing?.createdAt ?? input.createdAt ?? now,
       updatedAt: now,
     }
