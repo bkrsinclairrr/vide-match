@@ -22,12 +22,12 @@ import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import Lenis from "lenis"
 import "lenis/dist/lenis.css"
+import { prefersReducedMotion } from "@/lib/reducedMotion"
 
 gsap.registerPlugin(ScrollTrigger)
 
-export const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches
+// A preferência mora em `lib/reducedMotion` (sem GSAP/Lenis); reexportada aqui para o site.
+export { prefersReducedMotion }
 
 /**
  * Ponteiro grosso (touch) como entrada primária — celular/tablet.

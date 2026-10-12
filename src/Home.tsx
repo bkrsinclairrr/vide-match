@@ -116,6 +116,9 @@ const usePrefetchCoreRoutes = () => {
       return ric ? ric(cb) : window.setTimeout(cb, 1200)
     }
     idle(() => {
+      // Quem abre a VOXEN, a central de administração ou a área do atleta não vai para o onboarding: baixar
+      // e executar o chunk dele (que traz GSAP e Lenis, ~50 KB) só disputa banda e processador com a tela que a pessoa já está usando.
+      if (/^\/(voxen|admin|minha-area)(\/|$)/.test(window.location.pathname)) return
       import("./pages/Onboarding")
     })
   }, [])

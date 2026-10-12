@@ -1,5 +1,5 @@
 import { useEffect, useState, type RefObject } from "react"
-import { prefersReducedMotion } from "@/hooks/useScrollAnimations"
+import { prefersReducedMotion } from "@/lib/reducedMotion"
 
 /*
  * Movimento da VOXEN: brilho que segue o cursor nos cartões, cartões que
