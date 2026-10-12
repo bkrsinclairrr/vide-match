@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { BadgeCheck, CheckCircle2, Download, ExternalLink, Pencil, Search, ShieldCheck, Trash2, UserRound, Users, X } from "lucide-react"
+import { BadgeCheck, CheckCircle2, Download, ExternalLink, Medal, Pencil, Search, ShieldCheck, Trash2, UserRound, Users, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, Empty, PosBadge } from "@/pages/voxen/ui"
 import { useVoxen } from "@/pages/voxen/store"
@@ -11,6 +11,10 @@ import PlayerEditor from "@/pages/voxen/pages/PlayerEditor"
 import { getAccountsApi } from "@/pages/voxen/pages/accounts/api"
 import { useAdminSource } from "@/pages/voxen/pages/members/shared"
 import { downloadFile, stamp } from "@/lib/exportFile"
+import { accountEmails, useAthletes, type AthletesHook } from "@/pages/voxen/pages/athletes/api"
+import { SectorBadge, SectorCard } from "@/pages/voxen/pages/athletes/bits"
+import { draftFromPlayer, type Athlete } from "@/pages/voxen/pages/athletes/model"
+import { useSendToSector } from "@/pages/voxen/pages/athletes/useSendToSector"
 import { BulkBar, Check, DangerConfirm, Drawer, Pager } from "./parts"
 import { playersCsv } from "./exports"
 import { looksReal } from "./names"
@@ -51,8 +55,17 @@ export default function Records() {
   const [confirmRow, setConfirmRow] = useState<string | null>(null)
   const [confirmBulk, setConfirmBulk] = useState(false)
   const [busy, setBusy] = useState(false)
+  const sector = useAthletes()
+  const { send, sending } = useSendToSector(sector)
   const editKey = params.get("editar")
   const editing = editKey ? byKey.get(editKey) ?? null : null
+
+  /** Leva os cadastros para o setor Atletas (contas buscam o e-mail na lista de contas). */
+  const sendToSector = async (list: Player[]) => {
+    const emails = await accountEmails(demo, list)
+    const r = await send(list.map((p) => draftFromPlayer(p, p.userId ? emails.get(p.userId) ?? null : null)))
+    return Boolean(r && (r.added.length || r.existing.length))
+  }
 
   const categories = useMemo(() => [...new Set(players.map((p) => p.profile.category).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true })), [players])
 
@@ -282,6 +295,7 @@ export default function Records() {
                   const picked = selected.has(p.key)
                   return (
                     <RowGroup key={p.key} player={p} picked={picked} confirming={confirmRow === p.key} busy={busy}
+                      inSector={sector.forPlayer(p)} canSend={sector.canEdit && !sending} onSend={() => void sendToSector([p])}
                       onPick={() => toggle(p.key)} onEdit={() => openEditor(p.key)} onAskDelete={() => setConfirmRow(p.key)}
                       onCancelDelete={() => setConfirmRow(null)} onDelete={() => void deleteOne(p)} onStage={(v) => setStageOf(p, v)} />
                   )
@@ -316,6 +330,12 @@ export default function Records() {
             {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
           <button type="button" className="vx-btn" onClick={() => exportRows(players.filter((p) => selected.has(p.key)), "cadastros-selecionados")}><Download /> Exportar</button>
+          {sector.canEdit && (
+            <button type="button" className="vx-btn" disabled={sending}
+              onClick={() => void sendToSector(players.filter((p) => selected.has(p.key))).then((ok) => { if (ok) setSelected(new Set()) })}>
+              <Medal /> {sending ? "Enviando..." : "Enviar para Atletas"}
+            </button>
+          )}
           <button type="button" className="vx-btn vx-btn--gold" onClick={() => { setConfirmMembers(true); setConfirmBulk(false) }}><BadgeCheck /> Tornar membros</button>
           <button type="button" className="vx-btn cn-btn-danger" onClick={() => { setConfirmBulk(true); setConfirmMembers(false) }}><Trash2 /> Excluir</button>
         </BulkBar>
@@ -327,7 +347,10 @@ export default function Records() {
         title={editing?.name ?? "Cadastro"}
         subtitle={editing ? `${editing.source === "funil" ? "Lead do funil" : "Conta de atleta"} · entrou ${timeAgo(editing.createdAt)}` : undefined}
       >
-        {editing && <EditorBody key={editing.key} player={editing} onClose={() => openEditor(null)} onDelete={() => deleteOne(editing)} busy={busy} />}
+        {editing && (
+          <EditorBody key={editing.key} player={editing} onClose={() => openEditor(null)} onDelete={() => deleteOne(editing)} busy={busy}
+            sector={sector} sending={sending} onSend={() => void sendToSector([editing])} />
+        )}
       </Drawer>
     </>
   )
@@ -396,12 +419,15 @@ function ImportCard({ result, onClose }: { result: ImportResult; onClose: () => 
 }
 
 function RowGroup({
-  player: p, picked, confirming, busy, onPick, onEdit, onAskDelete, onCancelDelete, onDelete, onStage,
+  player: p, picked, confirming, busy, inSector, canSend, onSend, onPick, onEdit, onAskDelete, onCancelDelete, onDelete, onStage,
 }: {
   player: Player
   picked: boolean
   confirming: boolean
   busy: boolean
+  inSector: Athlete | null
+  canSend: boolean
+  onSend: () => void
   onPick: () => void
   onEdit: () => void
   onAskDelete: () => void
@@ -417,8 +443,11 @@ function RowGroup({
         <td>
           <div className="flex items-center gap-3">
             <Avatar name={p.name} size={34} />
-            <div className="min-w-0 max-w-[260px]">
-              <button type="button" className="block max-w-full truncate text-left text-[13.5px] font-semibold text-white hover:text-amber-300" onClick={(e) => { e.stopPropagation(); onEdit() }}>{p.name}</button>
+            <div className="min-w-0 max-w-[300px]">
+              <div className="flex min-w-0 items-center gap-2">
+                <button type="button" className="block min-w-0 truncate text-left text-[13.5px] font-semibold text-white hover:text-amber-300" onClick={(e) => { e.stopPropagation(); onEdit() }}>{p.name}</button>
+                <SectorBadge a={inSector} />
+              </div>
               <div className="truncate text-[11.5px] text-zinc-500">{p.email ?? (p.phone ? formatPhone(p.phone) : "Sem contato")}</div>
             </div>
           </div>
@@ -444,6 +473,9 @@ function RowGroup({
         <td onClick={(e) => e.stopPropagation()}>
           <div className="ac-actions">
             <button type="button" className="vx-icon-btn" title="Editar" aria-label={`Editar ${p.name}`} onClick={onEdit}><Pencil /></button>
+            {!inSector && canSend && (
+              <button type="button" className="vx-icon-btn at-send-btn" title="Enviar para Atletas" aria-label={`Enviar ${p.name} para o setor Atletas`} onClick={onSend}><Medal /></button>
+            )}
             <Link className="vx-icon-btn" to={`/voxen/jogadores/${encodeURIComponent(p.key)}`} target="_blank" title="Abrir na VOXEN" aria-label={`Abrir ${p.name} na VOXEN`}><ExternalLink /></Link>
             <button type="button" className="vx-icon-btn ac-danger" title="Excluir" aria-label={`Excluir ${p.name}`} onClick={onAskDelete}><Trash2 /></button>
           </div>
@@ -464,7 +496,15 @@ function RowGroup({
 }
 
 /** Conteúdo da gaveta: editar o cadastro, acompanhar (etapa e notas), ver informações e excluir. */
-function EditorBody({ player: p, onClose, onDelete, busy }: { player: Player; onClose: () => void; onDelete: () => void; busy: boolean }) {
+function EditorBody({ player: p, onClose, onDelete, busy, sector, sending, onSend }: {
+  player: Player
+  onClose: () => void
+  onDelete: () => void
+  busy: boolean
+  sector: AthletesHook
+  sending: boolean
+  onSend: () => void
+}) {
   const { updateMeta } = useVoxen()
   const [asking, setAsking] = useState(false)
   const [notes, setNotes] = useState(p.meta.notes)
@@ -491,6 +531,8 @@ function EditorBody({ player: p, onClose, onDelete, busy }: { player: Player; on
             onChange={(e) => { setNotes(e.target.value); void updateMeta(p.key, { notes: e.target.value }) }} />
         </label>
       </section>
+
+      <SectorCard a={sector.forPlayer(p)} missing={sector.missing} canEdit={sector.canEdit} sending={sending} onSend={onSend} />
 
       <section className="vx-card">
         <h3 className="vx-card-title">Informações</h3>

@@ -12,6 +12,7 @@ import { getAccountsApi } from "@/pages/voxen/pages/accounts/api"
 import { useAdminSource } from "@/pages/voxen/pages/members/shared"
 import { downloadFile, stamp } from "@/lib/exportFile"
 import { accountsCsv, membersCsv, playersCsv } from "./exports"
+import { ATHLETES_MIGRATION } from "@/pages/voxen/pages/athletes/api"
 import { SYNC_MIGRATION, SyncMissingError, getSyncStatus, type SyncStatus } from "./sync"
 
 const db = supabase as unknown as SupabaseClient
@@ -44,6 +45,7 @@ const TABLES = [
   ["zyron_members", "Membros e referências"],
   ["zyron_matches", "Partidas"],
   ["zyron_match_events", "Lances marcados"],
+  ["zyron_athletes", "Setor Atletas"],
 ] as const
 
 /** Estado do sistema: o banco, as migrações, a função de contas e a sessão. Só leitura (nada é alterado). */
@@ -122,6 +124,10 @@ export default function System() {
     } else {
       push({ key: "sync", label: "Membros automáticos", state: sync.value.missing ? "warn" : "fail", detail: sync.value.missing ? "A sincronização automática não está ativa." : (sync.value.msg ?? "Não respondeu."), hint: sync.value.missing ? `Rode a migração ${SYNC_MIGRATION} no editor SQL do Supabase.` : undefined, ms: sync.ms })
     }
+
+    push(next.zyron_athletes === null
+      ? { key: "athletes", label: "Setor Atletas", state: "warn", detail: "A tabela das fichas ainda não existe.", hint: `Rode a migração ${ATHLETES_MIGRATION} no editor SQL do Supabase.` }
+      : { key: "athletes", label: "Setor Atletas", state: "ok", detail: `${next.zyron_athletes} atleta${next.zyron_athletes === 1 ? "" : "s"} no setor.` })
 
     // Função de contas: listar prova que responde; criar sem dados prova a versão (sem criar nada).
     const list = await timed(() => supabase.functions.invoke("admin-users", { body: { action: "list_users" } }))
@@ -206,7 +212,7 @@ export default function System() {
                 </li>
               )
             })}
-            {running && checks.length < 8 &&<li className="is-run"><span className="cn-check-icon"><Loader2 className="cn-spin" /></span><div className="flex-1"><b>Verificando…</b></div></li>}
+            {running && checks.length < 9 &&<li className="is-run"><span className="cn-check-icon"><Loader2 className="cn-spin" /></span><div className="flex-1"><b>Verificando…</b></div></li>}
           </ul>
         </section>
 

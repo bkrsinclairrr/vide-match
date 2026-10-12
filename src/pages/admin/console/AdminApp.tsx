@@ -6,7 +6,7 @@ import "./console.css"
 import { lazy, Suspense, useEffect, useRef, useState } from "react"
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  BadgeCheck, LayoutDashboard, LogOut, MonitorCog, Plus, RefreshCw, ShieldAlert, ShieldCheck, UserPlus, Users, X,
+  BadgeCheck, LayoutDashboard, LogOut, Medal, MonitorCog, Plus, RefreshCw, ShieldAlert, ShieldCheck, UserPlus, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -25,20 +25,23 @@ const Records = lazy(() => import("./Records"))
 const Members = lazy(() => import("./Members"))
 const System = lazy(() => import("./System"))
 const AccountsPage = lazy(() => import("@/pages/voxen/pages/accounts/AccountsPage"))
+const AthletesPage = lazy(() => import("@/pages/voxen/pages/athletes/AthletesPage"))
 
 const NAV: NavItem[] = [
   { to: "/admin", label: "Painel", icon: LayoutDashboard, end: true, section: "Gestão" },
   { to: "/admin/cadastros", label: "Cadastros", icon: Users, section: "Gestão" },
   { to: "/admin/membros", label: "Membros", icon: BadgeCheck, section: "Gestão" },
+  { to: "/admin/atletas", label: "Atletas", icon: Medal, section: "Gestão" },
   { to: "/admin/contas", label: "Contas e acessos", icon: ShieldCheck, section: "Acessos" },
   { to: "/admin/sistema", label: "Sistema", icon: MonitorCog, section: "Manutenção" },
 ]
 
+/** Abas do celular: as telas do dia a dia (Contas e Sistema ficam no menu completo). */
 const TABS: TabItem[] = [
   { to: "/admin", label: "Painel", icon: LayoutDashboard, end: true },
   { to: "/admin/cadastros", label: "Cadastros", icon: Users },
   { to: "/admin/membros", label: "Membros", icon: BadgeCheck },
-  { to: "/admin/contas", label: "Contas", icon: ShieldCheck },
+  { to: "/admin/atletas", label: "Atletas", icon: Medal },
 ]
 
 const SHORTCUTS: Shortcut[] = [
@@ -50,6 +53,7 @@ const SHORTCUTS: Shortcut[] = [
 const TITLES: [string, string, string][] = [
   ["/admin/cadastros", "Gestão", "Cadastros"],
   ["/admin/membros", "Gestão", "Membros e referências"],
+  ["/admin/atletas", "Gestão", "Atletas"],
   ["/admin/contas", "Acessos", "Contas e acessos"],
   ["/admin/sistema", "Manutenção", "Sistema"],
 ]
@@ -154,6 +158,7 @@ function Shell() {
             <Route index element={<Dashboard />} />
             <Route path="cadastros" element={<Records />} />
             <Route path="membros" element={<Members />} />
+            <Route path="atletas" element={<AthletesPage />} />
             <Route path="contas" element={<AccountsPage />} />
             <Route path="sistema" element={<System />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
@@ -196,6 +201,9 @@ function Palette({
               </CommandItem>
               <CommandItem value="acao novo membro" onSelect={() => go("/admin/membros?novo=1")}>
                 <Plus className="mr-2 h-4 w-4" /> Novo membro
+              </CommandItem>
+              <CommandItem value="acao adicionar atleta setor atletas" onSelect={() => go("/admin/atletas?novo=1")}>
+                <Medal className="mr-2 h-4 w-4" /> Adicionar ao setor Atletas
               </CommandItem>
               <CommandItem value="acao atualizar dados recarregar" onSelect={() => run(onRefresh)}>
                 <RefreshCw className="mr-2 h-4 w-4" /> Atualizar dados
