@@ -252,6 +252,11 @@ export const fixtureSource: DataSource = {
   async saveMember(input: MemberInput) {
     const now = new Date().toISOString()
     const existing = input.id ? state.members.find((m) => m.id === input.id) : undefined
+    // Mesmas travas do banco: e-mail único e um lead vira no máximo um membro.
+    if (!existing) {
+      if (input.kind === "membro" && state.members.some((m) => m.email && input.email && m.email.toLowerCase() === input.email.toLowerCase())) throw new Error("Já existe um membro com este e-mail.")
+      if (input.leadId && state.members.some((m) => m.leadId === input.leadId)) throw new Error("Este lead já foi cadastrado como membro.")
+    }
     const next: Member = {
       id: existing?.id ?? crypto.randomUUID(),
       kind: input.kind,
@@ -271,7 +276,7 @@ export const fixtureSource: DataSource = {
       scout: input.scout ?? existing?.scout ?? null,
       leadId: input.leadId ?? existing?.leadId ?? null,
       active: input.active ?? true,
-      createdAt: existing?.createdAt ?? now,
+      createdAt: existing?.createdAt ?? input.createdAt ?? now,
       updatedAt: now,
     }
     state.members = existing ? state.members.map((m) => (m.id === next.id ? next : m)) : [next, ...state.members]

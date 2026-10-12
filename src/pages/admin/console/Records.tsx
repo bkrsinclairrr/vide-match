@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { Download, ExternalLink, Pencil, Search, ShieldCheck, Trash2, UserRound, Users, X } from "lucide-react"
+import { BadgeCheck, CheckCircle2, Download, ExternalLink, Pencil, Search, ShieldCheck, Trash2, UserRound, Users, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, Empty, PosBadge } from "@/pages/voxen/ui"
 import { useVoxen } from "@/pages/voxen/store"
@@ -8,9 +8,16 @@ import {
   STAGES, formatDate, formatPhone, placeOf, timeAgo, type Player, type StageKey,
 } from "@/pages/voxen/data"
 import PlayerEditor from "@/pages/voxen/pages/PlayerEditor"
+import { getAccountsApi } from "@/pages/voxen/pages/accounts/api"
+import { useAdminSource } from "@/pages/voxen/pages/members/shared"
 import { downloadFile, stamp } from "@/lib/exportFile"
 import { BulkBar, Check, DangerConfirm, Drawer, Pager } from "./parts"
 import { playersCsv } from "./exports"
+import { looksReal } from "./names"
+import { SKIP_LABEL, memberDraftFrom } from "./toMember"
+
+/** Resumo de "Tornar membros": o que foi criado e o que ficou de fora, com o motivo. */
+type ImportResult = { created: number; existing: number; skipped: { name: string; why: string }[]; failed: { name: string; why: string }[] }
 
 const PAGE = 20
 const SORTS = [
@@ -25,14 +32,19 @@ const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 /** Cadastros: todos os leads do funil e as contas de atletas, com edição, exclusão e ações em massa. */
 export default function Records() {
-  const { players, updateMeta, removePlayer, removePlayers, byKey } = useVoxen()
+  const { players, updateMeta, removePlayer, removePlayers, byKey, demo } = useVoxen()
   const { toast } = useToast()
+  const source = useAdminSource()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState(params.get("busca") ?? "")
   const [kind, setKind] = useState<"todos" | "funil" | "conta">((["funil", "conta"] as const).find((k) => k === params.get("tipo")) ?? "todos")
   const [stage, setStage] = useState<"" | StageKey>((STAGES.find((s) => s.key === params.get("etapa"))?.key as StageKey | undefined) ?? "")
   const [category, setCategory] = useState(params.get("categoria") ?? "")
   const [incomplete, setIncomplete] = useState(params.get("filtro") === "sem-perfil")
+  const [realNames, setRealNames] = useState(params.get("filtro") === "nome-completo")
+  const [confirmMembers, setConfirmMembers] = useState(false)
+  const [importing, setImporting] = useState<{ done: number; total: number } | null>(null)
+  const [importResult, setImportResult] = useState<ImportResult | null>(null)
   const [sort, setSort] = useState<Sort>("recentes")
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -51,6 +63,7 @@ export default function Records() {
       if (stage && p.meta.stage !== stage) return false
       if (category && p.profile.category !== category) return false
       if (incomplete && p.hasProfile) return false
+      if (realNames && !looksReal(p)) return false
       if (!q) return true
       return `${p.name} ${p.email ?? ""} ${p.phone ?? ""} ${p.profile.city ?? ""} ${p.profile.position ?? ""}`.toLowerCase().includes(q)
     })
@@ -58,13 +71,15 @@ export default function Records() {
     else if (sort === "nome") rows.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
     else if (sort === "nota") rows.sort((a, b) => b.overall - a.overall)
     return rows
-  }, [players, query, kind, stage, category, incomplete, sort])
+  }, [players, query, kind, stage, category, incomplete, realNames, sort])
+
+  const realCount = useMemo(() => players.filter(looksReal).length, [players])
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE))
   const current = Math.min(page, pages)
   const rows = filtered.slice((current - 1) * PAGE, current * PAGE)
   const pickedRows = rows.filter((p) => selected.has(p.key))
-  const filterCount = [kind !== "todos", stage, category, incomplete].filter(Boolean).length
+  const filterCount = [kind !== "todos", stage, category, incomplete, realNames].filter(Boolean).length
 
   // Registros que deixaram de existir (excluídos) saem da seleção.
   useEffect(() => {
@@ -76,7 +91,7 @@ export default function Records() {
   }, [players])
 
   const reset = () => setPage(1)
-  const clearFilters = () => { setKind("todos"); setStage(""); setCategory(""); setIncomplete(false); setQuery(""); reset() }
+  const clearFilters = () => { setKind("todos"); setStage(""); setCategory(""); setIncomplete(false); setRealNames(false); setQuery(""); reset() }
 
   const toggle = (key: string) => setSelected((s) => {
     const next = new Set(s)
@@ -146,6 +161,54 @@ export default function Records() {
     toast({ title: "Arquivo gerado", description: `${list.length} cadastro${list.length === 1 ? "" : "s"} em CSV.` })
   }
 
+  /** Cria um perfil de membro para cada selecionado, com a data de entrada. Quem já é membro é pulado. */
+  const importAsMembers = async () => {
+    if (!source || importing) return
+    const chosen = players.filter((p) => selected.has(p.key))
+    // O e-mail de quem tem conta só a lista de contas (função admin-users) conhece.
+    let emailByUser = new Map<string, string>()
+    if (chosen.some((p) => p.source === "conta" && p.userId)) {
+      try {
+        const list = (await (await getAccountsApi(demo)).list()).users
+        emailByUser = new Map(list.filter((a) => a.email).map((a) => [a.id, a.email as string]))
+      } catch { /* segue: essas contas ficam de fora, "sem e-mail" */ }
+    }
+
+    const result: ImportResult = { created: 0, existing: 0, skipped: [], failed: [] }
+    setImporting({ done: 0, total: chosen.length })
+    for (let i = 0; i < chosen.length; i++) {
+      const p = chosen[i]
+      const draft = memberDraftFrom(p, p.source === "conta" && p.userId ? emailByUser.get(p.userId) ?? null : p.email)
+      if ("skip" in draft) {
+        result.skipped.push({ name: p.name, why: SKIP_LABEL[draft.skip] })
+      } else {
+        try {
+          await source.saveMember(draft.input)
+          result.created++
+        } catch (e) {
+          const why = errMsg(e)
+          if (/já existe|já foi cadastrado/i.test(why)) result.existing++
+          else result.failed.push({ name: p.name, why })
+          if (/ainda não foi ativada/i.test(why)) {
+            // A tabela não existe: não adianta tentar os outros.
+            result.failed.push({ name: `${chosen.length - i - 1} restantes`, why: "não tentados" })
+            break
+          }
+        }
+      }
+      setImporting({ done: i + 1, total: chosen.length })
+    }
+    setImporting(null)
+    setConfirmMembers(false)
+    setSelected(new Set())
+    setImportResult(result)
+    toast({
+      title: result.created ? `${result.created} membro${result.created === 1 ? "" : "s"} criado${result.created === 1 ? "" : "s"}` : "Nenhum membro criado",
+      description: [result.existing && `${result.existing} já era${result.existing === 1 ? "" : "m"} membro${result.existing === 1 ? "" : "s"}`, result.skipped.length && `${result.skipped.length} pulados`, result.failed.length && `${result.failed.length} com erro`].filter(Boolean).join(" · ") || undefined,
+      variant: result.failed.length && !result.created ? "destructive" : undefined,
+    })
+  }
+
   return (
     <>
       <section className="vx-card cn-filters">
@@ -167,10 +230,16 @@ export default function Records() {
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         <button type="button" aria-pressed={incomplete} className={`vx-chip ${incomplete ? "is-on" : ""}`} onClick={() => { setIncomplete((v) => !v); reset() }}>Sem perfil completo</button>
+        <button type="button" aria-pressed={realNames} className={`vx-chip ${realNames ? "is-on" : ""}`} onClick={() => { setRealNames((v) => !v); reset() }}
+          title="Mostra só quem tem nome e sobrenome de verdade e esconde nomes de teste, como “teste” ou “hdawdjj”">
+          <CheckCircle2 className="h-3.5 w-3.5" /> Só nomes completos <span className="tnum opacity-60">{realCount}</span>
+        </button>
         <select className="vx-input vx-select vx-filter" value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="Ordenar por">
           {SORTS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
         </select>
       </section>
+
+      {importResult && <ImportCard result={importResult} onClose={() => setImportResult(null)} />}
 
       <section className="vx-card vx-card--flush">
         <div className="cn-tablehead">
@@ -230,7 +299,7 @@ export default function Records() {
 
       {selected.size > 0 && (
         <BulkBar
-          count={selected.size} noun="cadastro" onClear={() => { setSelected(new Set()); setConfirmBulk(false) }}
+          count={selected.size} noun="cadastro" onClear={() => { if (importing) return; setSelected(new Set()); setConfirmBulk(false); setConfirmMembers(false) }}
           confirm={confirmBulk ? (
             <DangerConfirm
               title={`Excluir ${selected.size} cadastro${selected.size === 1 ? "" : "s"}?`} typed={selected.size >= 5} busy={busy}
@@ -238,6 +307,8 @@ export default function Records() {
             >
               Os dados e as anotações da equipe são apagados e <strong>não dá para desfazer</strong>. As contas de login não são removidas.
             </DangerConfirm>
+          ) : confirmMembers ? (
+            <MembersConfirm picked={players.filter((p) => selected.has(p.key))} progress={importing} onCancel={() => setConfirmMembers(false)} onConfirm={() => void importAsMembers()} />
           ) : undefined}
         >
           <select className="vx-input vx-select cn-bulk-select" value="" onChange={(e) => e.target.value && setStageMany(e.target.value as StageKey)} aria-label="Mudar a etapa dos selecionados">
@@ -245,7 +316,8 @@ export default function Records() {
             {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
           <button type="button" className="vx-btn" onClick={() => exportRows(players.filter((p) => selected.has(p.key)), "cadastros-selecionados")}><Download /> Exportar</button>
-          <button type="button" className="vx-btn cn-btn-danger" onClick={() => setConfirmBulk(true)}><Trash2 /> Excluir</button>
+          <button type="button" className="vx-btn vx-btn--gold" onClick={() => { setConfirmMembers(true); setConfirmBulk(false) }}><BadgeCheck /> Tornar membros</button>
+          <button type="button" className="vx-btn cn-btn-danger" onClick={() => { setConfirmBulk(true); setConfirmMembers(false) }}><Trash2 /> Excluir</button>
         </BulkBar>
       )}
 
@@ -262,6 +334,66 @@ export default function Records() {
 }
 
 /* ------------------------------------------------------------------ */
+
+/** Confirmação de "Tornar membros": o que acontece, quantos parecem de teste e o andamento. */
+function MembersConfirm({ picked, progress, onCancel, onConfirm }: {
+  picked: Player[]
+  progress: { done: number; total: number } | null
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  const odd = picked.filter((p) => !looksReal(p)).length
+  const names = picked.slice(0, 4).map((p) => p.name).join(", ")
+  const running = progress !== null
+  return (
+    <div className="cn-danger cn-members-confirm" role="alertdialog" aria-label="Confirmar a criação de membros">
+      <span className="cn-danger-icon"><BadgeCheck /></span>
+      <div className="cn-danger-body">
+        <b>Tornar {picked.length} cadastro{picked.length === 1 ? "" : "s"} membro{picked.length === 1 ? "" : "s"}?</b>
+        <p>Cada um vira um perfil de membro, com a <strong>data em que entrou</strong> e os dados do perfil. Ninguém é avisado: o acesso só vale quando a pessoa criar a conta com o mesmo e-mail. Quem já é membro é pulado.</p>
+        {odd > 0 && <p className="cn-warn">{odd} dos selecionados parecem nome de teste. Cancele e use “Só nomes completos”, ou desmarque esses.</p>}
+        <p className="cn-sample">{names}{picked.length > 4 ? ` e mais ${picked.length - 4}` : ""}</p>
+        {running && (
+          <div className="cn-progress" role="progressbar" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.done}>
+            <span style={{ width: `${(progress.done / Math.max(1, progress.total)) * 100}%` }} />
+            <em>Criando {progress.done} de {progress.total}…</em>
+          </div>
+        )}
+      </div>
+      <div className="cn-danger-actions">
+        <button type="button" className="vx-btn" onClick={onCancel} disabled={running}>Cancelar</button>
+        <button type="button" className="vx-btn vx-btn--gold" onClick={onConfirm} disabled={running}><BadgeCheck /> {running ? "Criando..." : `Criar ${picked.length}`}</button>
+      </div>
+    </div>
+  )
+}
+
+/** Resultado de "Tornar membros": quantos foram criados e, se houve, quem ficou de fora e por quê. */
+function ImportCard({ result, onClose }: { result: ImportResult; onClose: () => void }) {
+  const left = [...result.skipped.map((x) => ({ ...x, kind: "pulado" })), ...result.failed.map((x) => ({ ...x, kind: "erro" }))]
+  return (
+    <section className={`vx-card cn-import ${result.failed.length ? "has-errors" : ""}`} role="status">
+      <div className="cn-import-head">
+        <span className="cn-import-icon"><CheckCircle2 /></span>
+        <div className="min-w-0 flex-1">
+          <b>{result.created ? `${result.created} membro${result.created === 1 ? "" : "s"} criado${result.created === 1 ? "" : "s"}` : "Nenhum membro criado"}</b>
+          <p>
+            {[result.existing && `${result.existing} já era${result.existing === 1 ? "" : "m"} membro${result.existing === 1 ? "" : "s"}`, result.skipped.length && `${result.skipped.length} pulado${result.skipped.length === 1 ? "" : "s"}`, result.failed.length && `${result.failed.length} com erro`].filter(Boolean).join(" · ") || "Tudo certo, nada ficou de fora."}
+          </p>
+        </div>
+        <Link to="/admin/membros" className="vx-btn vx-btn--gold">Ver membros</Link>
+        <button type="button" className="vx-icon-btn" onClick={onClose} aria-label="Fechar o resumo"><X /></button>
+      </div>
+      {left.length > 0 && (
+        <details className="cn-import-list">
+          <summary>Ver quem ficou de fora ({left.length})</summary>
+          <ul>{left.slice(0, 40).map((x, i) => <li key={i}><b>{x.name}</b><span>{x.why}</span></li>)}</ul>
+          {left.length > 40 && <p>… e mais {left.length - 40}.</p>}
+        </details>
+      )}
+    </section>
+  )
+}
 
 function RowGroup({
   player: p, picked, confirming, busy, onPick, onEdit, onAskDelete, onCancelDelete, onDelete, onStage,

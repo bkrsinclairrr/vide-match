@@ -6,6 +6,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { Empty, PageSkeleton } from "@/pages/voxen/ui"
 import { useVoxen } from "@/pages/voxen/store"
+import { formatDate } from "@/pages/voxen/data"
 import { MemberAvatar } from "@/pages/membros/components/bits"
 import { formatShortDate, positionCodeOf, resultOf, RESULT_COLORS, type Match, type MemberKind } from "@/pages/membros/model"
 import type { MemberInput, ProfileListItem } from "@/pages/membros/api"
@@ -186,6 +187,7 @@ export default function Members() {
                   {kind === "membro" && <th>Acesso</th>}
                   <th>Partidas</th>
                   <th>Última</th>
+                  <th>Cadastro</th>
                   <th>Status</th>
                   <th aria-label="Ações" />
                 </tr>
@@ -294,6 +296,7 @@ function MemberRows({
         )}
         <td className="tnum text-zinc-300">{m.publishedCount}<span className="text-zinc-600"> / {m.matchCount}</span> <span className="text-[11px] text-zinc-500">publicadas</span></td>
         <td className="tnum text-zinc-400">{m.lastMatch ? formatShortDate(m.lastMatch) : "—"}</td>
+        <td className="tnum text-zinc-400" title={m.createdAt}>{formatDate(m.createdAt)}</td>
         <td onClick={(e) => e.stopPropagation()}>
           <button type="button" role="switch" aria-checked={m.active} className={`cn-switch ${m.active ? "is-on" : ""}`} onClick={onToggleActive} disabled={busy} aria-label={m.active ? `Desativar ${m.fullName}` : `Reativar ${m.fullName}`}>
             <span /> <em>{m.active ? "Ativo" : "Inativo"}</em>
@@ -310,7 +313,7 @@ function MemberRows({
       </tr>
       {confirming && (
         <tr className="ac-confirm-row">
-          <td colSpan={isMember ? 8 : 7}>
+          <td colSpan={isMember ? 9 : 8}>
             <DangerConfirm title={`Excluir ${m.fullName}?`} busy={busy} onCancel={onCancelDelete} onConfirm={onDelete}>
               {m.matchCount ? <>As <strong>{m.matchCount} partida{m.matchCount === 1 ? "" : "s"}</strong> e as ações marcadas também são apagadas e </> : "O perfil é apagado e "}
               <strong>não dá para desfazer</strong>.
