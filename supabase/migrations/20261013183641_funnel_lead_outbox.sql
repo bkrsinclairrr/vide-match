@@ -131,7 +131,7 @@ CREATE FUNCTION public.funnel_outbox_health() RETURNS jsonb
 LANGUAGE sql STABLE SECURITY DEFINER SET search_path=pg_catalog,public AS $$
  SELECT jsonb_build_object('schema_version',1,'kind','heartbeat','source_project','mehmqibxzxfqdxqjnjad','observed_at',clock_timestamp(),
   'pending_count',count(*) FILTER(WHERE state<>'delivered'),
-  'quarantined_count',count(*) FILTER(WHERE receipt->>'status'='quarantined' OR last_error_code IN('body_limit','configuration','identity_conflict','invalid_receipt')),
+  'quarantined_count',count(*) FILTER(WHERE state<>'delivered' AND last_error_code IN('body_limit','configuration','identity_conflict','invalid_receipt')),
   'oldest_pending_at',min(created_at) FILTER(WHERE state<>'delivered')) FROM public.funnel_lead_outbox
 $$;
 REVOKE ALL ON FUNCTION public.funnel_outbox_claim(integer,integer),public.funnel_outbox_ack(uuid,uuid,jsonb),public.funnel_outbox_fail(uuid,uuid,text,timestamptz),public.funnel_outbox_backfill(uuid,integer),public.funnel_outbox_health() FROM PUBLIC,anon,authenticated;

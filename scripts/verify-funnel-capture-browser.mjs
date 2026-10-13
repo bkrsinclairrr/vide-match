@@ -7,12 +7,12 @@ if(!process.env.PLAYWRIGHT_MODULE)throw Error('PLAYWRIGHT_MODULE is required; no
 const {chromium}=await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href)
 const browser=await chromium.launch({headless:true})
 const base={name:'Synthetic João',age:'16',height:'170',weight:'60',preferredFoot:'Direito',email:'qa-browser@example.invalid',phone:'(11) 99999-0000',nationality:'Brasil',position:'Goleiro',state:'São Paulo',city:'Original',photo:'',category:'Sub 16',hasDualCitizenship:'Não',dualCitizenshipCountry:''}
-async function pending(page){return page.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('zyron-funnel-captures',1);r.onsuccess=()=>{const db=r.result;const q=db.transaction('captures').objectStore('captures').getAll();q.onsuccess=()=>{db.close();resolve(q.result)};q.onerror=reject};r.onerror=reject}))}
+async function pending(page){return page.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('zyron-funnel-captures');r.onsuccess=()=>{const db=r.result;const q=db.transaction('captures').objectStore('captures').getAll();q.onsuccess=()=>{db.close();resolve(q.result)};q.onerror=reject};r.onerror=reject}))}
 try{
  for(const prefix of ['/avaliacao','/jogador']){
   const context=await browser.newContext();const page=await context.newPage();const calls=[];let offline=false;const leadId=randomUUID();let rev=0;let previous=''
   await context.addInitScript(player=>{sessionStorage.setItem('playerData',JSON.stringify(player));sessionStorage.setItem('jogador_access_granted','true');sessionStorage.setItem('zyron_client_ip','192.0.2.1');sessionStorage.setItem('zyron:utmify-attribution',JSON.stringify({utm_source:'test',utm_medium:'form',utm_campaign:'campaign',utm_content:'content',utm_term:'term',fbclid:'fb',gclid:'g',ttclid:'tt'}))},base)
-  await page.route('**/*',async route=>{const u=new URL(route.request().url());if(u.origin===origin)return route.continue();if(u.hostname==='mehmqibxzxfqdxqjnjad.supabase.co'){
+  await context.route('**/*',async route=>{const u=new URL(route.request().url());if(u.origin===origin)return route.continue();if(u.hostname==='mehmqibxzxfqdxqjnjad.supabase.co'){
    if(u.pathname.endsWith('/rpc/capture_funnel_lead_v2')){if(offline)return route.abort('internetdisconnected');const body=route.request().postDataJSON();calls.push(body);const serialized=JSON.stringify(body);if(previous!==serialized){rev++;previous=serialized}return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({lead_id:leadId,source_revision:rev})})}
    return route.fulfill({status:200,contentType:'application/json',body:u.pathname.includes('client-ip')?'{"ip":"192.0.2.1"}':'[]'})
   }return route.fulfill({status:200,contentType:'application/json',body:'[]'})})
@@ -28,6 +28,14 @@ try{
   assert.equal(failed,true);assert.equal((await pending(page)).length,1)
   offline=false;await page.evaluate(()=>window.dispatchEvent(new Event('online')))
   await page.waitForFunction(()=>new Promise(resolve=>{const r=indexedDB.open('zyron-funnel-captures');r.onsuccess=()=>{const db=r.result;const q=db.transaction('captures').objectStore('captures').count();q.onsuccess=()=>{db.close();resolve(q.result===0)}}}));assert.equal((await pending(page)).length,0);assert.equal(calls.at(-1).p_profile.city,'Offline updated')
+  // App mount in a second tab drains first; the original submitting tab must still receive its persisted receipt.
+  await page.evaluate(()=>{window.__captureLock=navigator.locks.request('zyron-funnel-captures',()=>new Promise(resolve=>{window.__releaseCaptureLock=resolve;window.__captureLockHeld=true}));return true})
+  await page.waitForFunction(()=>window.__captureLockHeld===true)
+  const other=await context.newPage();await other.goto(origin+prefix+'/perfil')
+  await page.waitForFunction(async()=>{const locks=await navigator.locks.query();return locks.pending.some(lock=>lock.name==='zyron-funnel-captures')})
+  const submitted=page.evaluate(async()=>{const f=await import('/src/lib/funnel.ts');return f.syncFunnelLead({...f.loadPlayerData(),city:'Cross tab complete'})})
+  await page.waitForFunction(()=>new Promise(resolve=>{const r=indexedDB.open('zyron-funnel-captures');r.onsuccess=()=>{const db=r.result;const q=db.transaction('captures').objectStore('captures').count();q.onsuccess=()=>{db.close();resolve(q.result===1)}}}))
+  await page.evaluate(()=>window.__releaseCaptureLock());assert.equal(await submitted,leadId);assert.equal((await pending(page)).length,0);assert.equal(calls.at(-1).p_profile.city,'Cross tab complete');await other.close()
   const before=calls.length
   await page.goto(origin+prefix+'/resultado');await page.waitForFunction(()=>performance.getEntriesByType('resource').some(r=>r.name.endsWith('/rpc/capture_funnel_lead_v2')))
   // Wait for the response, not the animated report reveal.

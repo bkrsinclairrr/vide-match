@@ -9,7 +9,7 @@ export interface FunnelCaptureInput {
 }
 interface PendingCapture { id: string; sequence?: number; input: FunnelCaptureInput }
 interface Receipt { lead_id: string; source_revision: number }
-interface CaptureStore { add(input: FunnelCaptureInput): Promise<PendingCapture>; list(): Promise<PendingCapture[]>; remove(id: string): Promise<void> }
+interface CaptureStore { add(input: FunnelCaptureInput): Promise<PendingCapture>; list(): Promise<PendingCapture[]>; complete(id: string, receipt: Receipt): Promise<void>; receipt(id: string): Promise<Receipt | undefined> }
 export interface CaptureStatus { pending: number; storageAvailable: boolean; error: string | null }
 interface QueueOptions { store: CaptureStore; send(input: FunnelCaptureInput): Promise<unknown>; onStatus?(status: CaptureStatus): void }
 
@@ -24,13 +24,19 @@ export function createFunnelCaptureQueue({ store, send, onStatus = () => {} }: Q
   let running: Promise<void> | null = null
   async function drain() {
     while (true) {
+      // A different tab may have delivered this row while we waited for the Web Lock.
+      for (const [captureId, waiter] of waiting) {
+        const receipt = await store.receipt(captureId)
+        if (receipt) { waiter.resolve(receiptId(receipt)); waiting.delete(captureId) }
+      }
       const pending = await store.list()
       onStatus({ pending: pending.length, storageAvailable: true, error: null })
       if (!pending.length) return
       const row = pending[0]
-      const id = receiptId(await send(row.input))
+      const receipt = await send(row.input)
+      const id = receiptId(receipt)
       // Delete the confirmed immutable capture only, never another capture for the same email.
-      await store.remove(row.id)
+      await store.complete(row.id, receipt as Receipt)
       waiting.get(row.id)?.resolve(id); waiting.delete(row.id)
     }
   }
@@ -68,18 +74,21 @@ export function createFunnelCaptureQueue({ store, send, onStatus = () => {} }: Q
 }
 
 const databaseName = 'zyron-funnel-captures'
-function transaction<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore, result: (value: T) => void) => void): Promise<T> {
+function transaction<T>(mode: IDBTransactionMode, operation: (store: IDBObjectStore, result: (value: T) => void, receipts: IDBObjectStore) => void): Promise<T> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') { reject(new Error('storage_unavailable')); return }
-    const open = indexedDB.open(databaseName, 1)
-    open.onupgradeneeded = () => { open.result.createObjectStore('captures', { keyPath: 'sequence', autoIncrement: true }).createIndex('id', 'id', { unique: true }) }
+    const open = indexedDB.open(databaseName, 2)
+    open.onupgradeneeded = () => {
+      if (!open.result.objectStoreNames.contains('captures')) open.result.createObjectStore('captures', { keyPath: 'sequence', autoIncrement: true }).createIndex('id', 'id', { unique: true })
+      if (!open.result.objectStoreNames.contains('receipts')) open.result.createObjectStore('receipts', { keyPath: 'id' })
+    }
     open.onerror = () => reject(open.error)
     open.onblocked = () => reject(new Error('storage_blocked'))
     open.onsuccess = () => {
-      const db = open.result; const tx = db.transaction('captures', mode); let value: T
+      const db = open.result; const tx = db.transaction(['captures', 'receipts'], mode); let value: T
       tx.oncomplete = () => { db.close(); resolve(value) }
       tx.onabort = tx.onerror = () => { db.close(); reject(tx.error ?? new Error('storage_failed')) }
-      try { operation(tx.objectStore('captures'), result => { value = result }) } catch (error) { tx.abort(); reject(error) }
+      try { operation(tx.objectStore('captures'), result => { value = result }, tx.objectStore('receipts')) } catch (error) { tx.abort(); reject(error) }
     }
   })
 }
@@ -90,9 +99,13 @@ const store: CaptureStore = {
     request.onsuccess = () => done({ ...row, sequence: Number(request.result) })
   }),
   list: () => transaction('readonly', (table, done) => { const request = table.getAll(); request.onsuccess = () => done(request.result) }),
-  remove: id => transaction('readwrite', (table, done) => {
+  complete: (id, receipt) => transaction('readwrite', (table, done, receipts) => {
+    receipts.put({ id, receipt })
     const key = table.index('id').getKey(id)
     key.onsuccess = () => { if (key.result !== undefined) table.delete(key.result); done(undefined) }
+  }),
+  receipt: id => transaction('readonly', (_table, done, receipts) => {
+    const request = receipts.get(id); request.onsuccess = () => done(request.result?.receipt)
   }),
 }
 let status: CaptureStatus = { pending: 0, storageAvailable: true, error: null }

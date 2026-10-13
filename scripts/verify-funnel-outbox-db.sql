@@ -37,9 +37,10 @@ BEGIN
  BEGIN
   PERFORM public.funnel_outbox_ack((claim->>'event_id')::uuid,(claim->>'claim_token')::uuid,'{}');RAISE EXCEPTION 'FAIL: old ACK accepted';
  EXCEPTION WHEN serialization_failure THEN NULL; END;
- result:=jsonb_build_object('event_id',reclaimed->>'event_id','source_lead_id',reclaimed->>'source_lead_id','source_revision',reclaimed->'source_revision','receipt_id',gen_random_uuid(),'status','pending_review');
+ result:=jsonb_build_object('event_id',reclaimed->>'event_id','source_lead_id',reclaimed->>'source_lead_id','source_revision',reclaimed->'source_revision','receipt_id',gen_random_uuid(),'status','quarantined');
  PERFORM public.funnel_outbox_ack((reclaimed->>'event_id')::uuid,(reclaimed->>'claim_token')::uuid,result);
  PERFORM pg_temp.assert((SELECT state='delivered' AND receipt=result AND event=claim->'event' FROM public.funnel_lead_outbox WHERE event_id=(claim->>'event_id')::uuid),'ACK did not persist receipt or changed event');
+ PERFORM pg_temp.assert(public.funnel_outbox_health()->>'quarantined_count'='0','delivered quarantine counted again as a source backlog error');
  SELECT count(*) INTO count_before FROM public.funnel_lead_outbox;
  result:=public.funnel_outbox_backfill(NULL,1);cursor:=(result->>'last_id')::uuid;
  FOR n IN 1..20 LOOP EXIT WHEN (result->>'done')::boolean;result:=public.funnel_outbox_backfill(cursor,1);cursor:=(result->>'last_id')::uuid; END LOOP;
