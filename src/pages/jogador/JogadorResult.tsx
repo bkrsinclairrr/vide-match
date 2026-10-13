@@ -9,12 +9,13 @@ import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/contexts/AuthContext"
 import {
   JOGADOR_ROUTES, loadPlayerData, isProfileComplete,
-  buildStats, overallFrom, buildWhatsAppLink, type PlayerData,
+  buildStats, overallFrom, buildWhatsAppLink, syncFunnelLead, type PlayerData,
 } from "@/lib/funnel"
 import { buildAccountSeed, buildAnonymousSeed, getClientIp } from "@/lib/resultIdentity"
 import FunnelLegalMenu from "@/pages/funnel/FunnelLegalMenu"
 import MysteryClubOpportunity from "@/pages/funnel/MysteryClubOpportunity"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
+import FunnelCaptureStatus from "@/components/FunnelCaptureStatus"
 import "@/pages/funnel/funnel.css"
 
 const STAT_ICONS: Record<string, typeof Flame> = {
@@ -179,6 +180,10 @@ export default function JogadorResult() {
     [resultSeed]
   )
   const overall = useMemo(() => overallFrom(stats), [stats])
+  useEffect(() => {
+    if (!profileComplete || !resultSeed) return
+    void syncFunnelLead(player, { overall, stats, method: 'deterministic-profile-v1' }).catch(() => {})
+  }, [profileComplete, resultSeed, player, overall, stats])
 
   // A nota NÃO entra na mensagem: ela aparece borrada na tela, e mandá-la
   // no texto do WhatsApp entregaria de graça justamente o que está velado.
@@ -208,6 +213,7 @@ export default function JogadorResult() {
         </div>
 
         <h1 className="text-xl font-black mb-1 tracking-tight text-center">Análise em andamento</h1>
+        <FunnelCaptureStatus />
         <p className="text-white/40 text-sm mb-10 text-center max-w-xs">
           Nossa IA processa o que nenhum olheiro humano conseguiria em uma peneira
         </p>

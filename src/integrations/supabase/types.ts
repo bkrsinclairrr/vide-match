@@ -160,6 +160,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      capture_funnel_lead_v2: {
+        Args: { p_contact: Json; p_profile: Json; p_attribution: Json; p_report?: Json | null }
+        Returns: Json
+      }
       capture_funnel_lead: {
         Args: {
           p_email: string

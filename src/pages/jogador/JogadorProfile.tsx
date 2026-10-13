@@ -12,6 +12,7 @@ import {
   formatPhoneBR, isValidEmail, isValidPhone, type PlayerData,
 } from "@/lib/funnel"
 import { nameSchema } from "@/lib/security"
+import FunnelCaptureStatus from "@/components/FunnelCaptureStatus"
 import FunnelLegalMenu from "@/pages/funnel/FunnelLegalMenu"
 
 const STEPS = [
@@ -67,7 +68,7 @@ export default function JogadorProfile() {
   const [step, setStep] = useState(1)
   const [playerData, setPlayerData] = useState<PlayerData>(() => loadPlayerData())
   const [isSyncing, setIsSyncing] = useState(false)
-  const leadSynced = useRef(false)
+  const [captureError, setCaptureError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -92,9 +93,10 @@ export default function JogadorProfile() {
   const pushLead = async () => {
     try {
       await syncFunnelLead(playerData)
-      leadSynced.current = true
+      setCaptureError(null)
+      return true
     } catch (err) {
-      leadSynced.current = false
+      setCaptureError(err instanceof Error ? err.message : "Envio pendente. Tente novamente.")
       toast({
         title: "Não conseguimos salvar seu contato agora",
         description: err instanceof Error && err.message
@@ -102,6 +104,7 @@ export default function JogadorProfile() {
           : "Você pode continuar — vamos tentar de novo automaticamente.",
         variant: "destructive",
       })
+      return false
     }
   }
 
@@ -117,7 +120,10 @@ export default function JogadorProfile() {
       return
     }
 
-    if (!leadSynced.current) void pushLead()
+    setIsSyncing(true)
+    const confirmed = await pushLead()
+    setIsSyncing(false)
+    if (!confirmed) return
 
     // Formulário público → vídeos → resultado, sem exigir uma conta.
     savePlayerData(playerData)
@@ -544,6 +550,8 @@ export default function JogadorProfile() {
         </div>
 
         <div className="mt-4 pb-4 space-y-2">
+          <FunnelCaptureStatus />
+          {captureError && <p role="alert" className="text-sm text-amber-300">{captureError}</p>}
           <button
             onClick={handleNext}
             disabled={!canProceed() || isSyncing}

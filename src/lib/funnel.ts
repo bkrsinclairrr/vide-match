@@ -10,7 +10,7 @@
  * depois cai no outro não perde o que já preencheu.
  */
 
-import { supabase } from "@/integrations/supabase/client"
+import { queueFunnelCapture } from "@/lib/funnel-capture-queue"
 import { emailSchema, nameSchema } from "@/lib/security"
 import { loadUtmifyAttribution } from "@/lib/utmify"
 
@@ -123,23 +123,12 @@ export function formatPhoneBR(value: string): string {
  * A escrita passa por uma função SECURITY DEFINER porque quem envia ainda
  * é um cliente anônimo, sem acesso direto à tabela.
  */
-export async function syncFunnelLead(d: PlayerData): Promise<string> {
+export async function syncFunnelLead(d: PlayerData, report?: { overall: number; stats: StatResult[]; method: 'deterministic-profile-v1' }): Promise<string> {
   const attribution = loadUtmifyAttribution()
-  const { data, error } = await supabase.rpc("capture_funnel_lead", {
-    p_name: d.name.trim(),
-    p_email: d.email.trim().toLowerCase(),
-    p_phone: onlyDigits(d.phone),
-    p_utm_source: attribution.utm_source,
-    p_utm_medium: attribution.utm_medium,
-    p_utm_campaign: attribution.utm_campaign,
-    p_utm_content: attribution.utm_content,
-    p_utm_term: attribution.utm_term,
-    p_fbclid: attribution.fbclid,
-    p_gclid: attribution.gclid,
-    p_ttclid: attribution.ttclid,
+  return queueFunnelCapture({
+    contact: { name: d.name.trim(), email: d.email.trim().toLowerCase(), phone: onlyDigits(d.phone) },
+    profile: { ...d }, attribution, ...(report ? { report } : {}),
   })
-  if (error) throw new Error(error.message)
-  return data
 }
 
 /* ------------------------------------------------------------------ */
