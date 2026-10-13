@@ -9,7 +9,7 @@ import { useStepTransition } from "@/hooks/useScrollAnimations"
 import { useToast } from "@/hooks/use-toast"
 import { CATEGORIES, POSITIONS, STATES, COUNTRIES } from "@/data/football"
 import {
-  JOGADOR_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead, syncFunnelProfile,
+  JOGADOR_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead,
   formatPhoneBR, isValidEmail, isValidPhone, type PlayerData,
 } from "@/lib/funnel"
 import { nameSchema } from "@/lib/security"
@@ -129,7 +129,6 @@ export default function JogadorProfile() {
 
     // Formulário público → vídeos → resultado, sem exigir uma conta.
     savePlayerData(playerData)
-    syncFunnelProfile(playerData)
     navigate(JOGADOR_ROUTES.upload)
   }
 

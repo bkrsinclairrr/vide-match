@@ -8,7 +8,7 @@ import { useStepTransition } from "@/hooks/useScrollAnimations"
 import { useToast } from "@/hooks/use-toast"
 import { CATEGORIES, POSITIONS, STATES, COUNTRIES } from "@/data/football"
 import {
-  FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead, syncFunnelProfile,
+  FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead,
   formatPhoneBR, isValidEmail, isValidPhone, type PlayerData,
 } from "@/lib/funnel"
 import { nameSchema } from "@/lib/security"
@@ -128,7 +128,6 @@ export default function FunnelProfile() {
 
     // Formulário público → vídeos → resultado, sem exigir uma conta.
     savePlayerData(playerData)
-    syncFunnelProfile(playerData)
     navigate(FUNNEL_ROUTES.upload)
   }
 
