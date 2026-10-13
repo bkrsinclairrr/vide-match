@@ -1,3 +1,4 @@
+import "@fontsource-variable/inter"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -7,12 +8,13 @@ import { useStepTransition } from "@/hooks/useScrollAnimations"
 import { useToast } from "@/hooks/use-toast"
 import { CATEGORIES, POSITIONS, STATES, COUNTRIES } from "@/data/football"
 import {
-  FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead,
+  FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead, syncFunnelProfile,
   formatPhoneBR, isValidEmail, isValidPhone, type PlayerData,
 } from "@/lib/funnel"
 import { nameSchema } from "@/lib/security"
 import FunnelCaptureStatus from "@/components/FunnelCaptureStatus"
 import FunnelLegalMenu from "./FunnelLegalMenu"
+import { ZyronLogo } from "@/pages/site/ZyronMark"
 
 const STEPS = [
   { icon: User, label: "Vamos te conhecer", desc: "Informações básicas" },
@@ -126,6 +128,7 @@ export default function FunnelProfile() {
 
     // Formulário público → vídeos → resultado, sem exigir uma conta.
     savePlayerData(playerData)
+    syncFunnelProfile(playerData)
     navigate(FUNNEL_ROUTES.upload)
   }
 
@@ -167,12 +170,7 @@ export default function FunnelProfile() {
             <ArrowLeft className="w-4 h-4 text-white/75" />
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.4)]">
-              <Zap className="w-3.5 h-3.5 text-black" />
-            </div>
-            <span className="font-bold text-sm tracking-tight">ZYRON</span>
-          </div>
+          <ZyronLogo size={28} />
 
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
@@ -341,7 +339,7 @@ export default function FunnelProfile() {
                     style={inputStyle}
                     value={playerData.email}
                     onChange={(e) => setPlayerData({ ...playerData, email: e.target.value })}
-                    placeholder="nome@exemplo.com"
+                    placeholder="nome@gmail.com"
                   />
                 </div>
               </div>

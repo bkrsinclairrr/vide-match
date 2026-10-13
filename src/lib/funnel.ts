@@ -125,10 +125,38 @@ export function formatPhoneBR(value: string): string {
  */
 export async function syncFunnelLead(d: PlayerData, report?: { overall: number; stats: StatResult[]; method: 'deterministic-profile-v1' }): Promise<string> {
   const attribution = loadUtmifyAttribution()
-  return queueFunnelCapture({
+  const id = await queueFunnelCapture({
     contact: { name: d.name.trim(), email: d.email.trim().toLowerCase(), phone: onlyDigits(d.phone) },
     profile: { ...d }, attribution, ...(report ? { report } : {}),
   })
+  try {
+    sessionStorage.setItem(LEAD_ID_KEY, id)
+  } catch {
+    /* The server capture is already confirmed; local storage is optional here. */
+  }
+  return id
+}
+
+const LEAD_ID_KEY = "zyron:lead-id"
+
+type FunnelReport = { overall: number; stats: Record<string, number> }
+
+/**
+ * Leva o perfil (e, na tela de resultado, o relatório) para o lead na
+ * VOXEN, a plataforma interna dos admins. Nunca lança e nunca é aguardada
+ * pelo funil: se a função ainda não existir no banco, ou a rede falhar, o
+ * atleta não percebe nada. A foto fica de fora de propósito.
+ */
+export function syncFunnelProfile(d: PlayerData, report?: FunnelReport): void {
+  if (!isValidEmail(d.email) || !isValidPhone(d.phone)) return
+  const completeReport = report ? { overall: report.overall, method: 'deterministic-profile-v1' as const,
+    stats: STAT_KEYS.map(stat => ({ ...stat, score: report.stats[stat.key] })) } : undefined
+  void syncFunnelLead(d, completeReport).catch(() => {})
+}
+
+/** Formato compacto do relatório para a VOXEN: nota geral + nota por indicador. */
+export function toFunnelReport(stats: StatResult[], overall: number): FunnelReport {
+  return { overall, stats: Object.fromEntries(stats.map((s) => [s.key, s.score])) }
 }
 
 /* ------------------------------------------------------------------ */
@@ -240,24 +268,5 @@ export function buildWhatsAppLink(d: PlayerData, overall?: number): string {
  * ainda são mais úteis nítidos (ex: "User already registered") do que
  * escondidos atrás de uma mensagem genérica.
  */
-export function friendlyAuthError(message: string | undefined): string {
-  const m = (message || "").toLowerCase()
-
-  if (m.includes("email rate limit exceeded") || m.includes("over_email_send_rate_limit")) {
-    return "Muitos cadastros em pouco tempo. Espere alguns minutos e tente de novo."
-  }
-  if (m.includes("email not confirmed") || m.includes("email_not_confirmed")) {
-    return "Confirme seu cadastro para continuar. Toque em \"Já tenho conta\" e tente entrar novamente em instantes."
-  }
-  if (m.includes("already registered") || m.includes("user_already_exists")) {
-    return "Este e-mail já tem uma conta. Toque em \"Já tenho conta\" para entrar — se você criou a conta pelo Google, use o botão \"Entrar com Google\" ou \"Esqueceu a senha?\" para definir uma senha."
-  }
-  if (m.includes("invalid login credentials")) {
-    return "E-mail ou senha incorretos. Se você criou a conta pelo Google, entre com o botão \"Entrar com Google\" ou toque em \"Esqueceu a senha?\"."
-  }
-  if (m.includes("password") && m.includes("character")) {
-    return "A senha precisa ter pelo menos 6 caracteres."
-  }
-
-  return message || "Algo deu errado. Tente novamente em instantes."
-}
+/** Mantido aqui por compatibilidade: a implementação mora em `lib/authErrors` (leve, sem o funil). */
+export { friendlyAuthError } from "@/lib/authErrors"

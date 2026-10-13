@@ -53,17 +53,22 @@ CREATE TRIGGER funnel_outbox_record AFTER INSERT OR UPDATE ON public.funnel_lead
 
 CREATE FUNCTION public.capture_funnel_lead_v2(p_contact jsonb,p_profile jsonb,p_attribution jsonb,p_report jsonb DEFAULT NULL) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
-DECLARE v_id uuid; revision bigint;
+DECLARE v_id uuid; revision bigint; v_report jsonb:=p_report;
 BEGIN
  IF jsonb_typeof(p_contact) IS DISTINCT FROM 'object' OR jsonb_typeof(p_profile) IS DISTINCT FROM 'object'
   OR jsonb_typeof(p_attribution) IS DISTINCT FROM 'object' OR (p_report IS NOT NULL AND jsonb_typeof(p_report) IS DISTINCT FROM 'object') THEN
   RAISE EXCEPTION 'Captura inválida; conserve os dados e tente novamente' USING ERRCODE='22023'; END IF;
+ -- Preserve VOXEN's existing named-score map while retaining every original detail.
+ IF jsonb_typeof(p_report->'stats')='array' THEN
+  v_report:=p_report||jsonb_build_object('stat_details',p_report->'stats','stats',
+   (SELECT coalesce(jsonb_object_agg(x->>'key',x->'score'),'{}') FROM jsonb_array_elements(p_report->'stats')x WHERE x->>'key' IS NOT NULL));
+ END IF;
  -- Keep the deployed validation/throttle and eleven-argument RPC intact, in this same transaction.
  v_id:=public.capture_funnel_lead(p_contact->>'name',p_contact->>'email',p_contact->>'phone',
   p_attribution->>'utm_source',p_attribution->>'utm_medium',p_attribution->>'utm_campaign',p_attribution->>'utm_content',
   p_attribution->>'utm_term',p_attribution->>'fbclid',p_attribution->>'gclid',p_attribution->>'ttclid');
  UPDATE public.funnel_leads SET profile=coalesce(profile,'{}')||p_profile,
-  capture_attribution=capture_attribution||p_attribution,report=coalesce(p_report,report),updated_at=clock_timestamp()
+  capture_attribution=capture_attribution||p_attribution,report=coalesce(v_report,report),updated_at=clock_timestamp()
  WHERE id=v_id RETURNING source_revision INTO revision;
  RETURN jsonb_build_object('lead_id',v_id,'source_revision',revision);
 END $$;

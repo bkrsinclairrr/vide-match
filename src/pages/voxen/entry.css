@@ -1,0 +1,141 @@
+/*
+ * Entrada de /voxen (atleta primeiro, equipe abaixo). Leve de propósito: sem animação
+ * de entrada, sem desfoque de fundo (backdrop-filter) e sem animação contínua.
+ * Só transições curtas em hover, foco e toque.
+ */
+
+/* Na entrada o fundo fica parado: menos pintura em aparelho fraco. */
+.vx:has(.ve) .vx-aurora { animation: none; }
+.vx:has(.ve) .vx-aurora--c { display: none; }
+
+.ve {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px 36px;
+}
+@media (min-width: 640px) and (min-height: 820px) { .ve { align-items: center; } }
+
+.ve-wrap { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 456px; }
+.ve-head { display: flex; justify-content: center; padding: 4px 0 2px; }
+
+/* ─── Atleta ──────────────────────────────────────────────────────── */
+
+.ve-athlete {
+  position: relative;
+  padding: 26px 24px 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(251, 191, 36, 0.36);
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.11), rgba(255, 255, 255, 0.025) 62%), #0c0b09;
+  box-shadow: 0 30px 70px -44px rgba(251, 191, 36, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.ve-kicker { display: inline-flex; padding: 4px 11px; border-radius: 99px; border: 1px solid rgba(251, 191, 36, 0.32); background: rgba(251, 191, 36, 0.1); color: var(--vx-gold-3); font-size: 11px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.ve-athlete h1 { margin: 14px 0 0; font-size: 26px; font-weight: 800; line-height: 1.12; letter-spacing: -0.03em; }
+.ve-sub { margin: 10px 0 0; color: var(--vx-muted); font-size: 14px; line-height: 1.55; }
+
+.ve-actions { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 10px; margin-top: 20px; }
+.ve-main, .ve-second { height: 48px; font-size: 14px; }
+.ve-main { font-size: 14.5px; }
+.ve-main svg { transition: transform 0.25s var(--vx-ease); }
+.ve-main:hover svg { transform: translateX(3px); }
+
+.ve-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 46px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--vx-border-2);
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--vx-text);
+  font-size: 14px;
+  font-weight: 650;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+.ve-google:hover:not(:disabled) { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.24); }
+.ve-google:active:not(:disabled) { transform: scale(0.985); }
+.ve-google:disabled { opacity: 0.7; cursor: default; }
+
+.ve-perks { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; }
+.ve-perks li { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 99px; background: rgba(255, 255, 255, 0.05); color: var(--vx-muted); font-size: 12px; font-weight: 600; }
+.ve-perks svg { width: 13px; height: 13px; color: var(--vx-gold); }
+
+/* ─── Equipe ──────────────────────────────────────────────────────── */
+
+.ve-team { padding: 20px 20px 18px; border-radius: 20px; border: 1px solid var(--vx-border); background: #0b0b0d; }
+.ve-team-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ve-team-icon { display: grid; flex-shrink: 0; place-items: center; width: 36px; height: 36px; border-radius: 11px; color: #7dd3fc; background: rgba(56, 189, 248, 0.11); border: 1px solid rgba(56, 189, 248, 0.24); }
+.ve-team-icon svg { width: 17px; height: 17px; }
+.ve-team h2 { margin: 0; font-size: 15px; font-weight: 750; letter-spacing: -0.01em; }
+.ve-team-head p { margin: 2px 0 0; color: var(--vx-dim); font-size: 12.5px; }
+
+.ve-field { margin-top: 12px; }
+.ve-field label { display: block; margin-bottom: 6px; color: var(--vx-muted); font-size: 12px; font-weight: 650; }
+.ve-field-row { display: flex; align-items: center; justify-content: space-between; }
+.ve-field-row label { margin-bottom: 6px; }
+
+.ve-input { position: relative; }
+.ve-input > svg:first-child { pointer-events: none; position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--vx-dim); transition: color 0.2s; }
+.ve-input:focus-within > svg:first-child { color: var(--vx-gold); }
+.ve-input input {
+  width: 100%;
+  height: 44px;
+  padding: 0 42px 0 38px;
+  border-radius: 12px;
+  border: 1px solid var(--vx-border-2);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--vx-text);
+  font-size: 16px; /* 16 px: o iPhone não aproxima a tela ao focar */
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ve-input input::placeholder { color: var(--vx-dim); }
+.ve-input input:focus { border-color: rgba(251, 191, 36, 0.55); box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.13); }
+.ve-eye { position: absolute; right: 5px; top: 50%; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: var(--vx-dim); transform: translateY(-50%); transition: color 0.2s, background 0.2s; }
+.ve-eye:hover { color: #fff; background: rgba(255, 255, 255, 0.07); }
+.ve-eye svg { width: 17px; height: 17px; }
+
+.ve-team-btn { width: 100%; height: 46px; margin-top: 16px; font-size: 14px; }
+.ve-team-btn:not(:disabled) { border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.09); }
+.ve-team-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.15); }
+
+.ve-link { display: inline-flex; align-items: center; gap: 5px; color: var(--vx-muted); font-size: 12.5px; font-weight: 600; transition: color 0.2s; }
+.ve-link:hover { color: var(--vx-gold-3); }
+.ve-link svg { width: 13px; height: 13px; }
+.ve-back { margin-top: 14px; }
+
+.ve-caps, .ve-error { display: flex; align-items: flex-start; gap: 8px; }
+.ve-caps { margin: 7px 0 0; color: var(--vx-gold-3); font-size: 12px; font-weight: 600; }
+.ve-error { margin: 12px 0 0; padding: 10px 12px; border-radius: 11px; border: 1px solid rgba(248, 113, 113, 0.28); background: rgba(239, 68, 68, 0.1); color: #fca5a5; font-size: 12.5px; line-height: 1.45; }
+.ve-caps svg, .ve-error svg { flex-shrink: 0; width: 15px; height: 15px; margin-top: 1px; }
+
+.ve-sent { display: flex; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(52, 211, 153, 0.28); background: rgba(52, 211, 153, 0.08); color: #6ee7b7; }
+.ve-sent svg { flex-shrink: 0; width: 18px; height: 18px; margin-top: 1px; }
+.ve-sent p { margin: 0; color: var(--vx-muted); font-size: 12.5px; line-height: 1.5; }
+.ve-sent b, .ve-sent strong { color: #fff; }
+
+.ve-spin { animation: vx-spin 0.9s linear infinite; }
+
+.ve-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; color: var(--vx-dim); font-size: 12.5px; }
+.ve-foot a { color: var(--vx-muted); font-weight: 600; transition: color 0.2s; }
+.ve-foot a:hover { color: var(--vx-gold-3); }
+
+@media (max-width: 420px) {
+  .ve { padding: 16px 12px 28px; }
+  .ve-athlete { padding: 22px 18px 18px; }
+  .ve-athlete h1 { font-size: 23px; }
+  .ve-actions { grid-template-columns: 1fr; }
+  .ve-team { padding: 18px 16px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ve *, .ve *::before, .ve *::after { transition-duration: 0.001ms !important; }
+  .ve-spin { animation-duration: 3s; }
+}

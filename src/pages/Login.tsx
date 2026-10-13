@@ -5,12 +5,19 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Trophy, Mail, Lock, User, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { emailSchema, nameSchema, validateCredentials } from "@/lib/security"
-import { friendlyAuthError } from "@/lib/funnel"
+import { friendlyAuthError } from "@/lib/authErrors"
+import { readFields } from "@/lib/formValues"
+
+/** Só caminhos internos (nada de //outro-site): é para onde a pessoa volta depois de entrar. */
+const safeNext = (value: string | null) => (value && value.startsWith("/") && !value.startsWith("//") ? value : null)
 
 export default function Login() {
+  const [params] = useSearchParams()
+  // Sem destino, /dashboard encaminha: atleta para /minha-area e equipe para /voxen.
+  const after = safeNext(params.get("next")) ?? "/dashboard"
   const [isLoading, setIsLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [email, setEmail] = useState("")
@@ -24,9 +31,11 @@ export default function Login() {
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const credentials = validateCredentials(email, password)
+    // Lê da tela (não do estado): a senha preenchida pelo navegador só chega ao estado depois de um clique.
+    const typed = readFields(e.currentTarget, { email, password })
+    const credentials = validateCredentials(typed.email, typed.password)
     if (!credentials) {
       toast({ title: "Dados inválidos", description: "Informe um e-mail válido e uma senha de 6 a 128 caracteres.", variant: "destructive" })
       return
@@ -37,14 +46,15 @@ export default function Login() {
     if (error) {
       toast({ title: "Erro ao entrar", description: friendlyAuthError(error.message), variant: "destructive" })
     } else {
-      navigate("/dashboard")
+      navigate(after)
     }
   }
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const credentials = validateCredentials(regEmail, regPassword)
-    const validName = nameSchema.safeParse(name.trim())
+    const typed = readFields(e.currentTarget, { name, email: regEmail, password: regPassword })
+    const credentials = validateCredentials(typed.email, typed.password)
+    const validName = nameSchema.safeParse(typed.name.trim())
     if (!credentials || !validName.success) {
       toast({ title: "Dados inválidos", description: "Informe nome válido, e-mail válido e uma senha de 6 a 128 caracteres.", variant: "destructive" })
       return
@@ -64,7 +74,7 @@ export default function Login() {
         description: "Verifique sua caixa de entrada e entre após confirmar o endereço.",
       })
     } else {
-      navigate("/dashboard")
+      navigate(after)
     }
   }
 
@@ -72,7 +82,7 @@ export default function Login() {
     setGoogleLoading(true)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
+      options: { redirectTo: `${window.location.origin}/dashboard` }, // já permitido no Supabase; /dashboard encaminha para a VOXEN
     })
     if (error) {
       toast({ title: "Erro ao entrar com Google", description: error.message, variant: "destructive" })
@@ -161,7 +171,7 @@ export default function Login() {
             <p className="text-muted-foreground text-sm">Insira seus dados para acessar sua conta</p>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={params.get("aba") === "cadastro" ? "register" : "login"} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-muted/50 p-1 rounded-xl">
               <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">Entrar</TabsTrigger>
               <TabsTrigger value="register" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-300">Criar conta</TabsTrigger>
@@ -184,7 +194,7 @@ export default function Login() {
                       <Input
                         id="forgot-email"
                         type="email"
-                        placeholder="nome@exemplo.com"
+                        placeholder="nome@gmail.com"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
@@ -217,8 +227,10 @@ export default function Login() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="email"
+                      name="email"
                       type="email"
-                      placeholder="nome@exemplo.com"
+                      autoComplete="username"
+                      placeholder="nome@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
@@ -241,7 +253,9 @@ export default function Login() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="password"
+                      name="password"
                       type="password"
+                      autoComplete="current-password"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -304,7 +318,9 @@ export default function Login() {
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="name"
+                      name="name"
                       type="text"
+                      autoComplete="name"
                       placeholder="João Silva"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
@@ -319,8 +335,10 @@ export default function Login() {
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="reg-email"
+                      name="email"
                       type="email"
-                      placeholder="nome@exemplo.com"
+                      autoComplete="email"
+                      placeholder="nome@gmail.com"
                       value={regEmail}
                       onChange={(e) => setRegEmail(e.target.value)}
                       className="pl-10 bg-background/50 focus:bg-background h-12 rounded-xl transition-all"
@@ -334,7 +352,9 @@ export default function Login() {
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="reg-password"
+                      name="password"
                       type="password"
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}

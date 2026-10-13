@@ -1,0 +1,9 @@
+/* Aviso de falha ao verificar o acesso (usado na VOXEN e em /minha-area). A entrada de /voxen tem o próprio estilo (entry.css). */
+
+.sl-only { max-width: 460px; padding: 34px 30px; text-align: center; }
+.sl-only-icon { display: inline-grid; place-items: center; width: 56px; height: 56px; margin-bottom: 18px; border-radius: 18px; color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.28); }
+.sl-only-icon svg { width: 26px; height: 26px; }
+.sl-only-icon.is-warn { color: var(--vx-gold-3); background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.3); }
+.sl-only h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.sl-only p { margin: 12px 0 0; color: var(--vx-muted); font-size: 14px; line-height: 1.6; }
+.sl-only-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 24px; }

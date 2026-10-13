@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Lock, User, ShieldCheck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { readFields } from "@/lib/formValues"
 
 const ACCESS_SESSION_KEY = "jogador_access_granted"
 
@@ -36,10 +37,12 @@ export default function AccessGate({ onGranted }: AccessGateProps) {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // Lê da tela (não do estado): a senha preenchida pelo navegador só chega ao estado depois de um clique.
+    const typed = readFields(e.currentTarget, { username, password })
     setLoading(true)
-    const attempt = await sha256(`${username.trim()}:${password}`)
+    const attempt = await sha256(`${typed.username.trim()}:${typed.password}`)
     setLoading(false)
     if (attempt === ACCESS_HASH) {
       sessionStorage.setItem(ACCESS_SESSION_KEY, "true")
@@ -80,6 +83,7 @@ export default function AccessGate({ onGranted }: AccessGateProps) {
               <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="access-user"
+                name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="h-12 rounded-xl bg-background/50 pl-10 focus:bg-background"
@@ -95,6 +99,7 @@ export default function AccessGate({ onGranted }: AccessGateProps) {
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="access-pass"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

@@ -8,6 +8,9 @@ BEGIN
  v_id:=(result->>'lead_id')::uuid;first_revision:=(result->>'source_revision')::bigint;
  PERFORM pg_temp.assert((SELECT profile=v_profile AND report->>'overall'='87' AND length(capture_attribution->>'utm_campaign')=900 FROM public.funnel_leads WHERE funnel_leads.id=v_id),'full source context not stored');
  PERFORM pg_temp.assert((SELECT count(*)>=1 FROM public.funnel_lead_outbox WHERE source_lead_id=v_id),'contact has no durable event');
+ result:=public.capture_funnel_lead_v2('{"name":"Synthetic João","email":"qa-site@example.invalid","phone":"11999990000"}',v_profile,jsonb_build_object('utm_campaign',repeat('á',900)),'{"method":"deterministic-profile-v1","overall":87,"stats":[{"key":"ataque","label":"Ataque","desc":"Original description","score":88}]}');
+ first_revision:=(result->>'source_revision')::bigint;
+ PERFORM pg_temp.assert((SELECT report->'stats'->>'ataque'='88' AND report->'stat_details'->0->>'desc'='Original description' FROM public.funnel_leads WHERE funnel_leads.id=v_id),'VOXEN score mapping or full report details lost');
  SELECT to_jsonb(l) INTO original FROM public.funnel_leads l WHERE l.id=v_id;
  UPDATE public.funnel_leads SET updated_at=clock_timestamp() WHERE funnel_leads.id=v_id;
  PERFORM pg_temp.assert((SELECT source_revision=first_revision FROM public.funnel_leads WHERE funnel_leads.id=v_id),'timestamp-only update created event');
