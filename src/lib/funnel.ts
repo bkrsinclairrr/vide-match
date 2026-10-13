@@ -10,8 +10,7 @@
  * depois cai no outro não perde o que já preencheu.
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js"
-import { supabase } from "@/integrations/supabase/client"
+import { queueFunnelCapture } from "@/lib/funnel-capture-queue"
 import { emailSchema, nameSchema } from "@/lib/security"
 import { loadUtmifyAttribution } from "@/lib/utmify"
 
@@ -124,28 +123,18 @@ export function formatPhoneBR(value: string): string {
  * A escrita passa por uma função SECURITY DEFINER porque quem envia ainda
  * é um cliente anônimo, sem acesso direto à tabela.
  */
-export async function syncFunnelLead(d: PlayerData): Promise<string> {
+export async function syncFunnelLead(d: PlayerData, report?: { overall: number; stats: StatResult[]; method: 'deterministic-profile-v1' }): Promise<string> {
   const attribution = loadUtmifyAttribution()
-  const { data, error } = await supabase.rpc("capture_funnel_lead", {
-    p_name: d.name.trim(),
-    p_email: d.email.trim().toLowerCase(),
-    p_phone: onlyDigits(d.phone),
-    p_utm_source: attribution.utm_source,
-    p_utm_medium: attribution.utm_medium,
-    p_utm_campaign: attribution.utm_campaign,
-    p_utm_content: attribution.utm_content,
-    p_utm_term: attribution.utm_term,
-    p_fbclid: attribution.fbclid,
-    p_gclid: attribution.gclid,
-    p_ttclid: attribution.ttclid,
+  const id = await queueFunnelCapture({
+    contact: { name: d.name.trim(), email: d.email.trim().toLowerCase(), phone: onlyDigits(d.phone) },
+    profile: { ...d }, attribution, ...(report ? { report } : {}),
   })
-  if (error) throw new Error(error.message)
   try {
-    if (data) sessionStorage.setItem(LEAD_ID_KEY, data)
+    sessionStorage.setItem(LEAD_ID_KEY, id)
   } catch {
-    /* sem storage o perfil só não chega à VOXEN; o funil segue */
+    /* The server capture is already confirmed; local storage is optional here. */
   }
-  return data
+  return id
 }
 
 const LEAD_ID_KEY = "zyron:lead-id"
@@ -159,35 +148,10 @@ type FunnelReport = { overall: number; stats: Record<string, number> }
  * atleta não percebe nada. A foto fica de fora de propósito.
  */
 export function syncFunnelProfile(d: PlayerData, report?: FunnelReport): void {
-  let leadId: string | null = null
-  try {
-    leadId = sessionStorage.getItem(LEAD_ID_KEY)
-  } catch {
-    return
-  }
-  if (!leadId || !isValidEmail(d.email)) return
-
-  const profile = {
-    age: d.age, height: d.height, weight: d.weight, preferredFoot: d.preferredFoot,
-    nationality: d.nationality, position: d.position, category: d.category,
-    state: d.state, city: d.city, hasDualCitizenship: d.hasDualCitizenship,
-    dualCitizenshipCountry: d.dualCitizenshipCountry,
-  }
-
-  // A função é nova e ainda não está nos tipos gerados do Supabase. O cast é
-  // do cliente inteiro, não do método: `rpc` usa `this.rest` por dentro, e
-  // chamá-lo solto lançaria antes de qualquer requisição sair.
-  const client = supabase as unknown as SupabaseClient
-  try {
-    Promise.resolve(client.rpc("capture_funnel_profile", {
-      p_lead_id: leadId,
-      p_email: d.email.trim().toLowerCase(),
-      p_profile: profile,
-      p_report: report ?? null,
-    })).catch(() => undefined)
-  } catch {
-    /* idem: falha silenciosa */
-  }
+  if (!isValidEmail(d.email) || !isValidPhone(d.phone)) return
+  const completeReport = report ? { overall: report.overall, method: 'deterministic-profile-v1' as const,
+    stats: STAT_KEYS.map(stat => ({ ...stat, score: report.stats[stat.key] })) } : undefined
+  void syncFunnelLead(d, completeReport).catch(() => {})
 }
 
 /** Formato compacto do relatório para a VOXEN: nota geral + nota por indicador. */
