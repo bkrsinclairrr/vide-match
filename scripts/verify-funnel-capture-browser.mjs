@@ -27,7 +27,7 @@ try{
   const failed=await page.evaluate(async()=>{const f=await import('/src/lib/funnel.ts');try{await f.syncFunnelLead({...f.loadPlayerData(),city:'Offline updated'});return false}catch{return true}})
   assert.equal(failed,true);assert.equal((await pending(page)).length,1)
   offline=false;await page.evaluate(()=>window.dispatchEvent(new Event('online')))
-  await page.waitForFunction(()=>document.querySelector('[role="status"]')===null);assert.equal((await pending(page)).length,0);assert.equal(calls.at(-1).p_profile.city,'Offline updated')
+  await page.waitForFunction(()=>new Promise(resolve=>{const r=indexedDB.open('zyron-funnel-captures');r.onsuccess=()=>{const db=r.result;const q=db.transaction('captures').objectStore('captures').count();q.onsuccess=()=>{db.close();resolve(q.result===0)}}}));assert.equal((await pending(page)).length,0);assert.equal(calls.at(-1).p_profile.city,'Offline updated')
   const before=calls.length
   await page.goto(origin+prefix+'/resultado');await page.waitForFunction(()=>performance.getEntriesByType('resource').some(r=>r.name.endsWith('/rpc/capture_funnel_lead_v2')))
   // Wait for the response, not the animated report reveal.
