@@ -70,7 +70,7 @@ export function SiteNav({
         <a
           href="#inicio"
           className="zs-nav-logo"
-          aria-label="Zyron — voltar ao início"
+          aria-label="Zyron, voltar ao início"
           onClick={(e) => { e.preventDefault(); setMenuOpen(false); onLogoClick() }}
         >
           <ZyronLogo size={32} />
@@ -186,7 +186,7 @@ export function TestimonialsSection() {
         </div>
 
         <div data-anim="up">
-          <div ref={trackRef} className="zs-testim-track" tabIndex={0} role="region" aria-label="Depoimentos — role para o lado">
+          <div ref={trackRef} className="zs-testim-track" tabIndex={0} role="region" aria-label="Depoimentos, role para o lado">
             {TESTIMONIALS.map((t, i) => (
               <article key={i} className="zs-testim-card">
                 <div>
@@ -245,7 +245,7 @@ export function ProofLine({ className = "" }: { className?: string }) {
 }
 
 const MANIFESTO_POINTS: { icon: LucideIcon; title: string; desc: string; tile: string; glow: string }[] = [
-  { icon: BarChart3, title: "10 indicadores individuais", desc: "Sem fadiga, sem preferências — só dados.", tile: "linear-gradient(135deg, #fcd34d, #f59e0b)", glow: "#f59e0b" },
+  { icon: BarChart3, title: "10 indicadores individuais", desc: "Sem fadiga, sem preferências. Só dados.", tile: "linear-gradient(135deg, #fcd34d, #f59e0b)", glow: "#f59e0b" },
   { icon: Activity, title: "Resultado em minutos", desc: "O que um olheiro demora semanas para ver.", tile: "linear-gradient(135deg, #6ee7b7, #10b981)", glow: "#10b981" },
   { icon: Globe2, title: "Direcionamento real", desc: "Onde o seu perfil rende mais dentro de campo.", tile: "linear-gradient(135deg, #7dd3fc, #0284c7)", glow: "#0ea5e9" },
 ]
@@ -271,7 +271,7 @@ export function ManifestoSection() {
           </p>
           <p>
             O problema é que essa tecnologia nunca esteve acessível para o atleta brasileiro que está no começo da
-            carreira — aquele que vai bem num jogo, mas nunca tem quem analise e apresente seu desempenho de forma
+            carreira: aquele que vai bem num jogo, mas nunca tem quem analise e apresente seu desempenho de forma
             profissional.
           </p>
           <p>
@@ -339,7 +339,7 @@ export function FinalCtaSection({ to }: { to: To }) {
           <span className="zs-grad">começa aqui.</span>
         </h2>
         <p className="m-0 max-w-[600px] text-[17px] leading-relaxed text-[color:var(--zs-muted)]">
-          Monte seu perfil em menos de 3 minutos, envie seus vídeos e veja sua análise na hora — sem criar conta e
+          Monte seu perfil em menos de 3 minutos, envie seus vídeos e veja sua análise na hora, sem criar conta e
           100% grátis. Os detalhes chegam pelo WhatsApp, com a nossa equipe.
         </p>
 

@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react"
 import { useScrollReveal, useSmoothScroll } from "@/hooks/useScrollAnimations"
 import { FUNNEL_ROUTES } from "@/lib/funnel"
 import ClubMarquee from "@/pages/site/ClubMarquee"
+import { FamilyPanel } from "@/pages/site/SitePanels"
 import {
   CtaBand, FinalCtaSection, ManifestoSection, PrimaryCta, ProofLine, SiteAmbient, SiteFooter, SiteNav,
   StatsGrid, TestimonialsSection,
@@ -66,7 +67,7 @@ export default function FunnelHome() {
             <div className="zs-hero-body">
               <p data-hero-item className="zs-hero-sub">
                 Pare de esperar por uma oportunidade. Descubra agora quais times combinam com as suas características e
-                onde o seu futebol pode ganhar espaço — no Brasil, na Europa e no mundo. Encontre os clubes certos para o
+                onde o seu futebol pode ganhar espaço: no Brasil, na Europa e no mundo. Encontre os clubes certos para o
                 seu perfil, com análise por IA e 100% grátis.
               </p>
               <div data-hero-item className="zs-hero-ctas">
@@ -92,6 +93,13 @@ export default function FunnelHome() {
 
         {/* ─── MANIFESTO ─── */}
         <ManifestoSection />
+
+        {/* ─── COMO FUNCIONA NA PRÁTICA: a mesma conversa com o scout da home ─── */}
+        <section className="zs-howto-band" aria-label="Como funciona na prática">
+          <div className="zs-container">
+            <FamilyPanel titleAs="h2" />
+          </div>
+        </section>
 
         {/* ─── CTA INTERMEDIÁRIO ─── */}
         <CtaBand to={start} />

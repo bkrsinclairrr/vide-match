@@ -3,7 +3,6 @@ import { Check, CheckCheck, Radar, SendHorizontal, User } from "lucide-react"
 import { prefersReducedMotion } from "@/hooks/useScrollAnimations"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { FEATURED_ATHLETE as A, clubLogo } from "./siteData"
-import { ZyronMark } from "./ZyronMark"
 
 /** Liga `is-active` uma única vez, quando o painel entra na tela. */
 function useActivateOnView<T extends HTMLElement>(threshold: number) {
@@ -171,12 +170,12 @@ export function AthletePanel() {
 }
 
 /* ────────────────────────────────────────────────────────────────────── */
-/* Para famílias — perfil do filho + conversa com a equipe no WhatsApp     */
+/* Para famílias: perfil do filho + conversa com o scout no WhatsApp       */
 /* ────────────────────────────────────────────────────────────────────── */
 
+/** Atleta de exemplo, sem nome próprio: o painel o chama só de "atleta". */
 const FAMILY_ATHLETE = {
-  firstName: "Arthur",
-  name: "Arthur Lima",
+  name: "Atleta",
   position: "Ponta Esquerda",
   details: [
     { label: "Idade", value: "16 anos" },
@@ -194,10 +193,18 @@ const FAMILY_ATHLETE = {
   compatibility: 94,
 }
 
+/** Scout que conversa com a família no chat do painel (nome e foto definidos pela equipe). */
+const SCOUT = { name: "Scout - Fernando", photo: "/site/scout-fernando.webp" }
+
 const RING_RADIUS = 21
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS
 
-export function FamilyPanel() {
+/**
+ * Painel "Como funciona na prática": perfil do atleta e a conversa com o
+ * scout. Na home fica ao lado do texto para famílias; na /avaliacao ganha
+ * seção própria, por isso o título pode ser h2 ou h3.
+ */
+export function FamilyPanel({ titleAs: Title = "h3" }: { titleAs?: "h2" | "h3" }) {
   const { ref, active } = useActivateOnView<HTMLDivElement>(0.3)
   const [typing, setTyping] = useState(false)
   const [teamMessage, setTeamMessage] = useState(false)
@@ -230,94 +237,107 @@ export function FamilyPanel() {
   const F = FAMILY_ATHLETE
 
   return (
-    <div className="zs-panel" role="group" aria-label="Perfil do atleta e conversa com a equipe Zyron: a família recebe o resultado da avaliação">
-      <div ref={ref} className={`zs-fp ${active ? "is-active" : ""}`}>
-        <div className="zs-fp-profile">
-          <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-gradient-to-br from-[#2a2112] to-[#0d0a05]">
-              <User className="h-11 w-11 text-amber-300/80" strokeWidth={1.5} aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-[20px] font-bold tracking-[-0.02em] text-white">{F.name}</p>
-              <p className="mt-1 text-[13px] font-bold uppercase tracking-[0.08em] text-amber-300">{F.position}</p>
-            </div>
-          </div>
-
-          <dl className="mb-6 grid grid-cols-2 gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4">
-            {F.details.map((d) => (
-              <div key={d.label} className="flex flex-col gap-1">
-                <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40">{d.label}</dt>
-                <dd className="text-[14px] font-bold text-white">{d.value}</dd>
+    <div className="zs-howto">
+      <Title className="zs-howto-title">
+        Como funciona na prática <span aria-hidden="true">👇</span>
+      </Title>
+      <div className="zs-panel" role="group" aria-label="Perfil do atleta e conversa com o scout: a família recebe o resultado da avaliação">
+        <div ref={ref} className={`zs-fp ${active ? "is-active" : ""}`}>
+          <div className="zs-fp-profile">
+            <div className="mb-6 flex items-center gap-4">
+              <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-2xl border border-amber-400/40 bg-gradient-to-br from-[#2a2112] to-[#0d0a05]">
+                <User className="h-11 w-11 text-amber-300/80" strokeWidth={1.5} aria-hidden="true" />
               </div>
-            ))}
-          </dl>
+              <div>
+                <p className="text-[20px] font-bold tracking-[-0.02em] text-white">{F.name}</p>
+                <p className="mt-1 text-[13px] font-bold uppercase tracking-[0.08em] text-amber-300">{F.position}</p>
+              </div>
+            </div>
 
-          <div className="mb-7 flex justify-between px-1" aria-label={F.rings.map((r) => `${r.key} ${r.score}`).join(", ")}>
-            {F.rings.map((ring) => (
-              <div key={ring.key} className="flex flex-col items-center gap-2">
-                <div className="zs-ring-stat" style={{ "--zs-ring-len": RING_LENGTH } as CSSProperties}>
-                  <svg viewBox="0 0 50 50" aria-hidden="true">
-                    <circle cx="25" cy="25" r={RING_RADIUS} fill="none" stroke="rgba(251,191,36,0.15)" strokeWidth="3" />
-                    <circle
-                      cx="25" cy="25" r={RING_RADIUS} fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round"
-                      strokeDasharray={RING_LENGTH}
-                      strokeDashoffset={RING_LENGTH * (1 - ring.score / 100)}
-                    />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-[13px] font-extrabold text-white">
-                    {ring.score}
-                  </span>
+            <dl className="mb-6 grid grid-cols-2 gap-4 rounded-xl border border-white/5 bg-white/[0.02] p-4">
+              {F.details.map((d) => (
+                <div key={d.label} className="flex flex-col gap-1">
+                  <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/40">{d.label}</dt>
+                  <dd className="text-[14px] font-bold text-white">{d.value}</dd>
                 </div>
-                <span className="text-[9px] font-bold uppercase tracking-[0.06em] text-white/50">{ring.key}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </dl>
 
-          <div className="border-t border-white/[0.06] pt-5">
-            <button
-              type="button"
-              onClick={() => setSent(true)}
-              disabled={sent}
-              className="flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-white/10 bg-gradient-to-r from-amber-300 to-amber-500 p-3 text-[14px] font-bold text-black shadow-[0_6px_20px_rgba(251,191,36,0.25)] transition-all hover:shadow-[0_8px_25px_rgba(251,191,36,0.4)] active:scale-[0.97] disabled:cursor-default disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
-            >
-              {sent
-                ? <><Check className="h-4 w-4" strokeWidth={3} /> Pedido enviado</>
-                : <><WhatsAppIcon className="h-[18px] w-[18px]" /> Liberar relatório completo</>}
-            </button>
-          </div>
-        </div>
+            <div className="mb-7 flex justify-between px-1" aria-label={F.rings.map((r) => `${r.key} ${r.score}`).join(", ")}>
+              {F.rings.map((ring) => (
+                <div key={ring.key} className="flex flex-col items-center gap-2">
+                  <div className="zs-ring-stat" style={{ "--zs-ring-len": RING_LENGTH } as CSSProperties}>
+                    <svg viewBox="0 0 50 50" aria-hidden="true">
+                      <circle cx="25" cy="25" r={RING_RADIUS} fill="none" stroke="rgba(251,191,36,0.15)" strokeWidth="3" />
+                      <circle
+                        cx="25" cy="25" r={RING_RADIUS} fill="none" stroke="#fbbf24" strokeWidth="3" strokeLinecap="round"
+                        strokeDasharray={RING_LENGTH}
+                        strokeDashoffset={RING_LENGTH * (1 - ring.score / 100)}
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-[13px] font-extrabold text-white">
+                      {ring.score}
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-[0.06em] text-white/50">{ring.key}</span>
+                </div>
+              ))}
+            </div>
 
-        <div className="zs-chat">
-          <div className="flex items-center gap-3 border-b border-white/[0.06] bg-white/[0.04] px-[18px] py-3.5">
-            <ZyronMark size={36} className="rounded-full" />
-            <div>
-              <p className="text-[13px] font-bold text-white">Equipe Zyron</p>
-              <p className="zs-online text-[10px] font-semibold text-emerald-400">Online agora</p>
+            <div className="border-t border-white/[0.06] pt-5">
+              <button
+                type="button"
+                onClick={() => setSent(true)}
+                disabled={sent}
+                className="flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-white/10 bg-gradient-to-r from-amber-300 to-amber-500 p-3 text-[14px] font-bold text-black shadow-[0_6px_20px_rgba(251,191,36,0.25)] transition-all hover:shadow-[0_8px_25px_rgba(251,191,36,0.4)] active:scale-[0.97] disabled:cursor-default disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
+              >
+                {sent
+                  ? <><Check className="h-4 w-4" strokeWidth={3} /> Pedido enviado</>
+                  : <><WhatsAppIcon className="h-[18px] w-[18px]" /> Liberar relatório completo</>}
+              </button>
             </div>
           </div>
 
-          <div ref={bodyRef} className="zs-chat-body" aria-live="polite">
-            {typing && (
-              <div className="zs-typing" aria-label="Equipe Zyron digitando">
-                <span /><span /><span />
+          <div className="zs-chat">
+            <div className="flex items-center gap-3 border-b border-white/[0.06] bg-white/[0.04] px-[18px] py-3.5">
+              <img
+                src={SCOUT.photo}
+                alt=""
+                width={36}
+                height={36}
+                loading="lazy"
+                decoding="async"
+                className="h-9 w-9 shrink-0 rounded-full border border-amber-400/40 object-cover"
+              />
+              <div>
+                <p className="text-[13px] font-bold text-white">{SCOUT.name}</p>
+                <p className="zs-online text-[10px] font-semibold text-emerald-400">Online agora</p>
               </div>
-            )}
-            {teamMessage && (
-              <div className="zs-msg zs-msg--team">
-                Olá! A análise do {F.firstName} ficou pronta: nota geral {F.overall} e um clube com {F.compatibility}% de encaixe no perfil dele. Quer receber a leitura completa?
-              </div>
-            )}
-            {sent && (
-              <div className="zs-msg zs-msg--user">
-                Quero sim! Pode mandar.
-                <CheckCheck className="ml-1.5 inline h-3.5 w-3.5 align-[-3px] text-black/55" aria-label="lida" />
-              </div>
-            )}
-          </div>
+            </div>
 
-          <div className="flex items-center gap-3 border-t border-white/[0.06] bg-white/[0.02] px-[18px] py-3">
-            <span className="flex-1 text-[12px] font-medium text-white/30">Escreva uma mensagem...</span>
-            <SendHorizontal className="h-[18px] w-[18px] text-amber-300" aria-hidden="true" />
+            <div ref={bodyRef} className="zs-chat-body" aria-live="polite">
+              {typing && (
+                <div className="zs-typing" aria-label="Scout Fernando digitando">
+                  <span /><span /><span />
+                </div>
+              )}
+              {teamMessage && (
+                <div className="zs-msg zs-msg--team">
+                  Olá! A análise do atleta ficou pronta: nota geral {F.overall} e um clube com {F.compatibility}% de encaixe no perfil dele. Quer receber a leitura completa?
+                </div>
+              )}
+              {sent && (
+                <div className="zs-msg zs-msg--user">
+                  Quero sim! Pode mandar.
+                  <CheckCheck className="ml-1.5 inline h-3.5 w-3.5 align-[-3px] text-black/55" aria-label="lida" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 border-t border-white/[0.06] bg-white/[0.02] px-[18px] py-3">
+              <span className="flex-1 text-[12px] font-medium text-white/30">Escreva uma mensagem...</span>
+              <SendHorizontal className="h-[18px] w-[18px] text-amber-300" aria-hidden="true" />
+            </div>
           </div>
         </div>
       </div>
