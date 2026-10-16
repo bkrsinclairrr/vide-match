@@ -132,41 +132,39 @@ export const STATS = [
 ] as const
 
 /**
- * Depoimentos — NOMES EM BRANCO de propósito, para serem preenchidos com
- * relatos reais e autorizados (`name`, e `photo` com um caminho em /public
- * se houver foto). Os textos são os rascunhos que já estavam na /avaliacao,
- * sem os nomes dos atletas. Com `name` vazio, o card mostra só o avatar
- * neutro e o `role`.
+ * Depoimentos de clientes reais, com nome e foto informados pela equipe
+ * (fotos em public/site/depoimentos/). Com `name` vazio, o card mostra só
+ * a foto e o `role`.
  */
 export const TESTIMONIALS: { name: string; role: string; photo: string; text: string }[] = [
   {
-    name: "",
-    role: "Atleta · Meia-atacante",
-    photo: "",
+    name: "Lucas Silva",
+    role: "Atleta",
+    photo: "/site/depoimentos/lucas-silva.webp",
     text: "Fui em mais de 10 peneiras nos últimos 3 anos e nada. Com a Zyron, em menos de 2 meses já estava em contato com um clube em Portugal. O relatório foi o que abriu a porta, não o meu contato.",
   },
   {
-    name: "",
-    role: "Pai de atleta · Sub-18",
-    photo: "",
+    name: "Cleiton",
+    role: "Pai de atleta",
+    photo: "/site/depoimentos/cleiton.webp",
     text: "O que mudou foi a conversa. Deixei de chegar como pai pedindo favor e passei a chegar com um documento técnico na mão. Meu filho assinou o primeiro contrato de formação dele em março.",
   },
   {
-    name: "",
-    role: "Atleta · Zagueiro",
-    photo: "",
+    name: "Marcos Oliveira",
+    role: "Atleta",
+    photo: "/site/depoimentos/marcos-oliveira.webp",
     text: "A maior dificuldade era ser visto. Não tenho pai famoso nem contato com dirigente. A Zyron me deu um relatório técnico que falou por mim.",
   },
   {
-    name: "",
-    role: "Mãe de atleta · Sub-14",
-    photo: "",
+    name: "Cátia Silva",
+    role: "Mãe de atleta",
+    photo: "/site/depoimentos/catia-silva.webp",
     text: "Já tinha gastado muito com peneira, transporte e inscrição, sempre no escuro. Pela primeira vez eu soube de verdade em que pé estava o meu filho.",
   },
   {
     name: "",
-    role: "Mãe de atleta · Sub-17",
-    photo: "",
+    role: "Mãe de atleta",
+    photo: "/site/depoimentos/mae-sub17.webp",
     text: "Meu marido achava que era mais uma promessa. O relatório apontou que meu filho rende muito melhor como ala do que como ponta. O clube que o chamou procurava exatamente esse perfil.",
   },
 ]
