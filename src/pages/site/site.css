@@ -1225,10 +1225,10 @@ html.zyron-scroll-root body {
 .zs-fp {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 560px;
-  padding: 30px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  padding: 24px;
   background: linear-gradient(160deg, #13100b 0%, #090705 100%);
 }
 
@@ -1243,9 +1243,8 @@ html.zyron-scroll-root body {
 .zs-fp-profile {
   position: relative;
   z-index: 10;
+  order: 2;
   width: 100%;
-  max-width: 330px;
-  margin-right: 120px;
   padding: 24px;
   border-radius: 20px;
   border: 1px solid rgba(251, 191, 36, 0.24);
@@ -1270,20 +1269,19 @@ html.zyron-scroll-root body {
 .zs-fp:not(.is-active) .zs-ring-stat circle:last-child { stroke-dashoffset: var(--zs-ring-len) !important; }
 
 .zs-chat {
-  position: absolute;
-  right: 28px;
-  bottom: 36px;
+  position: relative;
+  order: 1;
   z-index: 20;
   display: flex;
   flex-direction: column;
-  width: 292px;
+  width: 100%;
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid rgba(251, 191, 36, 0.2);
   background: #100e0b;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
   opacity: 0;
-  transform: translate(50px, 30px);
+  transform: translateY(-20px);
   transition: transform 0.9s var(--zs-ease) 0.4s, opacity 0.7s ease 0.4s;
 }
 
@@ -1650,9 +1648,7 @@ html.zyron-scroll-root body {
   .zs-versus-col li { font-size: 15px; }
 
   .zs-ap { min-height: 0; padding: 16px; }
-  .zs-fp { min-height: 0; flex-direction: column; align-items: stretch; gap: 16px; padding: 18px; }
-  .zs-fp-profile { max-width: none; margin-right: 0; }
-  .zs-chat { position: relative; right: auto; bottom: auto; width: 100%; }
+  .zs-fp { padding: 18px; }
   .zs-howto-band { padding: 56px 0; }
   .zs-howto-title { font-size: 20px; }
 
