@@ -35,6 +35,9 @@ const NotFound = lazy(() => import("./pages/NotFound"))
 /** Home institucional pública em "/" — leva o visitante ao funil de avaliação. */
 const SiteHome = lazy(() => import("./pages/site/SiteHome"))
 
+/** Página institucional pública: história da Voxen, método (IA + scout) e provas. */
+const Institucional = lazy(() => import("./pages/institucional/Institucional"))
+
 /** VOXEN: a plataforma da equipe (administradores e executivos), com login próprio em /voxen. */
 const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
 
@@ -138,6 +141,7 @@ const Home = () => {
               <Routes>
                 {/* Public routes */}
                 <Route path="/" element={<SiteHome />} />
+                <Route path="/institucional" element={<Institucional />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacidade" element={<Privacy />} />
