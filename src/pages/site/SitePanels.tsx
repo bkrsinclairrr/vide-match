@@ -121,7 +121,7 @@ export function AthletePanel() {
           <div className="flex items-center justify-between border-t border-white/[0.06] pt-3 text-[11px]">
             <span className="flex items-center gap-1.5 text-white/50">
               <img src={clubLogo(A.club.slug)} alt="" className="h-4 w-4 object-contain" />
-              Oportunidade: <strong className="text-amber-300">{A.club.name} · {A.club.compatibility}%</strong>
+              Oportunidade: <strong className="text-amber-300">{A.club.short} · {A.club.compatibility}%</strong>
             </span>
             <span className="font-semibold text-amber-300">Ver relatório →</span>
           </div>
@@ -161,7 +161,7 @@ export function AthletePanel() {
           </div>
 
           <div className="flex items-center justify-between border-t border-white/5 bg-white/[0.02] px-3.5 py-2.5 text-[10px] text-white/45">
-            <span>{A.club.name} · posição procurada: <strong className="text-amber-300">{A.positionShort}</strong></span>
+            <span>{A.club.short} · posição procurada: <strong className="text-amber-300">{A.positionShort}</strong></span>
             <span>Atualizado agora</span>
           </div>
         </div>

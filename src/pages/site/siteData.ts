@@ -12,6 +12,7 @@ import { WHATSAPP_NUMBER } from "@/lib/funnel"
  */
 export const RADAR_CLUBS = [
   { slug: "brighton", name: "Brighton & Hove Albion" },
+  { slug: "wolves", name: "Wolverhampton Wanderers" },
   { slug: "internacional", name: "Internacional" },
   { slug: "betis", name: "Real Betis" },
   { slug: "braga", name: "Sporting Braga" },
@@ -44,6 +45,11 @@ export const clubLogo = (slug: string) => `/clubs/${slug}.webp`
  * Para atletas — o mesmo Gabriel Rocha (meia-atacante) que já aparece
  * nos depoimentos de atletas da /avaliacao. A média dos 10 indicadores
  * dá a nota geral exibida (87), na mesma faixa 76–95 do relatório real.
+ *
+ * A oportunidade é no Wolverhampton Wanderers: está na base de clubes
+ * (src/data/clubs.ts) e joga a Championship, a "Série B" inglesa, em
+ * 2026/27 (caiu da Premier League em abril de 2026). A oferta segue o
+ * formato da tela de match ("Oferta/mês", na moeda do clube).
  */
 export const FEATURED_ATHLETE = {
   name: "Gabriel Rocha",
@@ -58,7 +64,16 @@ export const FEATURED_ATHLETE = {
   city: "Brasília - DF",
   photo: "/site/atleta-zyron.webp",
   overall: 87,
-  club: { slug: "estoril", name: "Estoril Praia", country: "Portugal", league: "Primeira Liga", compatibility: 96 },
+  club: {
+    slug: "wolves",
+    name: "Wolverhampton Wanderers",
+    short: "Wolverhampton",
+    country: "Inglaterra",
+    league: "Championship",
+    squad: "Sub-21",
+    compatibility: 96,
+  },
+  offer: { currency: "£", amount: "30.000", period: "mês" },
   stats: [
     { label: "Ataque", score: 89 },
     { label: "Defesa", score: 80 },
@@ -71,6 +86,37 @@ export const FEATURED_ATHLETE = {
     { label: "Velocidade", score: 85 },
     { label: "Leitura de Jogo", score: 92 },
   ],
+  /** Média dos meias-atacantes Sub-20 da base: a linha de comparação do gráfico de desempenho. */
+  reference: {
+    Ataque: 83, Defesa: 72, Chute: 79, Domínio: 85, Marcação: 70,
+    Finalização: 80, Drible: 84, Passe: 86, Velocidade: 82, "Leitura de Jogo": 84,
+  } as Record<string, number>,
+  /** Nota Zyron (0–10) nos últimos 8 jogos, do mais antigo ao mais recente. A média da posição é 7,0. */
+  matches: [
+    { date: "16/08", rating: 7.0 },
+    { date: "23/08", rating: 7.4 },
+    { date: "30/08", rating: 6.9 },
+    { date: "06/09", rating: 7.8 },
+    { date: "13/09", rating: 8.1 },
+    { date: "20/09", rating: 7.6 },
+    { date: "27/09", rating: 8.3 },
+    { date: "04/10", rating: 8.7 },
+  ],
+  positionAverage: 7.0,
+  /**
+   * Mapa de calor: onde ele toca na bola, em metros num campo de 105 × 68 com o
+   * ataque para a direita, e o peso de cada ponto. Meia canhoto que flutua no
+   * meio ofensivo e na faixa direita (para cortar para o pé bom).
+   */
+  heat: [
+    [62, 40, 1], [68, 44, 1], [72, 38, 0.9], [76, 46, 0.85], [58, 34, 0.8], [80, 40, 0.75],
+    [66, 50, 0.7], [84, 48, 0.6], [54, 44, 0.6], [70, 30, 0.6], [88, 36, 0.5], [60, 26, 0.45],
+    [48, 38, 0.45], [78, 54, 0.45], [90, 44, 0.4], [44, 30, 0.35], [92, 30, 0.3], [36, 40, 0.3],
+    [64, 58, 0.3], [56, 18, 0.25], [30, 34, 0.2], [96, 40, 0.25], [74, 22, 0.3], [82, 28, 0.35],
+    [86, 40, 0.55], [84, 32, 0.4], [50, 50, 0.3], [40, 46, 0.25], [24, 40, 0.15], [70, 62, 0.2],
+    [94, 50, 0.25], [62, 12, 0.15], [46, 22, 0.2], [58, 46, 0.5],
+  ] as [number, number, number][],
+  season: { actions: 412, finalThird: 46, goals: 6, assists: 9, passAccuracy: 88, dribbles: 61 },
 } as const
 
 /**
