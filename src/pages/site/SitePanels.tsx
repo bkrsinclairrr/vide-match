@@ -239,7 +239,8 @@ export function FamilyPanel({ titleAs: Title = "h3" }: { titleAs?: "h2" | "h3" }
   return (
     <div className="zs-howto">
       <Title className="zs-howto-title">
-        Como funciona na prática <span aria-hidden="true">👇</span>
+        <span className="zs-howto-text">Como funciona na prática</span>{" "}
+        <span className="zs-howto-emoji" aria-hidden="true">👇</span>
       </Title>
       <div className="zs-panel" role="group" aria-label="Perfil do atleta e conversa com o scout: a família recebe o resultado da avaliação">
         <div ref={ref} className={`zs-fp ${active ? "is-active" : ""}`}>

@@ -1217,7 +1217,11 @@ html.zyron-scroll-root body {
 /* "Como funciona na prática 👇": título logo acima do painel com o chat do
    scout. Na /avaliacao o painel ganha faixa própria, na largura da coluna da home. */
 .zs-howto { display: flex; flex-direction: column; gap: 16px; }
-.zs-howto-title { margin: 0; color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; text-align: center; }
+.zs-howto-title { margin: 0; color: #fff; font-size: clamp(28px, 3.2vw, 38px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; text-align: center; }
+/* Destaque: degradê dourado com brilho e o 👇 balançando para baixo */
+.zs-howto-text { background: linear-gradient(135deg, #fde68a 0%, #fbbf24 45%, #f59e0b 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.35)); }
+.zs-howto-emoji { display: inline-block; animation: zs-point-down 1.4s ease-in-out infinite; }
+@keyframes zs-point-down { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
 .zs-howto-band { position: relative; padding: 32px 0; }
 .zs-howto-band .zs-howto { max-width: 576px; margin: 0 auto; }
 
@@ -1650,7 +1654,7 @@ html.zyron-scroll-root body {
   .zs-ap { min-height: 0; padding: 16px; }
   .zs-fp { padding: 18px; }
   .zs-howto-band { padding: 24px 0; }
-  .zs-howto-title { font-size: 20px; }
+  .zs-howto-title { font-size: 26px; }
 
   .zs-testim { padding: 24px 0; }
   .zs-testim-card { flex-basis: 300px; padding: 24px; min-height: 0; }
@@ -1690,6 +1694,7 @@ html.zyron-scroll-root body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .zs-howto-emoji { animation: none; }
   .zs-orb,
   .zs-label-dot,
   .zs-btn-pulse,
