@@ -145,7 +145,7 @@ export const TESTIMONIALS: { name: string; role: string; photo: string; text: st
   },
   {
     name: "Cleiton",
-    role: "Pai de atleta",
+    role: "Pai de Atleta",
     photo: "/site/depoimentos/cleiton.webp",
     text: "O que mudou foi a conversa. Deixei de chegar como pai pedindo favor e passei a chegar com um documento técnico na mão. Meu filho assinou o primeiro contrato de formação dele em março.",
   },
@@ -157,14 +157,14 @@ export const TESTIMONIALS: { name: string; role: string; photo: string; text: st
   },
   {
     name: "Cátia Silva",
-    role: "Mãe de atleta",
+    role: "Mãe de Atleta",
     photo: "/site/depoimentos/catia-silva.webp",
     text: "Já tinha gastado muito com peneira, transporte e inscrição, sempre no escuro. Pela primeira vez eu soube de verdade em que pé estava o meu filho.",
   },
   {
-    name: "",
-    role: "Mãe de atleta",
-    photo: "/site/depoimentos/mae-sub17.webp",
+    name: "Cecília",
+    role: "Mãe de Atleta",
+    photo: "/site/depoimentos/cecilia.webp",
     text: "Meu marido achava que era mais uma promessa. O relatório apontou que meu filho rende muito melhor como ala do que como ponta. O clube que o chamou procurava exatamente esse perfil.",
   },
 ]

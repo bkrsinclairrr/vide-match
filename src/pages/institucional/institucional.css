@@ -228,8 +228,15 @@ button.vx-frame-media:hover img { transform: scale(1.035); }
 .vx-rec { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: vx-blink 1.4s infinite; }
 @keyframes vx-blink { 50% { opacity: 0.25; } }
 .vx-loop { position: relative; aspect-ratio: 720 / 900; background: #0b0c0a; }
-.vx-loop video { display: block; width: 100%; height: 100%; object-fit: cover; }
-.vx-loop-btn { position: absolute; right: 12px; bottom: 12px; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: rgba(0, 0, 0, 0.6); color: #fff; }
+
+/* Vídeos com autoplay ao entrar na tela (AutoVideo): botão grande de pausar no centro */
+.vx-video { position: relative; overflow: hidden; background: #000; }
+.vx-video video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.vx-video-toggle { position: absolute; left: 50%; top: 50%; display: grid; place-items: center; width: 88px; height: 88px; border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%; background: var(--gold); color: #120f05; box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.7); transform: translate(-50%, -50%); transition: transform 0.3s var(--ease), opacity 0.3s, background 0.3s, color 0.3s; }
+.vx-video.is-playing .vx-video-toggle { background: rgba(0, 0, 0, 0.5); color: #fff; opacity: 0.8; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.vx-video-toggle:hover { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+.vx-video-sound { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(0, 0, 0, 0.65); color: #fff; font-size: 13px; font-weight: 600; }
+.vx-video-sound[aria-pressed="true"] { color: var(--gold-300); }
 
 .vx-callouts { margin: 0 0 28px; padding: 0; list-style: none; }
 .vx-callouts li { display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); color: var(--text-soft); font-size: var(--lead); opacity: 0; transform: translateX(-16px); transition: opacity 0.7s var(--ease) var(--d), transform 0.7s var(--ease) var(--d); }
@@ -300,13 +307,6 @@ button.vx-frame-media:hover img { transform: scale(1.035); }
 
 .vx-film-wrap { display: grid; grid-template-columns: 0.75fr 1.25fr; gap: var(--gap) 56px; align-items: center; }
 .vx-film { position: relative; overflow: hidden; aspect-ratio: 16 / 9; border: 1px solid var(--line-gold); border-radius: 14px; background: #000; }
-.vx-film video { width: 100%; height: 100%; object-fit: cover; }
-.vx-film-play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 16px; background: linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.55)); }
-.vx-film-icon { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: var(--gold); color: #120f05; animation: vx-pulse 2.4s infinite; transition: transform 0.3s var(--ease); }
-.vx-film-play:hover .vx-film-icon { transform: scale(1.08); }
-.vx-film-label { display: flex; flex-direction: column; text-align: left; font-weight: 700; font-size: 18px; color: #fff; }
-.vx-film-label small { color: rgba(255, 255, 255, 0.7); font-weight: 500; font-size: 13px; }
-@keyframes vx-pulse { 0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.45); } 70% { box-shadow: 0 0 0 22px rgba(251, 191, 36, 0); } 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); } }
 
 /* ─── V · História ───────────────────────────────────────────────── */
 
@@ -477,6 +477,7 @@ button.vx-frame-media:hover img { transform: scale(1.035); }
 }
 
 @media (max-width: 640px) {
+  .vx-video-toggle { width: 72px; height: 72px; }
   .vx { --sec: 20px; --gap: 18px; }
   .vx-container { padding: 0 16px; }
   .vx-nav-inner { padding: 0 16px; }
@@ -524,7 +525,7 @@ button.vx-frame-media:hover img { transform: scale(1.035); }
   .vx [data-reveal], .vx-callouts li { opacity: 1; transform: none; transition: none; animation: none; }
   .vx-word > span, .vx-hero-card { animation: none; opacity: 1; }
   .vx-word > span { transform: none; }
-  .vx-marquee-track, .vx-archive-media img, .vx-rec, .vx-film-icon { animation: none; }
+  .vx-marquee-track, .vx-archive-media img, .vx-rec { animation: none; }
   .vx-marquee { overflow-x: auto; }
   .vx-radar-club, .vx-radar-athlete, .vx-report-list b, .vx-chain::after { transition: none; }
 }
