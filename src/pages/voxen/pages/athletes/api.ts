@@ -16,6 +16,8 @@ import type { Athlete, AthleteDraft, AthletePatch, Temperature } from "./model"
 const db = supabase as unknown as SupabaseClient
 
 export const ATHLETES_MIGRATION = "supabase/migrations/20261012120000_setor_atletas.sql"
+/** Colunas do contrato e a leitura da jornada pelo atleta. */
+export const JOURNEY_MIGRATION = "supabase/migrations/20261016000000_jornada_do_atleta.sql"
 
 /** A tabela do setor ainda não existe no banco. */
 export class AthletesMissingError extends Error {
@@ -29,7 +31,11 @@ type DbError = { code?: string; message?: string } | null
 const isMissing = (e: DbError) =>
   Boolean(e && (e.code === "42P01" || e.code === "PGRST205" || /does not exist|could not find the table/i.test(e.message ?? "")))
 
+/** Coluna do contrato que ainda não existe (a migração da jornada não foi aplicada). */
+const contractMissing = (e: DbError) => Boolean(e && /contract_/i.test(e.message ?? "") && (e.code === "42703" || e.code === "PGRST204" || /column|could not find/i.test(e.message ?? "")))
+
 function friendly(e: DbError): Error {
+  if (contractMissing(e)) return new Error(`Para marcar contratos, rode ${JOURNEY_MIGRATION} no editor SQL do Supabase.`)
   if (isMissing(e)) return new AthletesMissingError()
   if (e?.code === "23505") return new Error("Este atleta já está no setor (mesmo cadastro, membro ou e-mail).")
   if (e?.code === "42501") return new Error("Você não tem permissão para alterar o setor Atletas.")
@@ -72,6 +78,10 @@ export function toAthlete(r: Row): Athlete {
     forwardedOn: str(r.forwarded_on),
     advisory: r.advisory === true,
     advisorySince: str(r.advisory_since),
+    contractSigned: r.contract_signed === true,
+    contractClub: str(r.contract_club),
+    contractOn: str(r.contract_on),
+    contractReady: "contract_signed" in r,
     nextStep: str(r.next_step),
     nextStepOn: str(r.next_step_on),
     notes: str(r.notes),
@@ -86,6 +96,7 @@ const COLUMN: Record<keyof AthletePatch, string> = {
   phone: "phone", birthDate: "birth_date", age: "age", nationality: "nationality", position: "position", category: "category",
   foot: "preferred_foot", heightCm: "height_cm", weightKg: "weight_kg", city: "city", team: "team", temperature: "temperature",
   forwarded: "forwarded", forwardedTo: "forwarded_to", forwardedOn: "forwarded_on", advisory: "advisory", advisorySince: "advisory_since",
+  contractSigned: "contract_signed", contractClub: "contract_club", contractOn: "contract_on",
   nextStep: "next_step", nextStepOn: "next_step_on", notes: "notes", sourceCreatedAt: "source_created_at",
 }
 

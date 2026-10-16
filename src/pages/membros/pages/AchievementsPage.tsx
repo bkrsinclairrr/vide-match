@@ -1,12 +1,13 @@
-import { Medal, Trophy } from "lucide-react"
+import { Medal, Route, Trophy } from "lucide-react"
 import { CardHead } from "@/pages/voxen/ui"
 import { useAthlete } from "../ClientArea"
 import { LEVELS } from "../game"
-import { BadgeGrid, LevelChip, MissionList, TeamCta, XpBar } from "../components/Gamify"
+import { BadgeGrid, JourneyTrack, LevelChip, MissionList, TeamCta, XpBar } from "../components/Gamify"
 
 export default function AchievementsPage() {
   const { game } = useAthlete()
   const earned = game.badges.filter((b) => b.earned).length
+  const stepsDone = game.journey.filter((m) => m.done).length
 
   return (
     <>
@@ -28,9 +29,19 @@ export default function AchievementsPage() {
         </ol>
       </section>
 
+      <section className="vx-card mb-[18px] jr-card">
+        <CardHead
+          title={<span className="inline-flex items-center gap-2"><Route className="h-4 w-4 text-amber-300" /> Sua jornada</span>}
+          sub={stepsDone === game.journey.length
+            ? "Jornada completa: do primeiro cadastro ao contrato."
+            : `${stepsDone} de ${game.journey.length} etapas. Cada etapa libera a próxima, do perfil ao contrato.`}
+        />
+        <JourneyTrack journey={game.journey} />
+      </section>
+
       <div className="vx-grid mb-[18px] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
         <section className="vx-card">
-          <CardHead title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-300" /> Missões</span>} sub="Cada missão concluída soma XP e fortalece o seu perfil." />
+          <CardHead title={<span className="inline-flex items-center gap-2"><Trophy className="h-4 w-4 text-amber-300" /> Missões</span>} sub="Cada missão concluída soma XP e abre a etapa seguinte." />
           <MissionList missions={game.missions} />
         </section>
 
@@ -45,9 +56,11 @@ export default function AchievementsPage() {
 
       <TeamCta
         title="Quer subir de nível mais rápido?"
-        text="Mande o vídeo de um jogo: cada partida analisada vale XP e abre as conquistas de jogo."
-        label="Enviar vídeo para a equipe"
-        topic="Quero enviar o vídeo de um jogo para a análise."
+        text={game.gates.analysis
+          ? "Mande o vídeo de um jogo: cada partida analisada vale XP e abre as conquistas de jogo."
+          : "Comece pelo perfil: ele vale XP na hora e abre as oportunidades e a análise dos seus jogos. A equipe te ajuda no que precisar."}
+        label={game.gates.analysis ? "Enviar vídeo para a equipe" : "Falar com a equipe"}
+        topic={game.gates.analysis ? "Quero enviar o vídeo de um jogo para a análise." : "Quero ajuda para começar a minha jornada na Zyron."}
       />
     </>
   )

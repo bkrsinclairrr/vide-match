@@ -4,7 +4,7 @@ import "./athletes.css"
 import { useEffect, useMemo, useState, type CSSProperties, type DragEvent } from "react"
 import { useLocation, useSearchParams } from "react-router-dom"
 import {
-  AlertTriangle, BriefcaseBusiness, GripVertical, LayoutGrid, List, Medal, MessageCircle, Plus, RefreshCw, Search, Send, X,
+  AlertTriangle, BriefcaseBusiness, FileSignature, GripVertical, LayoutGrid, List, Medal, MessageCircle, Plus, RefreshCw, Search, Send, X,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, Empty, PageSkeleton } from "@/pages/voxen/ui"
@@ -22,7 +22,7 @@ import {
 } from "./model"
 
 type View = "quadro" | "lista"
-type FlagFilter = "assessoria" | "encaminhados" | "atrasados" | null
+type FlagFilter = "assessoria" | "encaminhados" | "contratos" | "atrasados" | null
 const SORTS = [
   ["calor", "Mais quentes primeiro"],
   ["passo", "Próximo passo mais perto"],
@@ -92,6 +92,7 @@ export default function AthletesPage() {
     quente: all.filter((a) => a.temperature === "quente").length,
     assessoria: all.filter((a) => a.advisory).length,
     encaminhados: all.filter((a) => a.forwarded).length,
+    contratos: all.filter((a) => a.contractSigned).length,
     atrasados: all.filter(isOverdue).length,
   }), [all])
 
@@ -101,9 +102,10 @@ export default function AthletesPage() {
       if (temps.size && !temps.has(a.temperature)) return false
       if (flag === "assessoria" && !a.advisory) return false
       if (flag === "encaminhados" && !a.forwarded) return false
+      if (flag === "contratos" && !a.contractSigned) return false
       if (flag === "atrasados" && !isOverdue(a)) return false
       if (!q) return true
-      return `${a.fullName} ${a.email ?? ""} ${a.phone ?? ""} ${a.position ?? ""} ${a.category ?? ""} ${a.city ?? ""} ${a.team ?? ""} ${a.forwardedTo ?? ""} ${a.nextStep ?? ""}`.toLowerCase().includes(q)
+      return `${a.fullName} ${a.email ?? ""} ${a.phone ?? ""} ${a.position ?? ""} ${a.category ?? ""} ${a.city ?? ""} ${a.team ?? ""} ${a.forwardedTo ?? ""} ${a.contractClub ?? ""} ${a.nextStep ?? ""}`.toLowerCase().includes(q)
     })
     if (sort === "calor") rows.sort(byHeat)
     else if (sort === "passo") rows.sort((a, b) => (a.nextStepOn ?? "9999").localeCompare(b.nextStepOn ?? "9999") || byHeat(a, b))
@@ -176,6 +178,7 @@ export default function AthletesPage() {
     ...[...TEMPS].reverse().map((t) => ({ key: t.key, label: t.plural, value: counts[t.key], icon: t.icon, color: t.color, on: temps.has(t.key), onClick: () => toggleTemp(t.key) })),
     { key: "assessoria", label: "Em assessoria", value: counts.assessoria, icon: BriefcaseBusiness, color: "#34d399", on: flag === "assessoria", onClick: () => toggleFlag("assessoria") },
     { key: "encaminhados", label: "Encaminhados", value: counts.encaminhados, icon: Send, color: "#a78bfa", on: flag === "encaminhados", onClick: () => toggleFlag("encaminhados") },
+    { key: "contratos", label: "Contratos", value: counts.contratos, icon: FileSignature, color: "#fbbf24", on: flag === "contratos", onClick: () => toggleFlag("contratos") },
     { key: "atrasados", label: "Passos atrasados", value: counts.atrasados, icon: AlertTriangle, color: "#f87171", on: flag === "atrasados", onClick: () => toggleFlag("atrasados"), warn: counts.atrasados > 0 },
   ]
 
@@ -212,7 +215,7 @@ export default function AthletesPage() {
         <section className="vx-card at-empty">
           <span className="at-empty-icon"><Medal /></span>
           <h2>Nenhum atleta no setor ainda</h2>
-          <p>Traga para cá os atletas que a equipe vai trabalhar com mais cuidado. Aqui você marca se cada um está frio, morno ou quente, se foi encaminhado e se está em assessoria.</p>
+          <p>Traga para cá os atletas que a equipe vai trabalhar com mais cuidado. Aqui você marca se cada um está frio, morno ou quente, se foi encaminhado, se está em assessoria e se fechou contrato. O atleta acompanha essas etapas na área dele.</p>
           {sector.canEdit && (
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               <button type="button" className="vx-btn vx-btn--gold" onClick={openAdd}><Plus /> Adicionar dos cadastros</button>
@@ -268,6 +271,7 @@ export default function AthletesPage() {
                   <th>Temperatura</th>
                   <th>Encaminhado</th>
                   <th>Assessoria</th>
+                  <th>Contrato</th>
                   <th>Próximo passo</th>
                   <th>No setor</th>
                   <th aria-label="Ações" />
@@ -303,6 +307,16 @@ export default function AthletesPage() {
                           <span /> <em>{a.advisory ? "Sim" : "Não"}</em>
                         </button>
                       </td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <div className="at-cell-switch">
+                          <button type="button" role="switch" aria-checked={a.contractSigned} disabled={!sector.canEdit || !a.contractReady} className={`cn-switch ${a.contractSigned ? "is-on" : ""}`}
+                            title={a.contractReady ? undefined : "Falta ativar no banco (migração da jornada)"}
+                            aria-label={`Contrato fechado: ${a.fullName}`} onClick={() => quick(a, a.contractSigned ? { contractSigned: false } : { contractSigned: true, contractOn: a.contractOn ?? isoDay() }, a.contractSigned ? "Contrato desmarcado" : "Contrato fechado")}>
+                            <span /> <em>{a.contractSigned ? "Sim" : "Não"}</em>
+                          </button>
+                          {a.contractSigned && a.contractClub && <small className="truncate" title={a.contractClub}>{a.contractClub}</small>}
+                        </div>
+                      </td>
                       <td className="max-w-[260px]"><NextStep a={a} /></td>
                       <td className="tnum text-zinc-400" title={a.createdAt}>{formatDate(a.createdAt)}</td>
                       <td onClick={(e) => e.stopPropagation()}>
@@ -321,7 +335,7 @@ export default function AthletesPage() {
       )}
 
       <Drawer open={Boolean(ficha)} onClose={closeFicha} title={ficha?.fullName ?? "Ficha"}
-        subtitle={ficha ? `${tempInfo(ficha.temperature).label} · ${ficha.advisory ? "em assessoria" : "sem assessoria"} · ${ficha.forwarded ? "encaminhado" : "não encaminhado"}` : undefined}>
+        subtitle={ficha ? `${tempInfo(ficha.temperature).label} · ${ficha.advisory ? "em assessoria" : "sem assessoria"} · ${ficha.forwarded ? "encaminhado" : "não encaminhado"}${ficha.contractSigned ? " · contrato fechado" : ""}` : undefined}>
         {ficha && <AthleteFile key={ficha.id} a={ficha} sector={sector} origin={originOf(ficha)} onRemoved={closeFicha} />}
       </Drawer>
 
@@ -357,6 +371,7 @@ function AthleteCard({ a, index, sector, dragging, onOpen, onTemp, onDragStart, 
       <div className="at-card-flags">
         <Flag kind="fwd" on={a.forwarded} onLabel="Encaminhado" offLabel="Não encaminhado" detail={a.forwardedTo} />
         <Flag kind="adv" on={a.advisory} onLabel="Em assessoria" offLabel="Sem assessoria" />
+        {a.contractSigned && <Flag kind="ctr" on onLabel="Contrato" offLabel="" detail={a.contractClub} />}
       </div>
       <NextStep a={a} compact />
       <footer>

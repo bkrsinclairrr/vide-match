@@ -8,6 +8,7 @@ import { formatMatchDate, scoreline } from "../model"
 import { pct } from "../metrics"
 import { MatchThumb } from "../components/MatchThumb"
 import { RatingChip, ResultBadge } from "../components/bits"
+import { UnlockCard } from "../components/Gamify"
 
 export default function MatchesPage() {
   const { summary } = useMember()
@@ -16,7 +17,16 @@ export default function MatchesPage() {
   const list = comp === "Todas" ? summary.matches : summary.matches.filter((m) => (m.match.competition ?? "Outras") === comp)
 
   if (!summary.matches.length) {
-    return <div className="vx-card"><Empty icon={<Clapperboard className="h-6 w-6" />} title="Nenhuma partida analisada ainda" /></div>
+    return (
+      <>
+        <div className="vx-card mb-[18px]">
+          <Empty icon={<Clapperboard className="h-6 w-6" />} title="Nenhuma partida analisada ainda">
+            Assim que a equipe analisar o seu primeiro jogo, ele aparece aqui com o vídeo e cada lance marcado.
+          </Empty>
+        </div>
+        <UnlockCard />
+      </>
+    )
   }
 
   return (

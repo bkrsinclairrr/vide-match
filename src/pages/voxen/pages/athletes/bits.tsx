@@ -2,7 +2,7 @@ import "./athletes.css"
 
 import type { CSSProperties } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { ArrowRight, BriefcaseBusiness, CalendarClock, Copy, Database, Loader2, Medal, Send } from "lucide-react"
+import { ArrowRight, BriefcaseBusiness, CalendarClock, Copy, Database, FileSignature, Loader2, Medal, Send } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { ATHLETES_MIGRATION } from "./api"
 import { TEMPS, dayLabel, dayRelative, isOverdue, sectorPath, tempInfo, type Athlete, type Temperature } from "./model"
@@ -41,9 +41,11 @@ export function TempPicker({ value, onChange, disabled, big = false, label = "Te
   )
 }
 
+const FLAG_ICON = { fwd: Send, adv: BriefcaseBusiness, ctr: FileSignature } as const
+
 /** Situação sim/não com o detalhe: "Encaminhado · Peneira X" ou "Não encaminhado". */
-export function Flag({ on, onLabel, offLabel, detail, kind }: { on: boolean; onLabel: string; offLabel: string; detail?: string | null; kind: "fwd" | "adv" }) {
-  const Icon = kind === "fwd" ? Send : BriefcaseBusiness
+export function Flag({ on, onLabel, offLabel, detail, kind }: { on: boolean; onLabel: string; offLabel: string; detail?: string | null; kind: keyof typeof FLAG_ICON }) {
+  const Icon = FLAG_ICON[kind]
   return (
     <span className={`at-flag at-flag--${kind} ${on ? "is-on" : ""}`} title={on && detail ? `${onLabel}: ${detail}` : undefined}>
       <Icon aria-hidden="true" />
@@ -69,7 +71,7 @@ export function SectorBadge({ a }: { a: Athlete | null }) {
   const { pathname } = useLocation()
   if (!a) return null
   const info = tempInfo(a.temperature)
-  const parts = [`No setor Atletas · ${info.label}`, a.advisory && "em assessoria", a.forwarded && "encaminhado"].filter(Boolean).join(" · ")
+  const parts = [`No setor Atletas · ${info.label}`, a.advisory && "em assessoria", a.forwarded && "encaminhado", a.contractSigned && "contrato fechado"].filter(Boolean).join(" · ")
   return (
     <Link to={sectorPath(pathname, a.id)} className="at-badge" style={tone(a.temperature)} title={parts} aria-label={parts} onClick={(e) => e.stopPropagation()}>
       <Medal aria-hidden="true" /> Atletas <span className="at-badge-dot" />
@@ -104,6 +106,7 @@ export function SectorCard({ a, missing, canEdit, sending, onSend }: {
             <TempPill t={a.temperature} />
             <Flag kind="fwd" on={a.forwarded} onLabel="Encaminhado" offLabel="Não encaminhado" detail={a.forwardedTo} />
             <Flag kind="adv" on={a.advisory} onLabel="Em assessoria" offLabel="Sem assessoria" />
+            {a.contractSigned && <Flag kind="ctr" on onLabel="Contrato fechado" offLabel="" detail={a.contractClub} />}
           </div>
           <NextStep a={a} />
           <Link className="vx-btn vx-btn--gold mt-4" to={sectorPath(pathname, a.id)}>Abrir a ficha <ArrowRight /></Link>

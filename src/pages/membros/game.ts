@@ -1,20 +1,23 @@
 /**
  * Regras da área do cliente: nota (o mesmo relatório da /analysis), divisão,
- * referência por posição, oportunidades, nível, conquistas e missões.
+ * referência por posição, oportunidades, nível, conquistas, missões e a
+ * jornada (o que já está liberado e o que ainda está trancado).
  *
  * Nada aqui é inventado: o relatório vem do mesmo cálculo que a pessoa já vê
  * no site, o nível e as conquistas saem do que ela realmente fez (perfil,
- * foto, acesso à análise de partidas, jogos analisados) e as oportunidades
- * vêm da base de clubes da Zyron.
+ * foto, jogos analisados) e do que a equipe marcou no Setor Atletas
+ * (seleção, encaminhamento e contrato), e as oportunidades vêm da base de
+ * clubes da Zyron.
  */
 import {
-  Award, BadgeCheck, Camera, ClipboardCheck, Crosshair, Flame, Goal, Handshake, Shield, Target, Video,
+  BadgeCheck, Camera, ClipboardCheck, Crosshair, FileSignature, Flame, Goal, Handshake, Medal, Send, Shield, Target,
   type LucideIcon,
 } from "lucide-react"
 import { STAT_KEYS, WHATSAPP_NUMBER, buildStats, overallFrom, type StatResult } from "@/lib/funnel"
 import { getAllClubs, getBrazilianClubBySeed, getClubBySeed, type Club } from "@/data/clubs"
 import type { AthleteAccount } from "./account"
 import type { ProfileSummary } from "./metrics"
+import { CLIENT_BASE } from "./paths"
 
 /* ------------------------------------------------------------------ */
 /* Categoria e relatório                                               */
@@ -145,6 +148,54 @@ export function opportunitiesFor(account: AthleteAccount, category: string | nul
   }
 }
 
+/** O portfólio inteiro da Zyron: clubes, países e vagas abertas na base. */
+export function portfolio() {
+  const all = getAllClubs()
+  return {
+    clubs: all.length,
+    countries: new Set(all.map((c) => c.country)).size,
+    vacancies: all.reduce((a, c) => a + c.openPositions, 0),
+  }
+}
+
+const LETTERS = "abcdefghilmnoprstuvz"
+
+/** Texto falso com o mesmo formato do original (palavras do mesmo tamanho), para borrar sem revelar nada. */
+function decoy(text: string, seed: number) {
+  let h = seed
+  return text.replace(/\S+/g, (word) => [...word].map((_, i) => {
+    h = (Math.imul(h, 1103515245) + 12345) & 0x7fffffff
+    const ch = LETTERS[h % LETTERS.length]
+    return i === 0 ? ch.toUpperCase() : ch
+  }).join(""))
+}
+
+export type LockedClub = { id: string; logo: string; vacancies: number; name: string; style: string; place: string; text: string }
+
+/**
+ * Mostruário das oportunidades trancadas: clubes reais da base (os com mais vagas),
+ * mas só o escudo (borrado) e o número de vagas são de verdade. Nome e função viram
+ * texto falso antes de chegar à tela, então nem o código da página revela o clube.
+ */
+export function lockedClubs(n: number, international = false): LockedClub[] {
+  return getAllClubs()
+    .filter((c) => (c.country === "Brasil") !== international)
+    .sort((a, b) => b.openPositions - a.openPositions || a.id.localeCompare(b.id))
+    .slice(0, n)
+    .map((c, i) => {
+      const seed = hashString(c.id) + i * 7919
+      return {
+        id: c.id,
+        logo: c.logo,
+        vacancies: c.openPositions,
+        name: decoy(c.name, seed),
+        style: decoy(c.preferredStyle, seed + 1),
+        place: decoy(`${c.country} ${c.league}`, seed + 2),
+        text: decoy(c.description, seed + 3),
+      }
+    })
+}
+
 /* ------------------------------------------------------------------ */
 /* Nível, conquistas e missões                                         */
 /* ------------------------------------------------------------------ */
@@ -174,7 +225,10 @@ export function completion(a: AthleteAccount) {
   return { done: FIELDS.length - missing.length, total: FIELDS.length, missing, pct: Math.round(((FIELDS.length - missing.length) / FIELDS.length) * 100) }
 }
 
-export type Cta = { label: string; to?: string; whatsapp?: string }
+/** `action: "foto"` abre o seletor de foto da própria área (sem sair da página). */
+export type Cta = { label: string; to?: string; whatsapp?: string; action?: "foto" }
+
+export type BadgeGroup = "Conta" | "Jogo" | "Carreira"
 
 export type Badge = {
   key: string
@@ -184,12 +238,80 @@ export type Badge = {
   progress: number
   target: number
   earned: boolean
-  /** "Conta" vem do cadastro; "Jogo" vem das partidas analisadas. */
-  group: "Conta" | "Jogo"
+  /** "Conta" vem do cadastro; "Jogo", das partidas analisadas; "Carreira", do que a equipe marca no Setor Atletas. */
+  group: BadgeGroup
   xp: number
 }
 
-export type Mission = { key: string; title: string; desc: string; progress: number; target: number; done: boolean; xp: number; cta?: Cta }
+export type Mission = {
+  key: string
+  title: string
+  desc: string
+  progress: number
+  target: number
+  done: boolean
+  xp: number
+  cta?: Cta
+  /** Ainda não dá para cumprir: abre quando a missão `after` for concluída. Aparece inteira, só com o cadeado. */
+  locked: boolean
+  after?: string
+  /** Missões da jornada principal: o número da etapa e o nome dela na jornada do herói. */
+  step?: { n: number; stage: string }
+}
+
+/* ------------------------------------------------------------------ */
+/* Jornada: o passo a passo que libera a área                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Etapas da carreira que a equipe marca no Setor Atletas (`zyron_athletes`) e o atleta lê
+ * pela função `zyron_my_journey()` (career.ts). Sem a migração, ficam todas em falso.
+ */
+export type Career = {
+  /** Está no Setor Atletas: a equipe escolheu trabalhar a carreira dele de perto. */
+  selected: boolean
+  selectedOn: string | null
+  forwarded: boolean
+  forwardedOn: string | null
+  contract: boolean
+  contractOn: string | null
+  contractClub: string | null
+}
+
+export const NO_CAREER: Career = {
+  selected: false, selectedOn: null, forwarded: false, forwardedOn: null, contract: false, contractOn: null, contractClub: null,
+}
+
+/**
+ * O que cada etapa libera. Menu, Início, Oportunidades, Comparativo, Partidas e Desempenho
+ * leem daqui, então trancam e abrem juntos.
+ */
+export type Gates = {
+  /** Os 7 dados do perfil preenchidos: o primeiro passo da jornada. */
+  profile: boolean
+  /** Clubes revelados em Oportunidades. */
+  opportunities: boolean
+  /** Já pode mandar o vídeo de um jogo para a análise lance a lance. */
+  analysis: boolean
+  /** Tem ao menos um jogo analisado pela equipe. */
+  analyzed: boolean
+  /** Partidas e Desempenho abertos: jogo analisado, ou acesso liberado com o perfil pronto. */
+  matches: boolean
+  /** Comparativo (precisa do relatório, que nasce com o perfil). */
+  compare: boolean
+}
+
+/** As seis etapas da jornada, na ordem e com o nome de cada uma na jornada do herói. */
+export const JOURNEY = [
+  { key: "perfil", stage: "O chamado" },
+  { key: "analise", stage: "A travessia" },
+  { key: "tres", stage: "As provas" },
+  { key: "selecionado", stage: "O mentor" },
+  { key: "encaminhado", stage: "A grande prova" },
+  { key: "contrato", stage: "A recompensa" },
+] as const
+
+export type JourneyKey = (typeof JOURNEY)[number]["key"]
 
 export type Game = {
   xp: number
@@ -201,9 +323,28 @@ export type Game = {
   span: number
   pct: number
   badges: Badge[]
+  /** Todas as missões: as seis da jornada (na ordem) e as extras. */
   missions: Mission[]
+  /** Só as seis da jornada, na ordem. */
+  journey: Mission[]
+  /** A missão da jornada que a pessoa pode cumprir agora (a primeira aberta e não concluída). */
+  current: Mission | null
+  gates: Gates
+  /** Primeiro contato: nada da jornada feito ainda. */
+  newcomer: boolean
   completion: ReturnType<typeof completion>
 }
+
+/** "2026-10-15" → "15/10/2026" (data do calendário, sem fuso). */
+const dayLabel = (day: string | null) => (day ? day.split("-").reverse().join("/") : "")
+
+/**
+ * Onde completar o perfil. Quem ainda não tem perfil segue o passo a passo do site
+ * (dados, vídeos e o primeiro relatório); quem só está completando ou atualizando volta
+ * direto para a área depois de salvar.
+ */
+export const profileLink = (account: AthleteAccount) =>
+  account.hasProfile ? `/onboarding?voltar=${encodeURIComponent(CLIENT_BASE)}` : "/onboarding"
 
 /** Maior sequência de jogos seguidos com nota 7 ou mais (do mais antigo ao mais recente). */
 function bestStreak(summary: ProfileSummary | null) {
@@ -217,33 +358,55 @@ function bestStreak(summary: ProfileSummary | null) {
   return best
 }
 
-export function gameOf(account: AthleteAccount, summary: ProfileSummary | null): Game {
+/** XP de cada etapa de carreira (as três últimas da jornada). */
+const CAREER_XP = { selecionado: 200, encaminhado: 250, contrato: 400 } as const
+
+export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, career: Career = NO_CAREER): Game {
   const comp = completion(account)
   const t = summary?.total
   const matches = summary?.matches.length ?? 0
   const passPct = t && t.passes ? (t.passesOk / t.passes) * 100 : 0
   const streak = bestStreak(summary)
   const actions = summary?.events.length ?? 0
+  const avg = summary?.avgRating ?? 0
+  const profile = comp.done === comp.total
+  const analyzed = matches > 0
+
+  // A trava é para quem está chegando: quem já tem jogo analisado ou foi selecionado pela equipe
+  // não perde as oportunidades por causa de um dado do perfil que ficou para trás.
+  const gates: Gates = {
+    profile,
+    opportunities: profile || analyzed || career.selected,
+    analysis: profile || analyzed,
+    analyzed,
+    matches: analyzed || (Boolean(summary) && profile),
+    compare: account.hasProfile,
+  }
 
   const badges: Badge[] = [
-    { key: "perfil", title: "Perfil completo", desc: "Preencha os 7 dados do seu perfil.", icon: ClipboardCheck, progress: comp.done, target: comp.total, earned: comp.done === comp.total, group: "Conta", xp: 0 },
+    { key: "perfil", title: "Perfil completo", desc: "Preencha os 7 dados do seu perfil.", icon: ClipboardCheck, progress: comp.done, target: comp.total, earned: profile, group: "Conta", xp: 0 },
     { key: "foto", title: "Cara de craque", desc: "Coloque a sua foto no perfil.", icon: Camera, progress: account.avatarUrl ? 1 : 0, target: 1, earned: Boolean(account.avatarUrl), group: "Conta", xp: 0 },
-    { key: "acesso", title: "Análise liberada", desc: "A equipe liberou a análise lance a lance dos seus jogos.", icon: BadgeCheck, progress: summary ? 1 : 0, target: 1, earned: Boolean(summary), group: "Conta", xp: 0 },
-    { key: "primeiro", title: "Primeiro jogo analisado", desc: "Tenha uma partida sua analisada pela equipe.", icon: Video, progress: Math.min(matches, 1), target: 1, earned: matches >= 1, group: "Jogo", xp: 0 },
+    { key: "acesso", title: "Análise liberada", desc: "Tenha o primeiro jogo analisado lance a lance pela equipe.", icon: BadgeCheck, progress: Math.min(matches, 1), target: 1, earned: analyzed, group: "Jogo", xp: 0 },
     { key: "lance", title: "Lance a lance", desc: "100 ações suas marcadas nos vídeos.", icon: Crosshair, progress: Math.min(actions, 100), target: 100, earned: actions >= 100, group: "Jogo", xp: 60 },
     { key: "sequencia", title: "Em sequência", desc: "3 jogos seguidos com nota 7 ou mais.", icon: Flame, progress: Math.min(streak, 3), target: 3, earned: streak >= 3, group: "Jogo", xp: 60 },
     { key: "passe", title: "Passe de ouro", desc: "80% de passes certos, com pelo menos 50 passes.", icon: Handshake, progress: t && t.passes >= 50 ? Math.min(Math.round(passPct), 80) : Math.min(t?.passes ?? 0, 50), target: t && t.passes >= 50 ? 80 : 50, earned: Boolean(t && t.passes >= 50 && passPct >= 80), group: "Jogo", xp: 60 },
     { key: "gols", title: "Faro de gol", desc: "3 gols nos jogos analisados.", icon: Goal, progress: Math.min(t?.goals ?? 0, 3), target: 3, earned: (t?.goals ?? 0) >= 3, group: "Jogo", xp: 60 },
     { key: "assist", title: "Garçom", desc: "3 assistências nos jogos analisados.", icon: Target, progress: Math.min(t?.assists ?? 0, 3), target: 3, earned: (t?.assists ?? 0) >= 3, group: "Jogo", xp: 60 },
     { key: "muralha", title: "Muralha", desc: "15 desarmes e interceptações certos.", icon: Shield, progress: Math.min((t?.tacklesOk ?? 0) + (t?.interceptions ?? 0), 15), target: 15, earned: (t?.tacklesOk ?? 0) + (t?.interceptions ?? 0) >= 15, group: "Jogo", xp: 60 },
+    { key: "selecionado", title: "Selecionado", desc: "A equipe escolheu trabalhar a sua carreira de perto.", icon: Medal, progress: career.selected ? 1 : 0, target: 1, earned: career.selected, group: "Carreira", xp: 0 },
+    { key: "encaminhado", title: "Encaminhado", desc: "O seu perfil chegou a um clube pelas mãos da equipe.", icon: Send, progress: career.forwarded ? 1 : 0, target: 1, earned: career.forwarded, group: "Carreira", xp: 0 },
+    { key: "contrato", title: "Contrato assinado", desc: "Fechou com um clube: a jornada da base completa.", icon: FileSignature, progress: career.contract ? 1 : 0, target: 1, earned: career.contract, group: "Carreira", xp: 0 },
   ]
 
   const xp =
     100 +
     comp.done * 30 +
     (account.avatarUrl ? 50 : 0) +
-    (summary ? 150 : 0) +
+    (analyzed ? 150 : 0) +
     Math.min(matches, 10) * 80 +
+    (career.selected ? CAREER_XP.selecionado : 0) +
+    (career.forwarded ? CAREER_XP.encaminhado : 0) +
+    (career.contract ? CAREER_XP.contrato : 0) +
     badges.filter((b) => b.earned).reduce((a, b) => a + b.xp, 0)
 
   let idx = 0
@@ -251,20 +414,81 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null):
   const next = LEVELS[idx + 1] ?? null
   const into = xp - LEVELS[idx].at
   const span = next ? next.at - LEVELS[idx].at : 1
-  const avg = summary?.avgRating ?? 0
 
-  const missions: Mission[] = [
-    { key: "perfil", title: "Complete o seu perfil", desc: comp.missing.length ? `Faltam: ${comp.missing.join(", ").toLowerCase()}.` : "Perfil completo.", progress: comp.done, target: comp.total, done: comp.done === comp.total, xp: (comp.total - comp.done) * 30, cta: { label: account.hasProfile ? "Atualizar perfil" : "Criar perfil", to: "/onboarding" } },
-    { key: "foto", title: "Coloque a sua foto", desc: "Quem vê o seu perfil guarda mais quem tem rosto.", progress: account.avatarUrl ? 1 : 0, target: 1, done: Boolean(account.avatarUrl), xp: 50, cta: { label: "Adicionar foto", to: "/onboarding" } },
-    { key: "acesso", title: "Libere a análise dos seus jogos", desc: "Envie o vídeo de um jogo e a equipe marca cada lance seu.", progress: summary ? 1 : 0, target: 1, done: Boolean(summary), xp: 150, cta: { label: "Falar com a equipe", whatsapp: `Olá! Sou ${account.name} e quero a análise lance a lance dos meus jogos na Zyron.` } },
-    { key: "tres", title: "Chegue a 3 jogos analisados", desc: "Com 3 jogos, a equipe já enxerga o seu padrão.", progress: Math.min(matches, 3), target: 3, done: matches >= 3, xp: 80 * Math.max(0, 3 - matches), cta: summary ? { label: "Enviar outro vídeo", whatsapp: `Olá! Sou ${account.name} e quero enviar o vídeo de mais um jogo para a análise.` } : undefined },
-    { key: "nota", title: "Suba a nota média para 7,0", desc: "A nota vem das suas ações marcadas em cada jogo.", progress: Math.min(Math.round(avg * 10), 70), target: 70, done: avg >= 7, xp: 0 },
-    { key: "streak", title: "Faça 3 jogos seguidos com nota 7+", desc: "Constância é o que o clube procura.", progress: Math.min(streak, 3), target: 3, done: streak >= 3, xp: 60 },
+  const wa = (topic: string) => `Olá! Sou ${account.name}, da Zyron. ${topic}`
+  type Draft = Omit<Mission, "locked" | "after" | "step">
+  const drafts: Record<JourneyKey, Draft> = {
+    perfil: {
+      key: "perfil", title: "Complete o seu perfil",
+      desc: comp.missing.length ? `Faltam: ${comp.missing.join(", ").toLowerCase()}.` : "Perfil completo.",
+      progress: comp.done, target: comp.total, done: profile, xp: (comp.total - comp.done) * 30,
+      cta: { label: account.hasProfile ? "Completar perfil" : "Criar perfil", to: profileLink(account) },
+    },
+    analise: {
+      key: "analise", title: "Libere a análise dos seus jogos",
+      desc: "Envie o vídeo de um jogo: a equipe marca cada lance seu e a análise aparece aqui.",
+      progress: Math.min(matches, 1), target: 1, done: analyzed, xp: 150,
+      cta: { label: "Enviar vídeo", whatsapp: wa("Quero enviar o vídeo de um jogo para liberar a análise lance a lance.") },
+    },
+    tres: {
+      key: "tres", title: "Chegue a 3 jogos analisados",
+      desc: "Com 3 jogos, a equipe já enxerga o seu padrão de jogo.",
+      progress: Math.min(matches, 3), target: 3, done: matches >= 3, xp: 80 * Math.max(0, 3 - matches),
+      cta: { label: "Enviar outro jogo", whatsapp: wa("Quero enviar o vídeo de mais um jogo para a análise.") },
+    },
+    selecionado: {
+      key: "selecionado", title: "Seja selecionado pela Zyron",
+      desc: career.selected
+        ? `A equipe escolheu trabalhar a sua carreira de perto${career.selectedOn ? ` desde ${dayLabel(career.selectedOn)}` : ""}.`
+        : "Com o seu jogo documentado, a equipe escolhe quem ela vai trabalhar de perto, rumo aos clubes.",
+      progress: career.selected ? 1 : 0, target: 1, done: career.selected, xp: CAREER_XP.selecionado,
+      cta: { label: "Falar com a equipe", whatsapp: wa("Já tenho jogos analisados e quero saber como ser selecionado para a assessoria.") },
+    },
+    encaminhado: {
+      key: "encaminhado", title: "Encaminhamento para um clube",
+      desc: career.forwarded
+        ? `A equipe levou o seu perfil a um clube${career.forwardedOn ? ` em ${dayLabel(career.forwardedOn)}` : ""}.`
+        : "A equipe apresenta o seu perfil a um clube que procura exatamente o seu jogo.",
+      progress: career.forwarded ? 1 : 0, target: 1, done: career.forwarded, xp: CAREER_XP.encaminhado,
+      cta: { label: "Ver clubes", to: `${CLIENT_BASE}/oportunidades` },
+    },
+    contrato: {
+      key: "contrato", title: "Fechamento de contrato",
+      desc: career.contract
+        ? `Contrato fechado${career.contractClub ? ` com ${career.contractClub}` : ""}${career.contractOn ? ` em ${dayLabel(career.contractOn)}` : ""}.`
+        : "A última etapa da jornada: assinar com um clube e começar a carreira.",
+      progress: career.contract ? 1 : 0, target: 1, done: career.contract, xp: CAREER_XP.contrato,
+    },
+  }
+
+  // Cada etapa só abre quando a anterior foi cumprida; o que já foi feito nunca aparece trancado.
+  const journey: Mission[] = JOURNEY.map(({ key, stage }, i) => {
+    const prev = i > 0 ? drafts[JOURNEY[i - 1].key] : null
+    const m = drafts[key]
+    const locked = !m.done && Boolean(prev && !prev.done)
+    return { ...m, locked, after: locked ? prev?.title : undefined, step: { n: i + 1, stage } }
+  })
+
+  const afterAnalysis = (m: Draft): Mission => ({ ...m, locked: !m.done && !analyzed, after: !m.done && !analyzed ? drafts.analise.title : undefined })
+  const photo: Mission = {
+    key: "foto", title: "Coloque a sua foto", desc: "Quem vê o seu perfil guarda mais quem tem rosto.",
+    progress: account.avatarUrl ? 1 : 0, target: 1, done: Boolean(account.avatarUrl), xp: 50,
+    cta: { label: "Adicionar foto", action: "foto" }, locked: false,
+  }
+  const extras: Mission[] = [
+    afterAnalysis({ key: "nota", title: "Suba a nota média para 7,0", desc: "A nota vem das suas ações marcadas em cada jogo.", progress: Math.min(Math.round(avg * 10), 70), target: 70, done: avg >= 7, xp: 0 }),
+    afterAnalysis({ key: "streak", title: "Faça 3 jogos seguidos com nota 7+", desc: "Constância é o que o clube procura.", progress: Math.min(streak, 3), target: 3, done: streak >= 3, xp: 60 }),
   ]
+
+  // A foto entra logo depois do perfil: é rápida e vale XP desde o primeiro dia.
+  const missions = [journey[0], photo, ...journey.slice(1), ...extras]
 
   return {
     xp, level: idx + 1, title: LEVELS[idx].title, next, into, span, pct: next ? Math.round((into / span) * 100) : 100,
-    badges, missions, completion: comp,
+    badges, missions, journey, gates,
+    current: journey.find((m) => !m.done && !m.locked) ?? null,
+    newcomer: !profile && !analyzed && !career.selected,
+    completion: comp,
   }
 }
 

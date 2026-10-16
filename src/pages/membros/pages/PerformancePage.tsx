@@ -7,6 +7,7 @@ import { CLIENT_BASE } from "../paths"
 import { summarizeProfile } from "../metrics"
 import { Board, BOARD_COLORS } from "../components/Board"
 import { PERIODS } from "../components/Stats"
+import { UnlockCard } from "../components/Gamify"
 
 export default function PerformancePage() {
   const { bundle } = useMember()
@@ -15,7 +16,16 @@ export default function PerformancePage() {
   const summary = useMemo(() => summarizeProfile(bundle, period || undefined), [bundle, period])
 
   if (!bundle.matches.length) {
-    return <div className="vx-card"><Empty icon={<BarChart3 className="h-6 w-6" />} title="O desempenho aparece depois da primeira partida analisada" /></div>
+    return (
+      <>
+        <div className="vx-card mb-[18px]">
+          <Empty icon={<BarChart3 className="h-6 w-6" />} title="O desempenho aparece depois da primeira partida analisada">
+            Mapa de calor da temporada, estatísticas por 90 minutos e índices Zyron, tudo a partir dos lances marcados no vídeo.
+          </Empty>
+        </div>
+        <UnlockCard compact />
+      </>
+    )
   }
 
   return (

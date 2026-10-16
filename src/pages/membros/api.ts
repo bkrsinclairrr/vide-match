@@ -314,10 +314,10 @@ const supabaseSource: DataSource = {
 }
 
 /** Conta de teste sem acesso à análise de partidas (só no `npm run dev`; some do build). */
-export async function getPreviewAccount(): Promise<AthleteAccount | null> {
+export async function getPreviewAccount(kind: "conta" | "novo" = "conta"): Promise<AthleteAccount | null> {
   if (import.meta.env.DEV) {
-    const { FIXTURE_ACCOUNT } = await import("./fixtures")
-    return FIXTURE_ACCOUNT
+    const { FIXTURE_ACCOUNT, FIXTURE_NEWCOMER } = await import("./fixtures")
+    return kind === "novo" ? FIXTURE_NEWCOMER : FIXTURE_ACCOUNT
   }
   return null
 }
