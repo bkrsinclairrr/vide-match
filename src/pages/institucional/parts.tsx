@@ -8,7 +8,7 @@ import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState,
   type ReactNode, type RefObject,
 } from "react"
-import { ChevronLeft, ChevronRight, Pause, Play, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX, X } from "lucide-react"
 import {
   CLUB_PROFILE_SAMPLE, REPORT_SAMPLE, clubLogo,
   type Connection, type Destination, type Photo,
@@ -525,77 +525,89 @@ export function ReportBars() {
 
 /* ─── Vídeos ───────────────────────────────────────────────────────── */
 
-/** Laço mudo que só toca enquanto está na tela. */
-export function LoopVideo({ src, poster, w, h, label }: { src: string; poster: string; w: number; h: number; label: string }) {
+/**
+ * Vídeo que começa a tocar sozinho quando metade dele entra na tela e pausa
+ * quando sai. Começa mudo, porque os navegadores só deixam tocar sozinho
+ * sem som. O botão grande no centro pausa e retoma; quem pausou não é
+ * retomado sozinho ao rolar. Com `sound`, um botão no canto liga o som.
+ * Com "reduzir movimento" ligado no aparelho, só toca quando a pessoa aperta.
+ */
+export function AutoVideo({ src, poster, label, className = "", loop = true, sound = false }: {
+  src: string
+  poster: string
+  label: string
+  className?: string
+  loop?: boolean
+  sound?: boolean
+}) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const visible = useVisible(wrapRef)
   const reduced = usePrefersReducedMotion()
-  const [paused, setPaused] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [userPaused, setUserPaused] = useState(false)
+  const [muted, setMuted] = useState(true)
+
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: 0.5 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
 
   useEffect(() => {
     const v = videoRef.current
     if (!v) return
-    if (visible && !reduced && !paused) v.play().catch(() => setPaused(true))
-    else v.pause()
-  }, [visible, reduced, paused])
+    if (!visible) v.pause()
+    else if (!userPaused && !reduced) v.play().catch(() => undefined)
+  }, [visible, userPaused, reduced])
 
-  useEffect(() => { if (reduced) setPaused(true) }, [reduced])
+  const toggle = () => {
+    const v = videoRef.current
+    if (!v) return
+    if (playing) {
+      v.pause()
+      setUserPaused(true)
+    } else {
+      setUserPaused(false)
+      v.play().catch(() => undefined)
+    }
+  }
 
-  return (
-    <div ref={wrapRef} className="vx-loop">
-      <video
-        ref={videoRef}
-        src={src}
-        poster={poster}
-        width={w}
-        height={h}
-        muted
-        loop
-        playsInline
-        preload="none"
-        aria-label={label}
-      />
-      <button
-        type="button"
-        className="vx-loop-btn"
-        onClick={() => setPaused((p) => !p)}
-        aria-label={paused ? "Reproduzir vídeo" : "Pausar vídeo"}
-      >
-        {paused ? <Play size={16} /> : <Pause size={16} />}
-      </button>
-    </div>
-  )
-}
-
-/** Filme com som: carrega só quando a pessoa aperta o play. */
-export function FilmPlayer({ src, poster, duration }: { src: string; poster: string; duration: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [started, setStarted] = useState(false)
-
-  const start = () => {
-    setStarted(true)
-    requestAnimationFrame(() => videoRef.current?.play().catch(() => undefined))
+  const toggleSound = () => {
+    const v = videoRef.current
+    if (!v) return
+    v.muted = !muted
+    setMuted(!muted)
+    if (v.paused) {
+      setUserPaused(false)
+      v.play().catch(() => undefined)
+    }
   }
 
   return (
-    <div className={`vx-film${started ? " is-started" : ""}`}>
+    <div ref={wrapRef} className={`vx-video ${className}${playing ? " is-playing" : ""}`}>
       <video
         ref={videoRef}
         src={src}
         poster={poster}
-        controls={started}
+        muted={muted}
+        loop={loop}
         playsInline
         preload="none"
-        aria-label="Filme Zyron: a jornada do atleta, da análise por IA ao clube"
+        aria-label={label}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
       />
-      {!started && (
-        <button type="button" className="vx-film-play" onClick={start}>
-          <span className="vx-film-icon" aria-hidden="true"><Play size={26} fill="currentColor" /></span>
-          <span className="vx-film-label">
-            Assistir ao filme
-            <small>{duration} · com som</small>
-          </span>
+      <button type="button" className="vx-video-toggle" onClick={toggle} aria-label={playing ? "Pausar vídeo" : "Reproduzir vídeo"}>
+        {playing ? <Pause size={34} fill="currentColor" /> : <Play size={34} fill="currentColor" />}
+      </button>
+      {sound && (
+        <button type="button" className="vx-video-sound" onClick={toggleSound} aria-pressed={!muted}>
+          {muted ? <VolumeX size={16} aria-hidden="true" /> : <Volume2 size={16} aria-hidden="true" />}
+          {muted ? "Ativar som" : "Som ativado"}
         </button>
       )}
     </div>

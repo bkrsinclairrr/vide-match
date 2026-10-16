@@ -16,7 +16,7 @@ import {
   WORLD_PHOTOS, type Photo,
 } from "./data"
 import {
-  CountUp, DepartureBoard, FilmPlayer, Frame, LightboxProvider, LoopVideo, Marquee, MatchRadar, PitchScan,
+  AutoVideo, CountUp, DepartureBoard, Frame, LightboxProvider, Marquee, MatchRadar, PitchScan,
   ReportBars, useInView, useLightbox, useRevealAll, useScrollProgress,
 } from "./parts"
 
@@ -330,7 +330,7 @@ function NewEye() {
               <span className="vx-rec" aria-hidden="true" />
               Registro real · rastreamento Zyron
             </div>
-            <LoopVideo {...TRACKING_VIDEO}
+            <AutoVideo src={TRACKING_VIDEO.src} poster={TRACKING_VIDEO.poster} className="vx-loop"
               label="Registro real de uma partida com todos os jogadores identificados pela IA e o atleta Joãozinho em destaque, com a velocidade medida" />
           </div>
         </div>
@@ -473,7 +473,8 @@ function Method() {
             <p>Veja como a IA analisa, como o scout orienta e como o atleta chega ao clube certo.</p>
           </div>
           <div data-reveal style={{ ["--d" as string]: "100ms" }}>
-            <FilmPlayer {...FILM} />
+            <AutoVideo src={FILM.src} poster={FILM.poster} className="vx-film" loop={false} sound
+              label="Filme Zyron: a jornada do atleta, da análise por IA ao clube" />
           </div>
         </div>
       </div>
