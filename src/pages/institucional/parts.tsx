@@ -528,8 +528,9 @@ export function ReportBars() {
 /**
  * Vídeo que começa a tocar sozinho quando metade dele entra na tela e pausa
  * quando sai. Começa mudo, porque os navegadores só deixam tocar sozinho
- * sem som. O botão grande no centro pausa e retoma; quem pausou não é
- * retomado sozinho ao rolar. Com `sound`, um botão no canto liga o som.
+ * sem som. O botão grande no centro só aparece com o vídeo parado; tocando,
+ * um toque em qualquer parte do vídeo pausa e o botão volta. Quem pausou
+ * não é retomado sozinho ao rolar. Com `sound`, um botão no canto liga o som.
  * Com "reduzir movimento" ligado no aparelho, só toca quando a pessoa aperta.
  */
 export function AutoVideo({ src, poster, label, className = "", loop = true, sound = false }: {
@@ -602,7 +603,9 @@ export function AutoVideo({ src, poster, label, className = "", loop = true, sou
         onEnded={() => setPlaying(false)}
       />
       <button type="button" className="vx-video-toggle" onClick={toggle} aria-label={playing ? "Pausar vídeo" : "Reproduzir vídeo"}>
-        {playing ? <Pause size={34} fill="currentColor" /> : <Play size={34} fill="currentColor" />}
+        <span className="vx-video-icon" aria-hidden="true">
+          {playing ? <Pause size={34} fill="currentColor" /> : <Play size={34} fill="currentColor" />}
+        </span>
       </button>
       {sound && (
         <button type="button" className="vx-video-sound" onClick={toggleSound} aria-pressed={!muted}>
