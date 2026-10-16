@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react"
-import { Check, CheckCheck, Radar, SendHorizontal, User } from "lucide-react"
+import { Radar, SendHorizontal, User } from "lucide-react"
 import { prefersReducedMotion } from "@/hooks/useScrollAnimations"
-import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { FEATURED_ATHLETE as A, clubLogo } from "./siteData"
 
 /** Liga `is-active` uma única vez, quando o painel entra na tela. */
@@ -208,7 +207,6 @@ export function FamilyPanel({ titleAs: Title = "h3" }: { titleAs?: "h2" | "h3" }
   const { ref, active } = useActivateOnView<HTMLDivElement>(0.3)
   const [typing, setTyping] = useState(false)
   const [teamMessage, setTeamMessage] = useState(false)
-  const [sent, setSent] = useState(false)
   const bodyRef = useRef<HTMLDivElement>(null)
 
   // A equipe "digita" e responde logo depois que a janela de conversa entra.
@@ -232,7 +230,7 @@ export function FamilyPanel({ titleAs: Title = "h3" }: { titleAs?: "h2" | "h3" }
   useEffect(() => {
     const body = bodyRef.current
     if (body) body.scrollTop = body.scrollHeight
-  }, [typing, teamMessage, sent])
+  }, [typing, teamMessage])
 
   const F = FAMILY_ATHLETE
 
@@ -264,7 +262,7 @@ export function FamilyPanel({ titleAs: Title = "h3" }: { titleAs?: "h2" | "h3" }
               ))}
             </dl>
 
-            <div className="mb-7 flex justify-between px-1" aria-label={F.rings.map((r) => `${r.key} ${r.score}`).join(", ")}>
+            <div className="flex justify-between px-1" aria-label={F.rings.map((r) => `${r.key} ${r.score}`).join(", ")}>
               {F.rings.map((ring) => (
                 <div key={ring.key} className="flex flex-col items-center gap-2">
                   <div className="zs-ring-stat" style={{ "--zs-ring-len": RING_LENGTH } as CSSProperties}>
@@ -283,19 +281,6 @@ export function FamilyPanel({ titleAs: Title = "h3" }: { titleAs?: "h2" | "h3" }
                   <span className="text-[9px] font-bold uppercase tracking-[0.06em] text-white/50">{ring.key}</span>
                 </div>
               ))}
-            </div>
-
-            <div className="border-t border-white/[0.06] pt-5">
-              <button
-                type="button"
-                onClick={() => setSent(true)}
-                disabled={sent}
-                className="flex w-full items-center justify-center gap-2.5 rounded-[10px] border border-white/10 bg-gradient-to-r from-amber-300 to-amber-500 p-3 text-[14px] font-bold text-black shadow-[0_6px_20px_rgba(251,191,36,0.25)] transition-all hover:shadow-[0_8px_25px_rgba(251,191,36,0.4)] active:scale-[0.97] disabled:cursor-default disabled:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
-              >
-                {sent
-                  ? <><Check className="h-4 w-4" strokeWidth={3} /> Pedido enviado</>
-                  : <><WhatsAppIcon className="h-[18px] w-[18px]" /> Liberar relatório completo</>}
-              </button>
             </div>
           </div>
 
@@ -325,12 +310,6 @@ export function FamilyPanel({ titleAs: Title = "h3" }: { titleAs?: "h2" | "h3" }
               {teamMessage && (
                 <div className="zs-msg zs-msg--team">
                   Olá! A análise do atleta ficou pronta: nota geral {F.overall} e um clube com {F.compatibility}% de encaixe no perfil dele. Quer receber a leitura completa?
-                </div>
-              )}
-              {sent && (
-                <div className="zs-msg zs-msg--user">
-                  Quero sim! Pode mandar.
-                  <CheckCheck className="ml-1.5 inline h-3.5 w-3.5 align-[-3px] text-black/55" aria-label="lida" />
                 </div>
               )}
             </div>
