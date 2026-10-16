@@ -558,10 +558,10 @@ html.zyron-scroll-root body {
   .zs-video-frame { max-width: calc(28rem + 22px); }
 }
 
-.zs-stats-band { position: relative; padding: 80px 0 10px; }
+.zs-stats-band { position: relative; padding: 32px 0 0; }
 .zs-stats-band .zs-stats { margin-top: 0; }
 
-.zs-manifesto { position: relative; padding: 110px 0 40px; }
+.zs-manifesto { position: relative; padding: 48px 0 16px; }
 
 .zs-manifesto-copy {
   display: flex;
@@ -583,7 +583,7 @@ html.zyron-scroll-root body {
   flex-direction: column;
   align-items: center;
   gap: 18px;
-  padding: 40px 24px 100px;
+  padding: 16px 24px 40px;
   text-align: center;
 }
 
@@ -609,10 +609,10 @@ html.zyron-scroll-root body {
 @media (max-width: 767px) {
   .zs-hero.zs-hero--split { padding: 104px 20px 8px; }
   .zs-hero--split .zs-hero-sub { font-size: 16px; }
-  .zs-stats-band { padding-top: 56px; }
-  .zs-manifesto { padding: 80px 0 24px; }
+  .zs-stats-band { padding-top: 24px; }
+  .zs-manifesto { padding: 36px 0 12px; }
   .zs-manifesto-copy { margin-bottom: 40px; font-size: 16px; }
-  .zs-cta-band { padding: 24px 20px 80px; }
+  .zs-cta-band { padding: 12px 20px 32px; }
 }
 
 /* ─── Faixa de clubes ───────────────────────────────────────────────── */
@@ -620,8 +620,8 @@ html.zyron-scroll-root body {
 .zs-proof {
   position: relative;
   z-index: 2;
-  margin-top: 60px;
-  padding: 80px 0 50px;
+  margin-top: 12px;
+  padding: 28px 0 16px;
   overflow: hidden;
   border-bottom: 1px solid var(--zs-border);
   background: linear-gradient(180deg, rgba(10, 10, 10, 0) 0%, rgba(24, 18, 8, 0.45) 100%);
@@ -717,7 +717,7 @@ html.zyron-scroll-root body {
 
 .zs-why {
   position: relative;
-  padding: 120px 0;
+  padding: 28px 0;
   background: radial-gradient(circle at center, rgba(251, 191, 36, 0.05) 0%, transparent 60%);
 }
 
@@ -742,7 +742,7 @@ html.zyron-scroll-root body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
-  margin-top: 60px;
+  margin-top: 32px;
 }
 
 .zs-glass {
@@ -817,7 +817,7 @@ html.zyron-scroll-root body {
 
 .zs-features {
   position: relative;
-  padding: 100px 0;
+  padding: 28px 0;
   background: radial-gradient(circle at top center, rgba(251, 191, 36, 0.05) 0%, transparent 60%);
 }
 
@@ -826,7 +826,7 @@ html.zyron-scroll-root body {
   flex-direction: column;
   align-items: center;
   max-width: 720px;
-  margin: 0 auto 60px;
+  margin: 0 auto 24px;
   text-align: center;
 }
 
@@ -917,7 +917,7 @@ html.zyron-scroll-root body {
 
 .zs-split {
   position: relative;
-  padding: 120px 0;
+  padding: 28px 0;
   background-image: radial-gradient(circle at top right, rgba(251, 191, 36, 0.07) 0%, transparent 60%);
 }
 
@@ -967,7 +967,7 @@ html.zyron-scroll-root body {
 .zs-check-text strong, .zs-split-copy > p strong { color: #fff; font-weight: 650; }
 
 /* Olhômetro × Zyron: o inimigo em comum, logo abaixo da arte dos atletas. */
-.zs-versus { margin-top: 96px; }
+.zs-versus { margin-top: 40px; }
 
 .zs-versus-head {
   display: flex;
@@ -1218,7 +1218,7 @@ html.zyron-scroll-root body {
    scout. Na /avaliacao o painel ganha faixa própria, na largura da coluna da home. */
 .zs-howto { display: flex; flex-direction: column; gap: 16px; }
 .zs-howto-title { margin: 0; color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; text-align: center; }
-.zs-howto-band { position: relative; padding: 80px 0; }
+.zs-howto-band { position: relative; padding: 32px 0; }
 .zs-howto-band .zs-howto { max-width: 576px; margin: 0 auto; }
 
 /* Painel "Para famílias": perfil + conversa com o scout */
@@ -1243,7 +1243,7 @@ html.zyron-scroll-root body {
 .zs-fp-profile {
   position: relative;
   z-index: 10;
-  order: 2;
+  order: 1;
   width: 100%;
   padding: 24px;
   border-radius: 20px;
@@ -1270,7 +1270,7 @@ html.zyron-scroll-root body {
 
 .zs-chat {
   position: relative;
-  order: 1;
+  order: 2;
   z-index: 20;
   display: flex;
   flex-direction: column;
@@ -1281,7 +1281,7 @@ html.zyron-scroll-root body {
   background: #100e0b;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateY(20px);
   transition: transform 0.9s var(--zs-ease) 0.4s, opacity 0.7s ease 0.4s;
 }
 
@@ -1364,7 +1364,7 @@ html.zyron-scroll-root body {
 
 .zs-testim {
   position: relative;
-  padding: 100px 0 120px;
+  padding: 28px 0;
   overflow: hidden;
   background-image: radial-gradient(circle at top left, rgba(251, 191, 36, 0.07) 0%, transparent 60%);
 }
@@ -1444,8 +1444,8 @@ html.zyron-scroll-root body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80vh;
-  padding: 140px 0;
+  min-height: 0;
+  padding: 36px 0;
   overflow: hidden;
   text-align: center;
   background: radial-gradient(circle at 50% 100%, rgba(251, 191, 36, 0.16) 0%, transparent 60%);
@@ -1594,12 +1594,12 @@ html.zyron-scroll-root body {
 
   .zs-features-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
 
-  .zs-split-grid { grid-template-columns: 1fr; gap: 48px; }
+  .zs-split-grid { grid-template-columns: 1fr; gap: 28px; }
   .zs-split-copy { align-items: center; text-align: center; }
   .zs-checklist { align-self: stretch; text-align: left; }
   .zs-split--alt .zs-split-grid { display: flex; flex-direction: column-reverse; }
   .zs-split--alt .zs-split-grid > * { width: 100%; }
-  .zs-versus { margin-top: 72px; }
+  .zs-versus { margin-top: 36px; }
   .zs-versus-head h3 { font-size: 32px; }
 }
 
@@ -1614,7 +1614,7 @@ html.zyron-scroll-root body {
   .zs-hero-proof-sep { display: none; }
   .zs-hero-mock { margin-top: 44px; padding: 8px 0 0; }
 
-  .zs-proof { margin-top: 40px; padding: 56px 0 36px; }
+  .zs-proof { margin-top: 20px; padding: 32px 0 24px; }
   .zs-proof-head { flex-direction: column; margin-bottom: 30px; }
   .zs-proof-title { max-width: 280px; font-size: 15px; line-height: 1.3; text-align: center; white-space: normal; }
   .zs-proof-line,
@@ -1622,24 +1622,24 @@ html.zyron-scroll-root body {
   .zs-marquee-logo { width: 64px; height: 64px; min-width: 64px; margin: 0 18px; }
   .zs-marquee-track { gap: 36px; padding-right: 36px; }
 
-  .zs-why { padding: 80px 0; }
+  .zs-why { padding: 24px 0; }
   .zs-why-text { font-size: 28px; }
   .zs-stats { grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 44px; }
   .zs-stat-value { font-size: 30px; }
 
-  .zs-features { padding: 80px 0; }
-  .zs-section-head { margin-bottom: 40px; }
+  .zs-features { padding: 24px 0; }
+  .zs-section-head { margin-bottom: 24px; }
   .zs-section-head h2 { font-size: 32px; }
   .zs-features-grid { grid-template-columns: 1fr; }
   .zs-feature-head { padding: 24px 24px 0; gap: 16px; }
   .zs-feature-body { padding: 14px 24px 24px; }
   .zs-feature h3 { font-size: 18px; }
 
-  .zs-split { padding: 80px 0; }
+  .zs-split { padding: 24px 0; }
   .zs-split-copy h2 { font-size: 34px; }
   .zs-split-copy > p { font-size: 16px; }
   .zs-check-text { font-size: 15px; }
-  .zs-versus { margin-top: 56px; }
+  .zs-versus { margin-top: 32px; }
   .zs-versus-head { margin-bottom: 28px; }
   .zs-versus-head h3 { font-size: 26px; }
   .zs-versus-head p { font-size: 15px; }
@@ -1649,13 +1649,13 @@ html.zyron-scroll-root body {
 
   .zs-ap { min-height: 0; padding: 16px; }
   .zs-fp { padding: 18px; }
-  .zs-howto-band { padding: 56px 0; }
+  .zs-howto-band { padding: 24px 0; }
   .zs-howto-title { font-size: 20px; }
 
-  .zs-testim { padding: 80px 0 90px; }
+  .zs-testim { padding: 24px 0; }
   .zs-testim-card { flex-basis: 300px; padding: 24px; min-height: 0; }
 
-  .zs-final { min-height: 0; padding: 96px 0; }
+  .zs-final { min-height: 0; padding: 28px 0; }
   .zs-final h2 { font-size: 38px; }
   .zs-final-card { padding: 22px; }
   .zs-steps { grid-template-columns: 1fr; }

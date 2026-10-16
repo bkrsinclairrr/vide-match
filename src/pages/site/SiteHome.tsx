@@ -10,6 +10,7 @@ import HeroPlatform from "./HeroPlatform"
 import ClubMarquee from "./ClubMarquee"
 import HighlightText from "./HighlightText"
 import { AthletePanel, FamilyPanel } from "./SitePanels"
+import PartnersSection from "./PartnersSection"
 import {
   FinalCtaSection, PrimaryCta, ProofLine, SiteAmbient, SiteFooter, SiteNav, StatsGrid,
   TestimonialsSection, type SectionLink,
@@ -333,6 +334,8 @@ export default function SiteHome() {
         </section>
 
         <TestimonialsSection />
+
+        <PartnersSection />
 
         {/* ─── CHAMADA FINAL: leva o lead para a avaliação ─── */}
         <FinalCtaSection to={evaluation} />

@@ -389,6 +389,10 @@ button.vx-frame-media:hover img { transform: scale(1.035); }
 .vx-marquee-brand { width: 64px; height: 64px; color: #f5f3ee; }
 @keyframes vx-marquee { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 
+/* Parceiros comerciais (PartnersSection) no tom da página: título serifado */
+.vx-partners { padding: var(--sec) 0; }
+.vx-partners .pt-title { font-family: var(--serif); font-weight: 500; }
+
 /* ─── IX · Reconhecimento ────────────────────────────────────────── */
 
 .vx-recog-grid { display: grid; grid-template-columns: 1.3fr 0.8fr 0.9fr; gap: 20px; align-items: start; }

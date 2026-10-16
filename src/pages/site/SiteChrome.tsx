@@ -205,7 +205,7 @@ export function TestimonialsSection() {
               </article>
             ))}
           </div>
-          <div className="mt-10 flex justify-center gap-4">
+          <div className="mt-6 flex justify-center gap-4">
             <button type="button" className="zs-round-btn" onClick={() => slide(-1)} aria-label="Depoimento anterior">
               <ChevronLeft className="h-5 w-5" />
             </button>
