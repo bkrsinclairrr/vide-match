@@ -128,11 +128,21 @@
 .ve-foot a { color: var(--vx-muted); font-weight: 600; transition: color 0.2s; }
 .ve-foot a:hover { color: var(--vx-gold-3); }
 
-@media (max-width: 420px) {
+/* Celular: volta aos tamanhos de antes do destaque e põe os botões em coluna,
+   para "Entrar na minha área" caber inteiro dentro do botão dourado. */
+@media (max-width: 640px) {
   .ve { padding: 16px 12px 28px; }
-  .ve-athlete { padding: 28px 20px 22px; }
-  .ve-athlete h1 { font-size: 30px; }
-  .ve-actions { grid-template-columns: 1fr; }
+  .ve-athlete { padding: 22px 18px 18px; border-radius: 24px; }
+  .ve-kicker { padding: 4px 11px; font-size: 11px; }
+  .ve-athlete h1 { margin-top: 14px; font-size: 23px; }
+  .ve-sub { margin-top: 10px; font-size: 14px; }
+  .ve-actions { grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+  .ve-main, .ve-second { height: 52px; padding: 0 16px; font-size: 15px; }
+  .ve-main { font-size: 15.5px; }
+  .ve-google { height: 48px; margin-top: 10px; font-size: 14px; }
+  .ve-perks { gap: 6px; margin-top: 16px; }
+  .ve-perks li { gap: 6px; padding: 5px 10px; font-size: 12px; }
+  .ve-perks svg { width: 13px; height: 13px; }
   .ve-team { padding: 18px 16px 16px; }
 }
 
