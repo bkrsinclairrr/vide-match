@@ -1,11 +1,10 @@
 import { useEffect, useRef, type MouseEvent } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link } from "react-router-dom"
 import {
   ArrowRight, BarChart3, Check, Cpu, MessageCircle, Shield, Sparkles, Target, Users, X,
   type LucideIcon,
 } from "lucide-react"
 import { useScrollReveal, useSmoothScroll } from "@/hooks/useScrollAnimations"
-import { FUNNEL_ROUTES } from "@/lib/funnel"
 import HeroPlatform from "./HeroPlatform"
 import ClubMarquee from "./ClubMarquee"
 import HighlightText from "./HighlightText"
@@ -21,9 +20,9 @@ import { SPECIALIST_WHATSAPP } from "./siteData"
  * Home institucional (/). Mesma estrutura de UI/UX do footlink.app (nav
  * de vidro, hero com print da plataforma, faixa de escudos, texto que
  * acende no scroll, recursos, seções por público, depoimentos e chamada
- * final), com a paleta, a marca e a proposta da Zyron: IA. Todo CTA leva
- * ao mesmo lugar que o botão "Começar minha avaliação" da /avaliacao — o
- * formulário do funil — repassando a query string para não perder UTMs.
+ * final), com a paleta, a marca e a proposta da Zyron: IA. Todo CTA de
+ * avaliação da home leva à /voxen, onde o atleta entra ou cria a conta (a
+ * /avaliacao, que recebe os anúncios, continua levando ao formulário do funil).
  * As peças em comum com a /avaliacao ficam em SiteChrome.tsx.
  */
 
@@ -141,9 +140,8 @@ export default function SiteHome() {
   const pageRef = useRef<HTMLDivElement>(null)
   const { scrollTo } = useSmoothScroll(true)
   useScrollReveal(pageRef, [])
-  const { search } = useLocation()
-
-  const evaluation = { pathname: FUNNEL_ROUTES.profile, search }
+  /** Todos os botões de avaliação da home levam ao login do atleta na /voxen. */
+  const evaluation = "/voxen"
 
   useEffect(() => {
     document.documentElement.classList.add("dark", "zyron-scroll-root")
