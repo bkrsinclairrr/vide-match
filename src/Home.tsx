@@ -122,7 +122,8 @@ const usePrefetchCoreRoutes = () => {
       // Quem abre a VOXEN, a central de administração ou a área do atleta não vai para o onboarding: baixar
       // e executar o chunk dele (que traz GSAP e Lenis, ~50 KB) só disputa banda e processador com a tela que a pessoa já está usando.
       if (/^\/(voxen|admin|minha-area)(\/|$)/.test(window.location.pathname)) return
-      import("./pages/Onboarding")
+      // Falha aqui é só pré-carga perdida (ex.: deploy novo): a rota tenta de novo ao abrir.
+      import("./pages/Onboarding").catch(() => undefined)
     })
   }, [])
 }
