@@ -7,6 +7,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from "react"
 import { Link } from "react-router-dom"
 import { ArrowDown, ArrowUpRight, Instagram, Mail, Menu, X } from "lucide-react"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
+import PartnersSection from "@/pages/site/PartnersSection"
 import { ZyronMark } from "@/pages/site/ZyronMark"
 import {
   ATHLETE_GALLERY, BOTAFOGO_PHOTO, CHELSEA_SOURCE, CONNECTION_PILLARS, CONNECTIONS_BRAZIL, CONNECTIONS_WORLD,
@@ -800,6 +801,7 @@ function Page() {
         <Destinations />
         <World />
         <Connections />
+        <PartnersSection className="vx-partners" />
         <Recognition />
         <Manifesto />
         <Archive />

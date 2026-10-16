@@ -4,6 +4,7 @@ import { useScrollReveal, useSmoothScroll } from "@/hooks/useScrollAnimations"
 import { FUNNEL_ROUTES } from "@/lib/funnel"
 import ClubMarquee from "@/pages/site/ClubMarquee"
 import { FamilyPanel } from "@/pages/site/SitePanels"
+import PartnersSection from "@/pages/site/PartnersSection"
 import {
   CtaBand, FinalCtaSection, ManifestoSection, PrimaryCta, ProofLine, SiteAmbient, SiteFooter, SiteNav,
   StatsGrid, TestimonialsSection,
@@ -105,6 +106,8 @@ export default function FunnelHome() {
         <CtaBand to={start} />
 
         <TestimonialsSection />
+
+        <PartnersSection />
 
         {/* ─── CHAMADA FINAL ─── */}
         <FinalCtaSection to={start} />
