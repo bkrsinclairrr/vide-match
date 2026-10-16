@@ -47,8 +47,6 @@ function pic(file: string, w: number, h: number, alt: string, title: string, not
   return { src: asset(file), srcSet, w, h, alt, title, note }
 }
 
-export type Region = "Sul" | "Sudeste" | "Centro-Oeste" | "Nordeste"
-
 /* ─── Fotos ────────────────────────────────────────────────────────── */
 
 const KAIO = pic("kaio-internacional-copa.webp", 923, 1400,
@@ -116,81 +114,78 @@ export const FILM = {
   duration: "2 min 06 s",
 }
 
-/* ─── Brasil ───────────────────────────────────────────────────────── */
+/* ─── Destinos ─────────────────────────────────────────────────────── */
 
-export type Destination = { city: string; uf: string; club: string; photo?: number }
+export type Destination = { city: string; uf: string; club: string }
 
-const withRegion = (photo: Photo, region: Region) => ({ ...photo, region })
+/**
+ * Galeria "Alguns dos nossos atletas", sem legenda (a pedido da equipe:
+ * sem nome de atleta nem de clube na tela). São 11 fotos para que, com o
+ * cartão "+ centenas", a grade feche certinho em 2, 3 ou 4 colunas.
+ */
+const uncaptioned = (file: string, w: number, h: number, alt: string) => pic(file, w, h, alt, "")
 
-export const BRAZIL_GALLERY: (Photo & { region: Region })[] = [
-  withRegion({ ...KAIO, title: "Internacional · Porto Alegre, RS", note: "Kaio nas oitavas da Copa do Brasil Sub-17" }, "Sul"),
-  withRegion(pic("enzo-gama.webp", 540, 682,
-    "Arte de contratação do volante Enzo Abreu pelo Gama, com medalha, troféu e a assinatura do contrato",
-    "Gama · Distrito Federal", "Enzo Abreu, volante, contratado"), "Centro-Oeste"),
-  withRegion(pic("goias-assinatura.webp", 1091, 1300,
-    "Atleta com a camisa do Goiás assinando contrato diante do painel de patrocinadores do clube",
-    "Goiás · Goiânia, GO", "Assinatura"), "Centro-Oeste"),
-  withRegion(pic("gremio-base-sub15.webp", 1156, 1400,
-    "Publicação do Grêmio com três atletas da base Sub-15 após vitória sobre a Chapecoense",
-    "Grêmio · Porto Alegre, RS", "Publicação oficial do clube, base Sub-15"), "Sul"),
-  withRegion(pic("caio-internacional.webp", 523, 637,
-    "Cartão do atleta Caio com a camisa do Internacional",
-    "Internacional · Porto Alegre, RS", "Caio"), "Sul"),
-  withRegion(pic("guilherme-gremio.webp", 484, 655,
-    "Cartão do atleta Guilherme com a camisa do Grêmio, fazendo sinal de positivo",
-    "Grêmio · Porto Alegre, RS", "Guilherme"), "Sul"),
-  withRegion(pic("mauricio-palmeiras.webp", 484, 651,
-    "Cartão do atleta Mauricio segurando uma camisa autografada do Palmeiras",
-    "Palmeiras · São Paulo, SP", "Mauricio"), "Sudeste"),
-  withRegion(pic("corinthians.webp", 924, 1400,
-    "Dois atletas com uniforme do Corinthians, camisas 9 e 10, ao lado de um integrante da equipe, sob o monumento do escudo do clube",
-    "Corinthians · São Paulo, SP", "Camisas 9 e 10"), "Sudeste"),
-  withRegion(pic("fluminense-ct.webp", 1009, 1400,
-    "Atleta com mochila fazendo sinal de positivo sob o portal do CT Vale das Laranjeiras, do Fluminense",
-    "Fluminense · Xerém, RJ", "CT Vale das Laranjeiras"), "Sudeste"),
-  withRegion(pic("vila-nova.webp", 1153, 1240,
-    "Atleta com o uniforme do Vila Nova ao lado de um integrante da equipe, no gramado",
-    "Vila Nova · Goiânia, GO", "No gramado do clube"), "Centro-Oeste"),
-  withRegion(pic("goianesia.webp", 839, 1069,
-    "Dois atletas com o uniforme do Goianésia ao lado de um integrante da equipe, no campo",
-    "Goianésia · Goianésia, GO", "Atletas do elenco"), "Centro-Oeste"),
-  withRegion(pic("nautico.webp", 848, 1231,
-    "Atleta com o uniforme completo do Náutico, sorrindo no gramado",
-    "Náutico · Recife, PE", "Uniforme oficial"), "Nordeste"),
-  withRegion(pic("abc.webp", 842, 1264,
-    "Atleta com a camisa de treino do ABC, em frente ao muro com os escudos do clube",
-    "ABC · Natal, RN", "Camisa de treino do clube"), "Nordeste"),
+export const ATHLETE_GALLERY: Photo[] = [
+  { ...KAIO, title: "", note: undefined,
+    alt: "Arte do Internacional anunciando um atleta nas oitavas de final da Copa do Brasil Sub-17" },
+  uncaptioned("gremio-base-sub15.webp", 1156, 1400, "Publicação oficial do Grêmio com três atletas da base Sub-15"),
+  uncaptioned("goias-assinatura.webp", 1091, 1300, "Atleta com a camisa do Goiás assinando contrato"),
+  uncaptioned("corinthians.webp", 924, 1400,
+    "Dois atletas com uniforme do Corinthians ao lado de um integrante da equipe, sob o monumento do escudo do clube"),
+  uncaptioned("nautico.webp", 848, 1231, "Atleta com o uniforme completo do Náutico, no gramado"),
+  uncaptioned("mauricio-palmeiras.webp", 484, 651, "Atleta segurando uma camisa autografada do Palmeiras"),
+  uncaptioned("fluminense-ct.webp", 1009, 1400, "Atleta sob o portal do CT Vale das Laranjeiras, do Fluminense"),
+  uncaptioned("enzo-gama.webp", 540, 682, "Arte de contratação de um volante pelo Gama, com troféu e a assinatura do contrato"),
+  uncaptioned("guilherme-gremio.webp", 484, 655, "Atleta com a camisa do Grêmio fazendo sinal de positivo"),
+  uncaptioned("ceara.webp", 842, 1264, "Atleta com a camisa de treino do Ceará, em frente ao muro do clube"),
+  uncaptioned("caio-internacional.webp", 523, 637, "Atleta com a camisa do Internacional"),
 ]
 
-export const REGIONS: Region[] = ["Sul", "Sudeste", "Centro-Oeste", "Nordeste"]
-
-/** Painel de embarques: cada linha aponta para a foto que a comprova (índice em BRAZIL_GALLERY). */
-export const BRAZIL_DESTINATIONS: Destination[] = [
-  { city: "Porto Alegre", uf: "RS", club: "Grêmio", photo: 3 },
-  { city: "Porto Alegre", uf: "RS", club: "Internacional", photo: 0 },
-  { city: "São Paulo", uf: "SP", club: "Corinthians", photo: 7 },
-  { city: "São Paulo", uf: "SP", club: "Palmeiras", photo: 6 },
-  { city: "Xerém", uf: "RJ", club: "Fluminense", photo: 8 },
-  { city: "Goiânia", uf: "GO", club: "Goiás", photo: 2 },
-  { city: "Goiânia", uf: "GO", club: "Vila Nova", photo: 9 },
-  { city: "Goianésia", uf: "GO", club: "Goianésia", photo: 10 },
-  { city: "Gama", uf: "DF", club: "Gama", photo: 1 },
-  { city: "Recife", uf: "PE", club: "Náutico", photo: 11 },
-  { city: "Natal", uf: "RN", club: "ABC", photo: 12 },
+/**
+ * Painel "Nossa rede": Brasil e exterior intercalados. Os clubes
+ * brasileiros, a A.E.K. London e o Sport Club Montreal têm foto no
+ * arquivo; Brighton, Sheffield United, RC Lens e Le Havre vêm da base de
+ * matching da Zyron (src/data/clubs.ts).
+ */
+export const NETWORK_DESTINATIONS: Destination[] = [
+  { city: "Porto Alegre", uf: "RS", club: "Grêmio" },
+  { city: "Londres", uf: "ING", club: "A.E.K. London" },
+  { city: "São Paulo", uf: "SP", club: "Corinthians" },
+  { city: "Lens", uf: "FRA", club: "RC Lens" },
+  { city: "Porto Alegre", uf: "RS", club: "Internacional" },
+  { city: "Brighton", uf: "ING", club: "Brighton & Hove" },
+  { city: "São Paulo", uf: "SP", club: "Palmeiras" },
+  { city: "Le Havre", uf: "FRA", club: "Le Havre AC" },
+  { city: "Recife", uf: "PE", club: "Náutico" },
+  { city: "Sheffield", uf: "ING", club: "Sheffield United" },
+  { city: "Fortaleza", uf: "CE", club: "Ceará" },
+  { city: "Montreal", uf: "CAN", club: "Sport Club Montreal" },
 ]
 
 /* ─── Mundo ────────────────────────────────────────────────────────── */
 
 export const WORLD_PHOTOS: Photo[] = [
-  { ...AEK, title: "A.E.K. London · Londres, Inglaterra", note: "Mauricio Pablo: “Welcome!”" },
+  { ...AEK, title: "A.E.K. London · Inglaterra", note: "Boas-vindas oficiais do clube" },
   pic("montreal.webp", 871, 1400,
     "Integrante da equipe e um homem com camisa polo do Sport Club Montreal segurando a camisa oficial do clube",
     "Sport Club Montreal · Canadá", "A camisa do clube em mãos"),
 ]
 
-export const WORLD_DESTINATIONS: Destination[] = [
-  { city: "Londres", uf: "ING", club: "A.E.K. London", photo: 0 },
-  { city: "Montreal", uf: "CAN", club: "Sport Club Montreal", photo: 1 },
+/**
+ * Rede internacional: clubes europeus de porte médio da base da Zyron e um
+ * dos Emirados Árabes (Al-Nasr, de Dubai), incluído a pedido da equipe.
+ */
+export const WORLD_NETWORK: Destination[] = [
+  { city: "Estoril", uf: "POR", club: "Estoril Praia" },
+  { city: "Braga", uf: "POR", club: "Sporting Braga" },
+  { city: "Girona", uf: "ESP", club: "Girona FC" },
+  { city: "Bruges", uf: "BEL", club: "Club Brugge" },
+  { city: "Utrecht", uf: "HOL", club: "FC Utrecht" },
+  { city: "Herning", uf: "DIN", club: "FC Midtjylland" },
+  { city: "Bodø", uf: "NOR", club: "Bodø/Glimt" },
+  { city: "Salzburgo", uf: "AUT", club: "Red Bull Salzburg" },
+  { city: "Lugano", uf: "SUI", club: "FC Lugano" },
+  { city: "Dubai", uf: "EAU", club: "Al-Nasr" },
 ]
 
 /* ─── Reconhecimento ───────────────────────────────────────────────── */
@@ -216,10 +211,22 @@ export const MOSAIC = pic("mosaico.webp", 1122, 1402,
 
 /* ─── Conexões ─────────────────────────────────────────────────────── */
 
+/** Foto com o dono do Botafogo (informação da equipe; a pessoa não é nomeada). */
+export const BOTAFOGO_PHOTO = pic("botafogo-dono.webp", 1100, 1636,
+  "Integrante da equipe Voxen em selfie com o dono do Botafogo, que usa um boné com a estrela do clube",
+  "Com o dono do Botafogo", "Conexão direta com quem decide")
+
+export const CONNECTION_PILLARS = [
+  { title: "Donos de clubes", text: "Acesso direto a quem comanda o clube, como o dono do Botafogo." },
+  { title: "Diretorias e captação", text: "Diretores de futebol e departamentos de base, no Brasil e no exterior." },
+  { title: "Agentes e intermediários", text: "Os principais agentes do mercado, abrindo portas em cada país." },
+] as const
+
 export type Connection = { slug: string; name: string; kind?: "brand" }
 
 /** Clubes onde nossos atletas estiveram e clubes brasileiros da base da Zyron. */
 export const CONNECTIONS_BRAZIL: Connection[] = [
+  { slug: "botafogo", name: "Botafogo" },
   { slug: "gremio", name: "Grêmio" },
   { slug: "internacional", name: "Internacional" },
   { slug: "corinthians", name: "Corinthians" },
@@ -232,7 +239,6 @@ export const CONNECTIONS_BRAZIL: Connection[] = [
   { slug: "gama", name: "Gama" },
   { slug: "goianesia", name: "Goianésia" },
   { slug: "nautico", name: "Náutico" },
-  { slug: "abc", name: "ABC" },
   { slug: "sport", name: "Sport Recife" },
   { slug: "ceara", name: "Ceará" },
   { slug: "coritiba", name: "Coritiba" },
@@ -245,6 +251,7 @@ export const CONNECTIONS_BRAZIL: Connection[] = [
 export const CONNECTIONS_WORLD: Connection[] = [
   { slug: "aeklondon", name: "A.E.K. London" },
   { slug: "montreal", name: "Sport Club Montreal" },
+  { slug: "alnasr", name: "Al-Nasr (Dubai)" },
   { slug: "adidas", name: "Adidas", kind: "brand" },
   { slug: "brighton", name: "Brighton & Hove Albion" },
   { slug: "betis", name: "Real Betis" },

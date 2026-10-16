@@ -9,10 +9,10 @@ import { ArrowDown, ArrowUpRight, Instagram, Mail, Menu, X } from "lucide-react"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { ZyronMark } from "@/pages/site/ZyronMark"
 import {
-  BRAZIL_DESTINATIONS, BRAZIL_GALLERY, CHELSEA_SOURCE, CONNECTIONS_BRAZIL, CONNECTIONS_WORLD, CONTACT_EMAIL,
-  FILM, HERO_PHOTOS, HISTORY_PHOTOS, INSTAGRAM_HANDLE, INSTAGRAM_URL, JOAOZINHO_CARD, MENTORING_PHOTO,
-  MOSAIC, PLATE_326, RECOGNITION_PHOTOS, REGIONS, TRACKING_VIDEO, WHATSAPP_URL, WORLD_DESTINATIONS, WORLD_PHOTOS,
-  type Photo, type Region,
+  ATHLETE_GALLERY, BOTAFOGO_PHOTO, CHELSEA_SOURCE, CONNECTION_PILLARS, CONNECTIONS_BRAZIL, CONNECTIONS_WORLD,
+  CONTACT_EMAIL, FILM, HERO_PHOTOS, HISTORY_PHOTOS, INSTAGRAM_HANDLE, INSTAGRAM_URL, JOAOZINHO_CARD, MENTORING_PHOTO,
+  MOSAIC, NETWORK_DESTINATIONS, PLATE_326, RECOGNITION_PHOTOS, TRACKING_VIDEO, WHATSAPP_URL, WORLD_NETWORK,
+  WORLD_PHOTOS, type Photo,
 } from "./data"
 import {
   CountUp, DepartureBoard, FilmPlayer, Frame, LightboxProvider, LoopVideo, Marquee, MatchRadar, PitchScan,
@@ -33,7 +33,7 @@ import {
 const NAV = [
   { href: "#metodo", label: "O método" },
   { href: "#historia", label: "História" },
-  { href: "#brasil", label: "Brasil" },
+  { href: "#destinos", label: "Destinos" },
   { href: "#mundo", label: "Mundo" },
   { href: "#conexoes", label: "Conexões" },
 ]
@@ -46,7 +46,8 @@ const DESCRIPTION =
 const SIZES = {
   hero: "(max-width: 640px) 50vw, (max-width: 1024px) 280px, 300px",
   album: "(max-width: 640px) 46vw, (max-width: 1024px) 45vw, 260px",
-  gallery: "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 280px",
+  athlete: "(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 280px",
+  conn: "(max-width: 640px) 80vw, 380px",
   world: "(max-width: 640px) 92vw, (max-width: 1024px) 60vw, 420px",
   recog: "(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 460px",
   phone: "(max-width: 640px) 72vw, 300px",
@@ -217,9 +218,9 @@ function Hero() {
             <SplitWords text="futebol." from={3} className="vx-word--accent" />
           </h1>
           <p className="vx-hero-lead">
-            Há mais de dez anos levamos atletas <strong>direto aos clubes</strong>, sem peneira e sem olhômetro. Hoje a
-            inteligência artificial da Zyron analisa cada jogador com precisão e encontra o clube que procura
-            exatamente aquelas características. Um scout dedicado conduz cada passo.
+            Há mais de dez anos levamos atletas <strong>direto aos clubes</strong>, sem peneira e sem olhômetro. A
+            inteligência artificial da Zyron encontra o clube que procura exatamente o seu perfil, e a nossa rede, de
+            donos de clubes a agentes, faz a conexão. Um scout dedicado conduz cada passo.
           </p>
           <div className="vx-hero-links">
             <a href="#metodo" className="vx-btn vx-btn--gold">
@@ -527,37 +528,41 @@ function History() {
   )
 }
 
-/* ─── VI · Brasil ──────────────────────────────────────────────────── */
+/* ─── VI · Destinos ────────────────────────────────────────────────── */
 
-function Brazil() {
+function Destinations() {
   const lightbox = useLightbox()
-  const [region, setRegion] = useState<Region | "Todos">("Todos")
-  const shown = BRAZIL_GALLERY.map((p, i) => ({ p, i })).filter(({ p }) => region === "Todos" || p.region === region)
-
   return (
-    <section id="brasil" className="vx-section vx-brazil">
+    <section id="destinos" className="vx-section vx-brazil">
       <div className="vx-container">
-        <Chapter num="VI" label="Brasil" light title={<>Do Sul ao Nordeste, <em>direto para os clubes.</em></>}>
-          <p>Cada destino deste painel tem registro em foto. Toque em ver foto para conferir.</p>
+        <Chapter num="VI" label="Destinos" light title={<>Do Sul ao Nordeste. <em>Da Inglaterra ao Canadá.</em></>}>
+          <p>
+            Grandes clubes do Brasil e clubes do exterior, lado a lado na nossa rede. O atleta não espera ser visto:
+            ele vai direto para quem procura o seu perfil.
+          </p>
         </Chapter>
 
         <div data-reveal>
-          <DepartureBoard title="Destinos · Brasil" code="VX · BR" rows={BRAZIL_DESTINATIONS}
-            onOpen={(i) => lightbox(BRAZIL_GALLERY, i)} />
+          <DepartureBoard title="Nossa rede · Brasil e exterior" code="VX · BR · INT" rows={NETWORK_DESTINATIONS} />
         </div>
 
-        <div className="vx-filter vx-block" role="group" aria-label="Filtrar fotos por região">
-          {(["Todos", ...REGIONS] as const).map((r) => (
-            <button key={r} type="button" aria-pressed={region === r} onClick={() => setRegion(r)}>{r}</button>
-          ))}
-        </div>
-
-        <div className="vx-gallery" key={region}>
-          {shown.map(({ p, i }, k) => (
-            <div key={p.src} className="vx-gallery-item" style={{ ["--d" as string]: `${Math.min(k, 8) * 50}ms` }}>
-              <Frame photo={p} sizes={SIZES.gallery} onOpen={() => lightbox(BRAZIL_GALLERY, i)} />
-            </div>
-          ))}
+        <div className="vx-athletes vx-block">
+          <p className="vx-kicker vx-kicker--olive" data-reveal>Alguns dos nossos atletas</p>
+          <div className="vx-athletes-grid">
+            {ATHLETE_GALLERY.map((p, i) => (
+              <button key={p.src} type="button" className="vx-athlete" data-reveal
+                style={{ ["--d" as string]: `${(i % 4) * 60}ms` }}
+                onClick={() => lightbox(ATHLETE_GALLERY, i)} aria-label="Ampliar foto">
+                <Img photo={p} sizes={SIZES.athlete} />
+              </button>
+            ))}
+            <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="vx-athletes-more" data-reveal
+              style={{ ["--d" as string]: "180ms" }}>
+              <strong>+ centenas</strong>
+              <span>de outros atletas encaminhados para clubes do Brasil e do exterior.</span>
+              <em>Ver no Instagram <ArrowUpRight size={14} aria-hidden="true" /></em>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -574,14 +579,15 @@ function World() {
       <div className="vx-container">
         <Chapter num="VII" label="Mundo" title={<>O talento brasileiro <em>não tem fronteira.</em></>}>
           <p>
-            Atletas da Voxen já foram recebidos por clubes no exterior. E a Zyron cruza cada perfil com clubes de 39
-            países.
+            Nossos atletas já vestem camisas de clubes da Inglaterra e do Canadá. A nossa rede vai de Portugal à
+            Escandinávia e chega aos Emirados Árabes. Onde houver um clube procurando o seu perfil, nós chegamos.
           </p>
         </Chapter>
 
-        <div data-reveal>
-          <DepartureBoard title="Destinos · Exterior" code="VX · INT" rows={WORLD_DESTINATIONS}
-            onOpen={(i) => lightbox(WORLD_PHOTOS, i)} />
+        <p className="vx-verdict" data-reveal>Do Brasil para o mundo, <em>sem escala na peneira.</em></p>
+
+        <div className="vx-block" data-reveal>
+          <DepartureBoard title="Rede internacional · Europa e Emirados" code="VX · INT" rows={WORLD_NETWORK} />
         </div>
 
         <div className="vx-world-grid vx-block">
@@ -611,17 +617,39 @@ function World() {
 /* ─── VIII · Conexões ──────────────────────────────────────────────── */
 
 function Connections() {
+  const lightbox = useLightbox()
   return (
     <section id="conexoes" className="vx-section vx-connections">
       <div className="vx-container">
-        <Chapter num="VIII" label="Conexões" title={<>Uma rede construída <em>em campo.</em></>}>
-          <p>Clubes do Brasil e do mundo, e as marcas que vestem os nossos atletas.</p>
+        <Chapter num="VIII" label="Conexões" title={<>As melhores conexões <em>do futebol.</em></>}>
+          <p>
+            Falamos direto com quem decide. Donos de clubes, diretores de futebol, departamentos de captação e os
+            principais agentes do mercado, no Brasil e no exterior. É essa rede, construída em mais de dez anos, que
+            coloca o atleta certo diante de quem assina.
+          </p>
         </Chapter>
+
+        <div className="vx-conn-grid">
+          <div className="vx-conn-photo" data-reveal>
+            <Frame photo={BOTAFOGO_PHOTO} sizes={SIZES.conn} onOpen={() => lightbox([BOTAFOGO_PHOTO], 0)} />
+          </div>
+          <ol className="vx-pillars">
+            {CONNECTION_PILLARS.map((p, i) => (
+              <li key={p.title} data-reveal style={{ ["--d" as string]: `${i * 90}ms` }}>
+                <span className="vx-pillar-num">{String(i + 1).padStart(2, "0")}</span>
+                <div>
+                  <p className="vx-pillar-title">{p.title}</p>
+                  <p className="vx-pillar-text">{p.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
       <div className="vx-marquee-block" data-reveal>
-        <p className="vx-marquee-label"><span>Brasil</span></p>
+        <p className="vx-marquee-label"><span>Clubes da nossa rede · Brasil</span></p>
         <Marquee items={CONNECTIONS_BRAZIL} seconds={75} />
-        <p className="vx-marquee-label"><span>Mundo</span></p>
+        <p className="vx-marquee-label"><span>Clubes da nossa rede · Mundo</span></p>
         <Marquee items={CONNECTIONS_WORLD} reverse seconds={80} />
       </div>
       <div className="vx-container">
@@ -769,7 +797,7 @@ function Page() {
         <Match />
         <Method />
         <History />
-        <Brazil />
+        <Destinations />
         <World />
         <Connections />
         <Recognition />

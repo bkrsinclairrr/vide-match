@@ -201,12 +201,7 @@ function FlapText({ text, active, delay = 0 }: { text: string; active: boolean; 
   )
 }
 
-export function DepartureBoard({ title, code, rows, onOpen }: {
-  title: string
-  code: string
-  rows: Destination[]
-  onOpen?: (photoIndex: number) => void
-}) {
+export function DepartureBoard({ title, code, rows }: { title: string; code: string; rows: Destination[] }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, 0.2)
   return (
@@ -216,7 +211,7 @@ export function DepartureBoard({ title, code, rows, onOpen }: {
         <span className="vx-board-code" aria-hidden="true">{code}</span>
       </div>
       <div className="vx-board-cols" role="row" aria-hidden="true">
-        <span>Destino</span><span>Clube</span><span>Registro</span>
+        <span>Destino</span><span>Clube</span>
       </div>
       {rows.map((row, i) => (
         <div key={`${row.city}-${row.club}`} className="vx-board-row" role="row">
@@ -224,14 +219,7 @@ export function DepartureBoard({ title, code, rows, onOpen }: {
             {row.city} <em>{row.uf}</em>
           </span>
           <span className="vx-board-club" role="cell">
-            <FlapText text={row.club} active={inView} delay={i * 140} />
-          </span>
-          <span className="vx-board-act" role="cell">
-            {row.photo !== undefined && onOpen ? (
-              <button type="button" className="vx-board-btn" onClick={() => onOpen(row.photo!)}>
-                Ver foto
-              </button>
-            ) : <span className="vx-board-ok">●</span>}
+            <FlapText text={row.club} active={inView} delay={i * 110} />
           </span>
         </div>
       ))}
@@ -655,11 +643,11 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
     <LightboxContext.Provider value={open}>
       {children}
       {state && photo && (
-        <div className="vx-lightbox" role="dialog" aria-modal="true" aria-label={photo.title} onClick={close}>
+        <div className="vx-lightbox" role="dialog" aria-modal="true" aria-label={photo.title || "Foto ampliada"} onClick={close}>
           <figure onClick={(e) => e.stopPropagation()}>
             <img src={photo.src} alt={photo.alt} width={photo.w} height={photo.h} />
             <figcaption>
-              <strong>{photo.title}</strong>
+              {photo.title && <strong>{photo.title}</strong>}
               {photo.note && <em>{photo.note}</em>}
               {state.photos.length > 1 && <span>{state.index + 1} / {state.photos.length}</span>}
             </figcaption>
