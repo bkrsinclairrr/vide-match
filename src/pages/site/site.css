@@ -1214,7 +1214,14 @@ html.zyron-scroll-root body {
 
 .zs-player-name--target { color: var(--zs-gold-300); font-weight: 700; }
 
-/* Painel "Para famílias": perfil + conversa com a equipe */
+/* "Como funciona na prática 👇": título logo acima do painel com o chat do
+   scout. Na /avaliacao o painel ganha faixa própria, na largura da coluna da home. */
+.zs-howto { display: flex; flex-direction: column; gap: 16px; }
+.zs-howto-title { margin: 0; color: #fff; font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.25; text-align: center; }
+.zs-howto-band { position: relative; padding: 80px 0; }
+.zs-howto-band .zs-howto { max-width: 576px; margin: 0 auto; }
+
+/* Painel "Para famílias": perfil + conversa com o scout */
 .zs-fp {
   position: relative;
   display: flex;
@@ -1646,6 +1653,8 @@ html.zyron-scroll-root body {
   .zs-fp { min-height: 0; flex-direction: column; align-items: stretch; gap: 16px; padding: 18px; }
   .zs-fp-profile { max-width: none; margin-right: 0; }
   .zs-chat { position: relative; right: auto; bottom: auto; width: 100%; }
+  .zs-howto-band { padding: 56px 0; }
+  .zs-howto-title { font-size: 20px; }
 
   .zs-testim { padding: 80px 0 90px; }
   .zs-testim-card { flex-basis: 300px; padding: 24px; min-height: 0; }

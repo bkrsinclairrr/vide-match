@@ -44,14 +44,14 @@ const FEATURES: { icon: LucideIcon; title: string; desc: string; tile: string; g
   {
     icon: Cpu,
     title: "Avaliação de performance com IA",
-    desc: "Suas características físicas, técnicas e táticas viram uma leitura objetiva do seu jogo — sem achismo e sem depender de indicação.",
+    desc: "Suas características físicas, técnicas e táticas viram uma leitura objetiva do seu jogo, sem achismo e sem depender de indicação.",
     tile: "linear-gradient(135deg, #fcd34d, #f59e0b)",
     glow: "#f59e0b",
   },
   {
     icon: BarChart3,
     title: "10 indicadores individuais",
-    desc: "Ataque, defesa, chute, domínio, marcação, finalização, drible, passe, velocidade e leitura de jogo — cada um com a sua nota.",
+    desc: "Ataque, defesa, chute, domínio, marcação, finalização, drible, passe, velocidade e leitura de jogo. Cada um com a sua nota.",
     tile: "linear-gradient(135deg, #6ee7b7, #10b981)",
     glow: "#10b981",
   },
@@ -185,7 +185,7 @@ export default function SiteHome() {
 
           <p data-hero-item className="zs-hero-sub">
             Pare de esperar por uma oportunidade. A inteligência artificial da Zyron mostra quais clubes combinam com as
-            suas características e onde o seu futebol pode ganhar espaço — no Brasil, na Europa e no mundo.
+            suas características e onde o seu futebol pode ganhar espaço: no Brasil, na Europa e no mundo.
           </p>
 
           <div data-hero-item className="zs-hero-ctas">
@@ -321,7 +321,7 @@ export default function SiteHome() {
                 </h2>
                 <p>
                   Quem investe em transporte, inscrição e fim de semana de peneira merece saber, com dados, em que nível
-                  o filho está — e para onde ele pode ir.
+                  o filho está e para onde ele pode ir.
                 </p>
                 <CheckList items={FAMILY_POINTS} />
                 <Link to={evaluation} className="zs-btn zs-btn--primary">
