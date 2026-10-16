@@ -106,7 +106,9 @@ export function useRevealAll(root: RefObject<HTMLElement>) {
           io.unobserve(entry.target)
         }
       }
-    }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" })
+    // dispara assim que a borda do bloco entra na tela: com limiar alto, quem rola
+    // rápido no celular via buracos vazios onde o conteúdo ainda não tinha surgido
+    }, { threshold: 0, rootMargin: "0px 0px -4% 0px" })
     items.forEach((item) => io.observe(item))
     return () => io.disconnect()
   }, [root])
@@ -395,7 +397,7 @@ export function PitchScan() {
     <div ref={wrapRef} className={`vx-pitch vx-pitch--${mode}`}>
       <div className="vx-pitch-bar">
         <div className="vx-pitch-toggle" role="group" aria-label="Forma de observar a partida">
-          <button type="button" aria-pressed={mode === "olho"} onClick={() => pick("olho")}>Olhar humano</button>
+          <button type="button" aria-pressed={mode === "olho"} onClick={() => pick("olho")}>Olhômetro</button>
           <button type="button" aria-pressed={mode === "ia"} onClick={() => pick("ia")}>Inteligência artificial</button>
         </div>
         <p className="vx-pitch-count" aria-live="polite">
@@ -403,7 +405,7 @@ export function PitchScan() {
         </p>
       </div>
       <svg ref={svgRef} viewBox="0 0 1000 640" className="vx-pitch-svg" role="img"
-        aria-label="Campo de futebol com 22 jogadores. No olhar humano, só os jogadores perto da bola ficam iluminados; com inteligência artificial, todos são acompanhados.">
+        aria-label="Campo de futebol com 22 jogadores. No olhômetro, só os jogadores perto da bola ficam iluminados. Com inteligência artificial, todos são acompanhados.">
         <defs>
           <radialGradient id="vx-spot-grad">
             <stop offset="0%" stopColor="rgba(252,211,77,0.32)" />
@@ -437,8 +439,8 @@ export function PitchScan() {
       </svg>
       <p className="vx-pitch-caption">
         {mode === "ia"
-          ? "Com IA: cada atleta identificado, com deslocamento e velocidade registrados durante toda a partida."
-          : "Olhar humano: a atenção acompanha a bola. Quem está longe dela, naquele momento, não é visto."}
+          ? "Com IA, cada atleta é identificado e medido do primeiro ao último minuto."
+          : "No olhômetro, a atenção segue a bola. Quem está longe dela não é visto."}
       </p>
     </div>
   )
@@ -563,7 +565,7 @@ export function LoopVideo({ src, poster, w, h, label }: { src: string; poster: s
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="none"
         aria-label={label}
       />
       <button
@@ -693,12 +695,13 @@ export function Frame({ photo, onOpen, className = "", priority = false, sizes }
   const img = (
     <img
       src={photo.src}
+      srcSet={photo.srcSet}
+      sizes={photo.srcSet ? sizes : undefined}
       alt={photo.alt}
       width={photo.w}
       height={photo.h}
       loading={priority ? "eager" : "lazy"}
       decoding="async"
-      sizes={sizes}
     />
   )
   return (
