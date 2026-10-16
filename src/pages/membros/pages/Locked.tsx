@@ -1,5 +1,7 @@
 import { BarChart3, Clapperboard } from "lucide-react"
+import { useAthlete } from "../ClientArea"
 import { UnlockCard } from "../components/Gamify"
+import { LockedAnalysis } from "../components/Locks"
 
 const COPY = {
   partidas: {
@@ -14,9 +16,16 @@ const COPY = {
   },
 } as const
 
-/** Partidas e Desempenho dependem de a equipe analisar os jogos: aqui a pessoa vê o que ganha ao liberar. */
+/**
+ * Partidas e Desempenho antes da análise dos jogos. Sem o perfil completo, a tela aparece
+ * trancada e borrada (o primeiro passo é o perfil); com ele, vira o convite para mandar o vídeo.
+ */
 export default function Locked({ page }: { page: keyof typeof COPY }) {
+  const { game } = useAthlete()
   const c = COPY[page]
+  if (!game.gates.analysis) {
+    return <LockedAnalysis title={c.title} text={`${c.text} Libera depois do seu perfil: complete os dados e envie o vídeo de um jogo.`} />
+  }
   return (
     <>
       <section className="vx-card gm-locked">

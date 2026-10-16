@@ -7,6 +7,7 @@
 import type { User } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { ageFrom, type Member } from "./model"
+import { isPhotoData } from "./photo"
 
 export type AthleteAccount = {
   /** Conta do Supabase Auth (null quando só existe o cadastro da equipe). */
@@ -48,6 +49,8 @@ type ProfileRow = { full_name: string | null; avatar_url: string | null }
 const clean = (v: string | null | undefined) => (v && v.trim() ? v.trim() : null)
 const num = (v: number | null | undefined) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null)
 const https = (v: string | null | undefined) => (v && /^https:\/\//.test(v) ? v : null)
+/** Foto do perfil: endereço https (a do Google, por exemplo) ou a que a pessoa enviou pela área (JPEG pequeno embutido). */
+const photo = (v: string | null | undefined) => https(v) ?? (v && isPhotoData(v) ? v : null)
 
 function firstNameOf(name: string) {
   return name.trim().split(/\s+/)[0] || "Atleta"
@@ -61,7 +64,7 @@ function build(userId: string | null, row: AtletaRow | null, profile: ProfileRow
     email: extra.email ?? null,
     name,
     firstName: firstNameOf(name),
-    avatarUrl: https(profile?.avatar_url) ?? https(extra.metaAvatar),
+    avatarUrl: photo(profile?.avatar_url) ?? https(extra.metaAvatar),
     position: clean(row?.posicao),
     age: num(row?.idade),
     heightCm: num(row?.altura),

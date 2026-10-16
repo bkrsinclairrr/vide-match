@@ -17,12 +17,14 @@ function fromDraft(d: AthleteDraft, extra: Partial<Athlete> = {}): Athlete {
   const now = new Date().toISOString()
   return {
     id: uid(), ...d, temperature: d.temperature ?? "morno", forwarded: false, forwardedTo: null, forwardedOn: null,
-    advisory: false, advisorySince: null, nextStep: null, nextStepOn: null, notes: null, createdAt: now, updatedAt: now, ...extra,
+    advisory: false, advisorySince: null, contractSigned: false, contractClub: null, contractOn: null, contractReady: true,
+    nextStep: null, nextStepOn: null, notes: null, createdAt: now, updatedAt: now, ...extra,
   }
 }
 
 const SEED: { t: Temperature; extra: Partial<Athlete> }[] = [
   { t: "quente", extra: { advisory: true, advisorySince: addDays(-40), forwarded: true, forwardedTo: "Peneira do Gama · Sub 17", forwardedOn: addDays(-6), nextStep: "Levar a documentação para a peneira", nextStepOn: addDays(1), notes: "Pai muito presente. Já tem vídeo editado." } },
+  { t: "quente", extra: { advisory: true, advisorySince: addDays(-120), forwarded: true, forwardedTo: "Avaliação no Botafogo-SP · Sub 17", forwardedOn: addDays(-45), contractSigned: true, contractClub: "Botafogo-SP", contractOn: addDays(-3), notes: "Assinou contrato de formação." } },
   { t: "quente", extra: { advisory: true, advisorySince: addDays(-12), nextStep: "Reunião com a família", nextStepOn: addDays(-2) } },
   { t: "morno", extra: { forwarded: true, forwardedTo: "Avaliação no Real Brasília", forwardedOn: addDays(-20), nextStep: "Cobrar retorno do clube", nextStepOn: addDays(3) } },
   { t: "morno", extra: { nextStep: "Enviar proposta de assessoria", nextStepOn: addDays(0) } },

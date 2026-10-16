@@ -3,24 +3,29 @@ import "./membros.css"
 
 import {
   createContext, lazy, Suspense, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState,
-  type ReactNode,
+  type ChangeEvent, type ReactNode,
 } from "react"
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
   BarChart3, Clapperboard, Compass, Eye, GitCompareArrows, Home, Lock, LogOut, Menu, Trophy, UserRound,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
+import { useToast } from "@/hooks/use-toast"
 import { WHATSAPP_NUMBER } from "@/lib/funnel"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { ZyronMark } from "@/pages/site/ZyronMark"
 import { PageSkeleton } from "@/pages/voxen/ui"
 import { SetupMissingError, getPreviewAccount, getSource, type DataSource } from "./api"
 import { loadAccountByAtletaId, loadAccountByUserId, loadOwnAccount, withMember, type AthleteAccount } from "./account"
-import { categoryOf, gameOf, reportOf, type Game, type Report } from "./game"
+import { loadCareer } from "./career"
+import { categoryOf, gameOf, reportOf, type Career, type Game, type Gates, type Report } from "./game"
 import { summarizeProfile, type ProfileSummary } from "./metrics"
 import type { Bundle, Member } from "./model"
 import { CLIENT_BASE, clearAsMember } from "./paths"
+import { saveOwnPhoto, squarePhoto } from "./photo"
 import { MemberAvatar } from "./components/bits"
+import { JourneyToast } from "./components/Celebrate"
+import { useJourneyNews } from "./news"
 
 const StartPage = lazy(() => import("./pages/StartPage"))
 const OpportunitiesPage = lazy(() => import("./pages/OpportunitiesPage"))
@@ -32,15 +37,22 @@ const MatchPage = lazy(() => import("./pages/MatchPage"))
 const PerformancePage = lazy(() => import("./pages/PerformancePage"))
 const Locked = lazy(() => import("./pages/Locked"))
 
-const NAV = [
-  { to: CLIENT_BASE, label: "Início", icon: Home, end: true, needsMember: false },
-  { to: `${CLIENT_BASE}/oportunidades`, label: "Oportunidades", icon: Compass, end: false, needsMember: false },
-  { to: `${CLIENT_BASE}/conquistas`, label: "Conquistas", icon: Trophy, end: false, needsMember: false },
-  { to: `${CLIENT_BASE}/comparativo`, label: "Comparativo", icon: GitCompareArrows, end: false, needsMember: false },
-  { to: `${CLIENT_BASE}/partidas`, label: "Partidas", icon: Clapperboard, end: false, needsMember: true },
-  { to: `${CLIENT_BASE}/desempenho`, label: "Desempenho", icon: BarChart3, end: false, needsMember: true },
-  { to: `${CLIENT_BASE}/perfil`, label: "Perfil", icon: UserRound, end: false, needsMember: false },
+/** `gate`: a parte da jornada que abre o item; sem ela, o item mostra o cadeado (e a página explica como liberar). */
+const NAV: { to: string; label: string; icon: typeof Home; end: boolean; gate: keyof Gates | null; hint?: string }[] = [
+  { to: CLIENT_BASE, label: "Início", icon: Home, end: true, gate: null },
+  { to: `${CLIENT_BASE}/oportunidades`, label: "Oportunidades", icon: Compass, end: false, gate: "opportunities", hint: "Libera quando você completar o perfil" },
+  { to: `${CLIENT_BASE}/conquistas`, label: "Conquistas", icon: Trophy, end: false, gate: null },
+  { to: `${CLIENT_BASE}/comparativo`, label: "Comparativo", icon: GitCompareArrows, end: false, gate: "compare", hint: "Libera quando você criar o perfil" },
+  { to: `${CLIENT_BASE}/partidas`, label: "Partidas", icon: Clapperboard, end: false, gate: "matches", hint: "Libera com a análise dos seus jogos" },
+  { to: `${CLIENT_BASE}/desempenho`, label: "Desempenho", icon: BarChart3, end: false, gate: "matches", hint: "Libera com a análise dos seus jogos" },
+  { to: `${CLIENT_BASE}/perfil`, label: "Perfil", icon: UserRound, end: false, gate: null },
 ]
+
+/** Itens do menu que uma missão recém-cumprida acabou de abrir (ganham o selo "Novo" até a pessoa visitar). */
+const OPENS: Record<string, string[]> = {
+  perfil: [`${CLIENT_BASE}/oportunidades`, `${CLIENT_BASE}/comparativo`],
+  analise: [`${CLIENT_BASE}/partidas`, `${CLIENT_BASE}/desempenho`],
+}
 
 /* ------------------------------------------------------------------ */
 /* Contextos                                                           */
@@ -59,15 +71,23 @@ type MemberCtx = {
   whatsapp: (text?: string) => string
 }
 
-/** O atleta: dados da conta, relatório, nível e, se liberado, a análise das partidas. */
+/** O atleta: dados da conta, relatório, nível, jornada e, se liberado, a análise das partidas. */
 type AthleteCtx = {
   account: AthleteAccount
   category: string | null
   report: Report | null
   game: Game
+  career: Career
   member: MemberCtx | null
   adminPreview: boolean
   whatsapp: (text?: string) => string
+  /** Lê tudo de novo do banco sem piscar a tela (volta de outra aba, foto nova...). */
+  refresh: () => Promise<void>
+  /** Abre o seletor de foto (desligado no "ver como" da equipe). */
+  pickPhoto: (() => void) | null
+  photoBusy: boolean
+  /** Missões cumpridas desde a última visita (nesta sessão): as telas usam para animar o que acabou de abrir. */
+  fresh: ReadonlySet<string>
 }
 
 const MemberContext = createContext<MemberCtx | null>(null)
@@ -122,11 +142,25 @@ type Loaded = {
   source: DataSource
   account: AthleteAccount
   membership: { bundle: Bundle; references: Member[] } | null
+  career: Career
 }
 
 type LoadState = { status: "loading" } | ({ status: "ok" } & Loaded) | { status: "erro"; message: string }
 
-async function loadClient(opts: { preview: boolean; asMember: string | null; own: () => Promise<AthleteAccount> }): Promise<Loaded> {
+type LoadOpts = { preview: boolean; asMember: string | null; own: () => Promise<AthleteAccount> }
+
+async function loadClient(opts: LoadOpts): Promise<Loaded> {
+  const base = await loadBase(opts)
+  const career = await loadCareer({
+    preview: opts.preview,
+    asStaff: Boolean(opts.asMember) && !opts.preview,
+    account: base.account,
+    memberId: base.membership?.bundle.member.id ?? null,
+  })
+  return { ...base, career }
+}
+
+async function loadBase(opts: LoadOpts): Promise<Omit<Loaded, "career">> {
   const { preview, asMember } = opts
   const source = await getSource(preview)
 
@@ -142,8 +176,8 @@ async function loadClient(opts: { preview: boolean; asMember: string | null; own
   }
 
   if (preview) {
-    if (asMember === "conta") {
-      const account = await getPreviewAccount()
+    if (asMember === "conta" || asMember === "novo") {
+      const account = await getPreviewAccount(asMember)
       if (!account) throw new Error("Conta de teste indisponível.")
       return { source, account, membership: null }
     }
@@ -184,10 +218,16 @@ async function loadClient(opts: { preview: boolean; asMember: string | null; own
  */
 export default function ClientArea({ preview, asMember, isAdmin }: { preview: boolean; asMember: string | null; isAdmin: boolean }) {
   const { user } = useAuth()
+  const { toast } = useToast()
   const userRef = useRef(user)
   userRef.current = user
   const [state, setState] = useState<LoadState>({ status: "loading" })
   const refCache = useRef(new Map<string, Promise<Bundle | null>>())
+  const lastLoad = useRef(0)
+  const photoInput = useRef<HTMLInputElement>(null)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  // Foto recém-escolhida: aparece na hora, antes de o banco confirmar (e é a única forma no `npm run dev`).
+  const [photoNow, setPhotoNow] = useState<string | null>(null)
 
   useEffect(() => {
     const prev = document.title
@@ -195,28 +235,78 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
     return () => { document.title = prev }
   }, [])
 
+  const load = useCallback(() => loadClient({
+    preview,
+    asMember,
+    own: () => {
+      const u = userRef.current
+      if (!u) throw new Error("Sessão expirada. Entre de novo.")
+      return loadOwnAccount(u)
+    },
+  }), [preview, asMember])
+
   useEffect(() => {
     let cancelled = false
     setState({ status: "loading" })
     refCache.current.clear()
-    loadClient({
-      preview,
-      asMember,
-      own: () => {
-        const u = userRef.current
-        if (!u) throw new Error("Sessão expirada. Entre de novo.")
-        return loadOwnAccount(u)
-      },
-    })
-      .then((loaded) => { if (!cancelled) setState({ status: "ok", ...loaded }) })
+    load()
+      .then((loaded) => { if (!cancelled) { lastLoad.current = Date.now(); setState({ status: "ok", ...loaded }) } })
       .catch((err) => { if (!cancelled) setState({ status: "erro", message: err instanceof Error ? err.message : "Erro inesperado." }) })
     return () => { cancelled = true }
-  }, [preview, asMember, user?.id])
+  }, [load, user?.id])
+
+  /** Busca de novo sem a tela de carregamento: se falhar, fica o que já estava na tela. */
+  const refresh = useCallback(async () => {
+    try {
+      const loaded = await load()
+      lastLoad.current = Date.now()
+      setState((s) => (s.status === "ok" ? { status: "ok", ...loaded } : s))
+    } catch {
+      /* mantém a tela como está */
+    }
+  }, [load])
+
+  // Sincronia: quem preencheu o perfil em outra aba, ou teve a ficha atualizada pela equipe,
+  // vê a área mudar ao voltar para ela (no máximo uma busca a cada 30 s).
+  useEffect(() => {
+    const wake = () => {
+      if (document.visibilityState === "visible" && lastLoad.current && Date.now() - lastLoad.current > 30_000) void refresh()
+    }
+    document.addEventListener("visibilitychange", wake)
+    window.addEventListener("focus", wake)
+    return () => {
+      document.removeEventListener("visibilitychange", wake)
+      window.removeEventListener("focus", wake)
+    }
+  }, [refresh])
+
+  const adminPreview = Boolean(asMember && isAdmin)
+  const canPickPhoto = state.status === "ok" && !adminPreview && (state.source.preview || Boolean(user))
+
+  const onPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file || state.status !== "ok") return
+    setPhotoBusy(true)
+    try {
+      const data = await squarePhoto(file)
+      if (!state.source.preview) {
+        if (!user) throw new Error("Sessão expirada. Entre de novo.")
+        await saveOwnPhoto(user.id, data)
+      }
+      setPhotoNow(data)
+      if (!state.source.preview) void refresh()
+    } catch (err) {
+      toast({ title: "Não foi possível salvar a foto", description: err instanceof Error ? err.message : "Tente outra imagem.", variant: "destructive" })
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
 
   const value = useMemo(() => {
     if (state.status !== "ok") return null
-    const { source, account, membership } = state
-    const adminPreview = Boolean(asMember && isAdmin)
+    const { source, membership, career } = state
+    const account = photoNow ? { ...state.account, avatarUrl: photoNow } : state.account
     const whatsapp = (text?: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text ?? `Olá! Sou ${account.name}, da Zyron.`)}`
     const summary = membership ? summarizeProfile(membership.bundle) : null
     const memberCtx: MemberCtx | null = membership && summary
@@ -238,19 +328,39 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
         }
       : null
     const category = categoryOf(account.age) ?? membership?.bundle.member.category ?? null
-    const athlete: AthleteCtx = { account, category, report: reportOf(account), game: gameOf(account, summary), member: memberCtx, adminPreview, whatsapp }
-    return { athlete, memberCtx, source }
-  }, [state, asMember, isAdmin])
+    return { account, category, report: reportOf(account), game: gameOf(account, summary, career), career, member: memberCtx, whatsapp, source }
+  }, [state, photoNow, adminPreview])
+
+  // O que foi cumprido desde a última visita vira comemoração (a equipe vendo como o atleta não grava nada).
+  const memoryKey = !value || adminPreview ? null : `zyron:jornada:${value.source.preview ? `teste:${asMember ?? "membro"}` : value.account.userId ?? value.account.seed}`
+  const news = useJourneyNews(memoryKey, value?.game ?? null)
+
+  const athlete = useMemo<AthleteCtx | null>(() => value && {
+    account: value.account,
+    category: value.category,
+    report: value.report,
+    game: value.game,
+    career: value.career,
+    member: value.member,
+    adminPreview,
+    whatsapp: value.whatsapp,
+    refresh,
+    pickPhoto: canPickPhoto ? () => photoInput.current?.click() : null,
+    photoBusy,
+    fresh: news.fresh,
+  }, [value, adminPreview, refresh, canPickPhoto, photoBusy, news.fresh])
 
   if (state.status === "loading") return <Splash />
-  if (state.status === "erro" || !value) {
+  if (state.status === "erro" || !value || !athlete) {
     return <Failure title="Não foi possível abrir a sua área">{state.status === "erro" ? state.message : ""}</Failure>
   }
 
   return (
-    <AthleteContext.Provider value={value.athlete}>
-      <MemberContext.Provider value={value.memberCtx}>
+    <AthleteContext.Provider value={athlete}>
+      <MemberContext.Provider value={value.member}>
         <Shell asMember={asMember} previewing={value.source.preview} />
+        {news.current && <JourneyToast news={news.current} game={value.game} onClose={news.dismiss} />}
+        <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp,image/*" className="hidden" onChange={(e) => void onPhoto(e)} aria-hidden="true" tabIndex={-1} />
       </MemberContext.Provider>
     </AthleteContext.Provider>
   )
@@ -272,10 +382,13 @@ function useTitle() {
   return { kicker: "Minha área", title: "Início" }
 }
 
-/** Rotas que dependem da análise de partidas: sem acesso liberado, mostram o convite para liberar. */
+/**
+ * Rotas que dependem da análise de partidas. Abrem com jogo analisado (ou com o acesso
+ * liberado e o perfil pronto); antes disso mostram o passo que falta para liberar.
+ */
 function MemberOnly({ page, children }: { page: "partidas" | "desempenho"; children: ReactNode }) {
-  const { member } = useAthlete()
-  return member ? <>{children}</> : <Locked page={page} />
+  const { member, game } = useAthlete()
+  return member && game.gates.matches ? <>{children}</> : <Locked page={page} />
 }
 
 function Shell({ asMember, previewing }: { asMember: string | null; previewing: boolean }) {
@@ -342,11 +455,19 @@ function Shell({ asMember, previewing }: { asMember: string | null; previewing: 
 }
 
 function ClientSidebar({ open, email, onSignOut }: { open: boolean; email: string; onSignOut?: () => void }) {
-  const { account, category, game, member } = useAthlete()
+  const { account, category, game, member, fresh } = useAthlete()
   const { pathname } = useLocation()
   const navRef = useRef<HTMLElement>(null)
   const [pill, setPill] = useState({ y: 0, visible: false })
+  const [visited, setVisited] = useState<ReadonlySet<string>>(() => new Set())
   const activeIndex = NAV.findIndex((n) => (n.end ? pathname === n.to || pathname === `${n.to}/` : pathname.startsWith(n.to)))
+  const opened = useMemo(() => new Set([...fresh].flatMap((k) => OPENS[k] ?? [])), [fresh])
+
+  // O selo "Novo" some depois que a pessoa abre a página que acabou de liberar.
+  useEffect(() => {
+    const hit = NAV.find((n) => !n.end && pathname.startsWith(n.to))
+    if (hit && !visited.has(hit.to)) setVisited((v) => new Set(v).add(hit.to))
+  }, [pathname, visited])
 
   const measure = useCallback(() => {
     const el = navRef.current?.querySelectorAll<HTMLElement>(".vx-nav-item")[activeIndex]
@@ -385,12 +506,18 @@ function ClientSidebar({ open, email, onSignOut }: { open: boolean; email: strin
       <p className="vx-nav-label">Minha área</p>
       <nav ref={navRef} className="vx-nav">
         <span className="vx-nav-pill" style={{ transform: `translateY(${pill.y}px)`, opacity: pill.visible ? 1 : 0 }} aria-hidden="true" />
-        {NAV.map(({ to, label, icon: Icon, end, needsMember }) => (
-          <NavLink key={to} to={to} end={end} className={({ isActive }) => `vx-nav-item ${isActive ? "is-active" : ""}`}>
-            <Icon />{label}
-            {needsMember && !member && <Lock className="ml-auto !h-3.5 !w-3.5 text-zinc-500" aria-label="Disponível quando a equipe liberar a análise dos seus jogos" />}
-          </NavLink>
-        ))}
+        {NAV.map(({ to, label, icon: Icon, end, gate, hint }) => {
+          const locked = gate !== null && !game.gates[gate]
+          const isNew = !locked && opened.has(to) && !visited.has(to)
+          return (
+            <NavLink key={to} to={to} end={end} className={({ isActive }) => `vx-nav-item ${isActive ? "is-active" : ""} ${locked ? "is-locked" : ""}`}
+              title={locked ? hint : undefined}>
+              <Icon />{label}
+              {locked && <span className="mb-nav-lock" aria-label={hint}><Lock /></span>}
+              {isNew && <span className="mb-nav-new">Novo</span>}
+            </NavLink>
+          )
+        })}
       </nav>
 
       <div className="vx-side-foot">

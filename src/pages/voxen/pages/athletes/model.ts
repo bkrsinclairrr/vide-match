@@ -35,6 +35,12 @@ export type Athlete = {
   forwardedOn: string | null
   advisory: boolean
   advisorySince: string | null
+  /** Contrato fechado com um clube: a última etapa da jornada do atleta (ele vê na área dele). */
+  contractSigned: boolean
+  contractClub: string | null
+  contractOn: string | null
+  /** O banco já tem as colunas do contrato (migração 20261016000000_jornada_do_atleta.sql). */
+  contractReady: boolean
   nextStep: string | null
   nextStepOn: string | null
   notes: string | null
@@ -47,7 +53,7 @@ export type Athlete = {
 export type AthleteData = Pick<Athlete,
   "fullName" | "email" | "phone" | "birthDate" | "age" | "nationality" | "position" | "category" | "foot" | "heightCm" | "weightKg" | "city" | "team">
 
-export type AthletePatch = Partial<Omit<Athlete, "id" | "createdAt" | "updatedAt">>
+export type AthletePatch = Partial<Omit<Athlete, "id" | "createdAt" | "updatedAt" | "contractReady">>
 
 /** Ficha nova: dados + de onde veio. O acompanhamento começa no padrão (morno, nada encaminhado). */
 export type AthleteDraft = AthleteData & Pick<Athlete, "origin" | "leadId" | "athleteId" | "memberId" | "sourceCreatedAt"> & { temperature?: Temperature }

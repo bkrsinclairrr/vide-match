@@ -9,6 +9,7 @@
  */
 import type { DataSource, EventInput, MatchInput, MemberInput, ProfileListItem } from "./api"
 import type { AthleteAccount } from "./account"
+import { NO_CAREER, type Career } from "./game"
 import { ACTION_KEYS, type ActionKey, type Bundle, type Match, type MatchEvent, type Member } from "./model"
 
 const TEST_VIDEO =
@@ -316,6 +317,45 @@ export const fixtureSource: DataSource = {
     state.events = state.events.filter((e) => e.id !== id)
     return delay(undefined)
   },
+}
+
+/** Quem acabou de criar a conta: nada preenchido ainda (`?como=novo`). */
+export const FIXTURE_NEWCOMER: AthleteAccount = {
+  userId: "00000000-0000-4000-8000-0000000000b2",
+  atletaId: null,
+  email: "davirocha.2011@gmail.com",
+  name: "Davi Rocha",
+  firstName: "Davi",
+  avatarUrl: null,
+  position: null,
+  age: null,
+  heightCm: null,
+  weightKg: null,
+  foot: null,
+  nationality: null,
+  city: null,
+  hasProfile: false,
+  seed: "00000000-0000-4000-8000-0000000000b2",
+}
+
+/**
+ * Carreira de teste. O membro principal já está no Setor Atletas; `?carreira=` força uma etapa
+ * para ver as outras telas (nenhuma, selecionado, encaminhado ou contrato).
+ */
+export function fixtureCareer(memberId: string | null, account: AthleteAccount): Career {
+  const ago = (days: number) => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10)
+  const forced = new URLSearchParams(window.location.search).get("carreira")
+  const level = forced ?? (memberId === "m-gabriel" ? "selecionado" : "nenhuma")
+  if (level === "nenhuma" || (!account.hasProfile && !forced)) return NO_CAREER
+  return {
+    selected: true,
+    selectedOn: ago(34),
+    forwarded: level === "encaminhado" || level === "contrato",
+    forwardedOn: level === "encaminhado" || level === "contrato" ? ago(9) : null,
+    contract: level === "contrato",
+    contractOn: level === "contrato" ? ago(1) : null,
+    contractClub: level === "contrato" ? "Botafogo-SP" : null,
+  }
 }
 
 /** Conta de quem entrou mas ainda não tem a análise de partidas liberada. */

@@ -3,10 +3,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { ArrowLeft, ArrowRight, Camera, Check, Zap, Globe, Layers, MapPin, Flag, User } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSmoothScroll, useStepTransition } from "@/hooks/useScrollAnimations";
+import { saveOwnPhoto, squarePhoto } from "@/pages/membros/photo";
 import { z } from "zod";
 
 const CATEGORIES = [
@@ -93,8 +95,16 @@ const PillBtn = ({ active, onClick, children }: { active: boolean; onClick: () =
   </button>
 );
 
+/** Para onde voltar depois de salvar: só a área do atleta (quem veio de lá completar ou atualizar o perfil). */
+const backTo = (v: string | null) => (v && /^\/minha-area(\/|$|\?)/.test(v) ? v : null);
+
+/** Sub-N pela idade, como na área do atleta (16 anos joga o Sub 17), dentro do Sub 6–20. */
+const categoryFromAge = (age: number) => `Sub ${Math.max(6, Math.min(20, age + 1))}`;
+
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const voltar = backTo(params.get("voltar"));
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -130,6 +140,52 @@ const Onboarding = () => {
   useEffect(() => {
     sessionStorage.setItem('playerData', JSON.stringify(playerData));
   }, [playerData]);
+
+  // Quem já tem perfil (completando ou atualizando pela área) começa com os dados que já
+  // deu, em vez do formulário em branco. Estado e cidade não ficam guardados juntos: esses
+  // dois a pessoa escolhe de novo no último passo.
+  useEffect(() => {
+    if (playerData.name) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const [atleta, membro] = await Promise.all([
+        supabase.from('Atletas').select('nome, idade, altura, peso, melhor_pe, nacionalidade, posicao')
+          .eq('user_id', user.id).order('created_at', { ascending: false }).limit(1),
+        // Tabela da área de membros (fora dos tipos gerados); sem ela, segue só com a conta.
+        (supabase as unknown as SupabaseClient).from('zyron_members')
+          .select('full_name, birth_date, position, preferred_foot, height_cm, weight_kg')
+          .eq('user_id', user.id).eq('kind', 'membro').maybeSingle()
+          .then((r) => r, () => ({ data: null })),
+      ]);
+      if (cancelled) return;
+      const a = (atleta.data?.[0] ?? null) as Record<string, unknown> | null;
+      const m = (membro?.data ?? null) as Record<string, unknown> | null;
+      const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : '');
+      const num = (v: unknown) => (typeof v === 'number' && v > 0 ? String(Math.round(v)) : '');
+      const birth = text(m?.birth_date);
+      const ageFromBirth = birth ? Math.floor((Date.now() - new Date(`${birth}T12:00:00`).getTime()) / 31557600000) : 0;
+      const age = num(a?.idade) || (ageFromBirth > 3 ? String(ageFromBirth) : '');
+      const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+      const position = text(a?.posicao) || text(m?.position);
+      const filled = {
+        name: text(a?.nome) || text(m?.full_name) || text(meta.full_name) || text(meta.name),
+        age,
+        height: num(a?.altura) || num(m?.height_cm),
+        weight: num(a?.peso) || num(m?.weight_kg),
+        preferredFoot: (text(a?.melhor_pe) || text(m?.preferred_foot)).toLowerCase(),
+        nationality: countries.includes(text(a?.nacionalidade)) ? text(a?.nacionalidade) : '',
+        position: positions.includes(position) ? position : '',
+        ...(age ? { category: categoryFromAge(Number(age)) } : {}),
+      };
+      const useful = Object.fromEntries(Object.entries(filled).filter(([, v]) => v));
+      if (Object.keys(useful).length) setPlayerData((p) => (p.name ? p : { ...p, ...useful }));
+    })().catch(() => { /* sem dados: formulário em branco, como antes */ });
+    return () => { cancelled = true; };
+    // Só ao abrir: depois disso quem manda é o que a pessoa digita.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const totalSteps = 5;
 
@@ -189,6 +245,11 @@ const Onboarding = () => {
         setIsLoading(false);
         return;
       }
+
+      // A foto escolhida aqui vira a foto do perfil (já reduzida). Ela é opcional: se falhar, o cadastro segue.
+      if (playerData.photo?.startsWith('data:image/') && playerData.photo.length <= 120_000) {
+        await saveOwnPhoto(user.id, playerData.photo).catch((err) => console.warn('Foto do perfil não salva:', err));
+      }
     } catch (err: unknown) {
       console.error('Unexpected error:', err);
       toast({ title: "Erro inesperado", description: err instanceof Error ? err.message : "Tente novamente.", variant: "destructive" });
@@ -196,17 +257,22 @@ const Onboarding = () => {
       return;
     }
     setIsLoading(false);
-    navigate("/upload");
+    // Veio da área do atleta: volta para lá (a área atualiza a jornada sozinha). Senão, segue para os vídeos.
+    navigate(voltar ?? "/upload");
   };
 
   const handleNext = () => { if (step < totalSteps) setStep(step + 1); else savePlayerData(); };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Reduz para um quadrado de 256 px: cabe no perfil e não estoura o sessionStorage.
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPlayerData({ ...playerData, photo: ev.target?.result as string });
-      reader.readAsDataURL(file);
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const photo = await squarePhoto(file);
+      setPlayerData((p) => ({ ...p, photo }));
+    } catch (err) {
+      toast({ title: "Não foi possível usar essa foto", description: err instanceof Error ? err.message : "Tente outra imagem.", variant: "destructive" });
     }
   };
 
@@ -229,7 +295,7 @@ const Onboarding = () => {
 
       <header className="sticky top-0 z-40 border-b border-white/5 backdrop-blur-sm" style={{ background: "rgba(13,13,15,0.92)" }}>
         <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <button onClick={() => step > 1 ? setStep(step - 1) : navigate("/dashboard")}
+          <button onClick={() => step > 1 ? setStep(step - 1) : navigate(voltar ?? "/dashboard")}
             className="w-9 h-9 flex items-center justify-center rounded-xl border border-white/15 hover:border-white/30 bg-white/[0.06] hover:bg-white/10 transition-all">
             <ArrowLeft className="w-4 h-4 text-white/75" />
           </button>
@@ -579,7 +645,7 @@ const Onboarding = () => {
               <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
             ) : (
               <>
-                {step === totalSteps ? "Iniciar Análise" : "Continuar"}
+                {step === totalSteps ? (voltar ? "Salvar perfil" : "Iniciar Análise") : "Continuar"}
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
@@ -591,7 +657,7 @@ const Onboarding = () => {
             </p>
           ) : (
             <p className="text-center text-[11px] font-semibold" style={{ color: "rgba(52,211,153,0.9)" }}>
-              ✓ Tudo preenchido — pronto para análise
+              {voltar ? "✓ Tudo preenchido — é só salvar" : "✓ Tudo preenchido — pronto para análise"}
             </p>
           )}
         </div>

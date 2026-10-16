@@ -34,7 +34,8 @@ export default function MinhaArea() {
 
   let body
   if (dev.demo) {
-    body = <ClientArea preview asMember={stored} isAdmin />
+    // ?como=conta e ?como=novo são o próprio atleta (sem análise / recém-chegado); um id de membro é a equipe vendo como ele.
+    body = <ClientArea preview asMember={stored} isAdmin={stored !== "conta" && stored !== "novo"} />
   } else if (loading) {
     body = <Splash />
   } else if (!session) {

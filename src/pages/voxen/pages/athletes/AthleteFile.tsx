@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react"
 import { Link } from "react-router-dom"
-import { ArrowUpRight, BriefcaseBusiness, CalendarClock, Check, CheckCircle2, Mail, MessageCircle, RefreshCw, Send, Trash2 } from "lucide-react"
+import { ArrowUpRight, BriefcaseBusiness, CalendarClock, Check, CheckCircle2, FileSignature, Mail, MessageCircle, RefreshCw, Send, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar } from "@/pages/voxen/ui"
 import { formatDate, timeAgo } from "@/pages/voxen/data"
 import { DangerConfirm } from "@/pages/admin/console/parts"
-import type { AthletesHook } from "./api"
+import { JOURNEY_MIGRATION, type AthletesHook } from "./api"
 import { AthleteForm } from "./AthleteForm"
 import { TempPicker } from "./bits"
 import {
@@ -60,6 +60,7 @@ export function AthleteFile({ a, sector, origin, onRemoved }: { a: Athlete; sect
   const [notes, setNotes] = useState(a.notes ?? "")
   const [nextStep, setNextStep] = useState(a.nextStep ?? "")
   const [forwardedTo, setForwardedTo] = useState(a.forwardedTo ?? "")
+  const [contractClub, setContractClub] = useState(a.contractClub ?? "")
   const [savingData, setSavingData] = useState(false)
   const [formVersion, setFormVersion] = useState(0)
   const [asking, setAsking] = useState(false)
@@ -82,6 +83,10 @@ export function AthleteFile({ a, sector, origin, onRemoved }: { a: Athlete; sect
     save(on ? { forwarded: true, forwardedOn: a.forwardedOn ?? isoDay() } : { forwarded: false }, on ? "Marcado como encaminhado" : "Encaminhamento desmarcado")
   }
   const setAdvisory = (on: boolean) => save(on ? { advisory: true, advisorySince: a.advisorySince ?? isoDay() } : { advisory: false }, on ? "Em trabalho de assessoria" : "Assessoria desmarcada")
+  const setContract = (on: boolean) => {
+    void auto.flush()
+    save(on ? { contractSigned: true, contractOn: a.contractOn ?? isoDay() } : { contractSigned: false }, on ? "Contrato fechado: o atleta vê a jornada completa" : "Contrato desmarcado")
+  }
 
   const completeStep = () => {
     const step = nextStep.trim()
@@ -156,7 +161,7 @@ export function AthleteFile({ a, sector, origin, onRemoved }: { a: Athlete; sect
           <h3 className="vx-card-title">Situação</h3>
           <span className={`at-autosave is-${auto.state}`} aria-live="polite">{auto.state === "saving" ? "Salvando…" : auto.state === "saved" ? <><Check /> Salvo</> : null}</span>
         </div>
-        <p className="vx-card-sub mb-4">Quão perto está de fechar, se já foi encaminhado e se está em trabalho de assessoria.</p>
+        <p className="vx-card-sub mb-4">Quão perto está de fechar, se já foi encaminhado, se está em assessoria e se fechou contrato.</p>
         <TempPicker big value={a.temperature} disabled={ro} onChange={(t) => save({ temperature: t }, `Agora está ${tempInfo(t).label.toLowerCase()}`)} />
 
         <div className="at-toggle-row">
@@ -205,6 +210,37 @@ export function AthleteFile({ a, sector, origin, onRemoved }: { a: Athlete; sect
             </label>
           </div>
         )}
+
+        <div className="at-toggle-row">
+          <div className="at-toggle-label">
+            <span className="at-toggle-icon is-ctr"><FileSignature /></span>
+            <div>
+              <b>Contrato fechado</b>
+              <small>
+                {!a.contractReady
+                  ? <>Para marcar, rode <code className="text-amber-200">{JOURNEY_MIGRATION}</code> no editor SQL</>
+                  : a.contractSigned ? `Assinado em ${dayLabel(a.contractOn) || "—"}` : "A última etapa da jornada que o atleta acompanha na área dele"}
+              </small>
+            </div>
+          </div>
+          <button type="button" role="switch" aria-checked={a.contractSigned} disabled={ro || !a.contractReady} className={`cn-switch ${a.contractSigned ? "is-on" : ""}`} onClick={() => setContract(!a.contractSigned)} aria-label="Contrato fechado">
+            <span /> <em>{a.contractSigned ? "Sim" : "Não"}</em>
+          </button>
+        </div>
+        {a.contractSigned && (
+          <div className="at-toggle-detail">
+            <label className="at-field">
+              <span>Com qual clube</span>
+              <input className="vx-input" value={contractClub} disabled={ro} maxLength={120} placeholder="Ex.: Botafogo-SP"
+                onChange={(e) => { setContractClub(e.target.value); auto.queue({ contractClub: e.target.value }) }} onBlur={() => void auto.flush()} />
+            </label>
+            <label className="at-field at-field--date">
+              <span>Quando</span>
+              <input className="vx-input" type="date" value={a.contractOn ?? ""} disabled={ro} onChange={(e) => save({ contractOn: e.target.value || null })} />
+            </label>
+          </div>
+        )}
+        <p className="at-journey-note">O atleta vê na área dele, como etapas da jornada: estar no setor (selecionado), o encaminhamento e o contrato. Só as datas e o clube do contrato; as notas da equipe nunca aparecem.</p>
       </section>
 
       <section className={`vx-card at-next-card ${isOverdue(a) ? "is-late" : ""}`}>

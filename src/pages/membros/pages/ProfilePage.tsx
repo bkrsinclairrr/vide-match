@@ -4,7 +4,7 @@ import { Meter, RadarChart } from "@/pages/voxen/charts"
 import { CardHead } from "@/pages/voxen/ui"
 import { useMember } from "../ClientArea"
 import { SCOUT_GROUPS, ageFrom, fmt1, scoutGroupAverage } from "../model"
-import { MemberAvatar } from "../components/bits"
+import { PhotoButton } from "../components/Gamify"
 
 export default function ProfilePage() {
   const { member, whatsapp } = useMember()
@@ -27,7 +27,7 @@ export default function ProfilePage() {
       <section className="vx-card">
         <CardHead title={<span className="inline-flex items-center gap-2"><UserRound className="h-4 w-4 text-amber-300" /> Seus dados</span>} sub="Mantidos pela equipe Zyron" />
         <div className="mb-5 flex items-center gap-4">
-          <MemberAvatar member={member} size={72} ring="#fbbf24" />
+          <PhotoButton size={72} />
           <div>
             <p className="text-[18px] font-bold">{member.fullName}</p>
             <p className="text-[12.5px] text-zinc-400">{[member.position, member.category].filter(Boolean).join(" · ")}</p>

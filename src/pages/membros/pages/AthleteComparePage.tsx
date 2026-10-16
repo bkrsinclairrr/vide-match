@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom"
 import { ArrowDownRight, ArrowUpRight, Check, Sparkles, TrendingUp } from "lucide-react"
 import { CountUp, Meter, RadarChart } from "@/pages/voxen/charts"
 import { CardHead } from "@/pages/voxen/ui"
@@ -6,22 +5,16 @@ import { useAthlete } from "../ClientArea"
 import { TIERS, TIPS, ZYRON_AVERAGE, referenceFor, tierOf } from "../game"
 import { SectionTitle } from "../components/bits"
 import { TeamCta } from "../components/Gamify"
+import { LockedCompare } from "../components/Locks"
 import ComparePage from "./ComparePage"
 
 const norm = (score: number) => (score - 64) / 34
 
 export default function AthleteComparePage() {
-  const { account, report, member, category } = useAthlete()
+  const { account, report, member, category, game } = useAthlete()
+  const analyzed = Boolean(member) && game.gates.matches
 
-  if (!report) {
-    return (
-      <section className="vx-card gm-nudge">
-        <Sparkles className="h-5 w-5 shrink-0 text-amber-300" />
-        <p>O comparativo usa o seu relatório. <strong>Crie o seu perfil</strong> para ver como o seu jogo se compara com a média Zyron e com o perfil da sua posição.</p>
-        <Link to="/onboarding" className="vx-btn vx-btn--gold">Criar meu perfil</Link>
-      </section>
-    )
-  }
+  if (!report) return <LockedCompare />
 
   const tier = tierOf(report.overall)
   const ref = referenceFor(account.position)
@@ -118,7 +111,7 @@ export default function AthleteComparePage() {
         </section>
       </div>
 
-      {member && (
+      {analyzed && (
         <>
           <SectionTitle sub="Os seus jogos analisados contra perfis de referência da equipe">Lance a lance: você × referências</SectionTitle>
           <ComparePage />
@@ -128,7 +121,7 @@ export default function AthleteComparePage() {
       <TeamCta
         title="Quer ver o seu jogo contra as referências, lance a lance?"
         text="Com a análise dos seus jogos liberada, o comparativo passa a usar as suas ações reais: passes, dribles, duelos e mapa de calor."
-        label={member ? "Enviar mais um jogo" : "Liberar a análise"}
+        label={game.gates.analyzed ? "Enviar mais um jogo" : "Enviar o vídeo de um jogo"}
         topic={category ? `Quero comparar o meu jogo com as referências de ${category}.` : "Quero comparar o meu jogo com as referências."}
       />
     </>
