@@ -195,12 +195,12 @@ export function TestimonialsSection() {
                 </div>
                 <div className="flex items-center gap-4">
                   {t.photo
-                    ? <img src={t.photo} alt="" className="h-12 w-12 rounded-full border-2 border-white/10 object-cover" />
+                    ? <img src={t.photo} alt="" width={48} height={48} loading="lazy" decoding="async" className="h-12 w-12 shrink-0 rounded-full border-2 border-amber-400/30 object-cover" />
                     : <span className="zs-avatar-empty" aria-hidden="true"><User className="h-5 w-5" /></span>}
-                  <div className="flex flex-col gap-1">
-                    {t.name && <span className="text-[15px] font-semibold text-white">{t.name}</span>}
-                    <span className="text-[13px] text-white/50">{t.role}</span>
-                  </div>
+                  <p className="m-0 text-[14px] leading-snug">
+                    {t.name && <><span className="font-semibold text-white">{t.name}</span><span className="text-white/50"> - </span></>}
+                    <span className="text-white/60">{t.role}</span>
+                  </p>
                 </div>
               </article>
             ))}
