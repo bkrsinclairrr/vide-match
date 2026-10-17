@@ -4,7 +4,7 @@ import {
   type CSSProperties, type MouseEvent, type PointerEvent, type RefObject,
 } from "react"
 import {
-  Check, Copy, Crown, ExternalLink, Gem, Link2, MessageSquareText, QrCode, Radar, ScanSearch, Search, X,
+  Check, Copy, Crown, ExternalLink, Gem, Link2, MessageSquareText, QrCode, Radar, Rocket, ScanSearch, Search, X,
   type LucideIcon,
 } from "lucide-react"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
@@ -28,6 +28,7 @@ import "./precos.css"
 const ICONS: Record<ProductIcon, LucideIcon> = {
   crown: Crown,
   gem: Gem,
+  rocket: Rocket,
   radar: Radar,
   scan: ScanSearch,
   search: Search,
