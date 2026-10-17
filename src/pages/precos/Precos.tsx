@@ -20,7 +20,7 @@ import "./precos.css"
 /**
  * Tabela de preços dos closers (/precos). Página interna, aberta pelo link na
  * descrição do grupo de WhatsApp da equipe: cada produto tem o link de
- * pagamento da Sinnu pronto para copiar, a mensagem pronta (nome, valor e
+ * pagamento da Sinnu pronto para copiar, a mensagem pronta (boas-vindas, nome e
  * link) e o atalho para mandar direto pelo WhatsApp. Preços e links ficam em
  * data.ts. Fica fora dos buscadores (meta robots + robots.txt).
  */
@@ -271,7 +271,7 @@ function ProductCard({ product: p, tone, index, notify }: {
               data-copied={messageCopied}
               onClick={() => copy("message")}
               aria-label={`Copiar mensagem pronta: ${p.label}`}
-              title="Copia a mensagem de boas-vindas com nome, valor e link, já formatada para o WhatsApp"
+              title="Copia a mensagem de boas-vindas com o nome do produto e o link, já formatada para o WhatsApp"
             >
               {messageCopied
                 ? <Check key="ok" strokeWidth={3} aria-hidden="true" />
@@ -413,7 +413,7 @@ export default function Precos() {
 
           <ul className="zp-legend zp-enter" style={cssVars({ "--d": 4 })}>
             <li><Copy aria-hidden="true" /><span><b>Link</b> só o endereço de pagamento</span></li>
-            <li><MessageSquareText aria-hidden="true" /><span><b>Mensagem</b> boas-vindas, valor e link</span></li>
+            <li><MessageSquareText aria-hidden="true" /><span><b>Mensagem</b> boas-vindas e link</span></li>
             <li><WhatsAppIcon /><span><b>WhatsApp</b> você escolhe o contato</span></li>
           </ul>
         </section>
