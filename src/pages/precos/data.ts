@@ -127,9 +127,9 @@ export const shortUrl = (url: string) => url.replace(/^https?:\/\//, "")
  */
 export const productMessage = (p: Product) =>
   [
-    "Bem-vindo ao time, jogador! Já contamos com você.",
+    "Bem-vindo ao time, jogador! Vamos dar início aos trabalhos",
     `*${p.label}*\nLink para pagamento:\n${p.url}`,
-    "Assim que confirmar, me avisa para estarmos dando início ao trabalho. 🚀",
+    "Assim que confirmar, me avisa para estarmos dando início e mudando a sua trajetória no futebol! 🚀",
   ].join("\n\n")
 
 export const whatsappShareUrl = (text: string) => `https://wa.me/?text=${encodeURIComponent(text)}`
