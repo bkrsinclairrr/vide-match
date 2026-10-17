@@ -1,19 +1,24 @@
 User-agent: Googlebot
 Allow: /
 Disallow: /jogador
+Disallow: /precos
 
 User-agent: Bingbot
 Allow: /
 Disallow: /jogador
+Disallow: /precos
 
 User-agent: Twitterbot
 Allow: /
 Disallow: /jogador
+Disallow: /precos
 
 User-agent: facebookexternalhit
 Allow: /
 Disallow: /jogador
+Disallow: /precos
 
 User-agent: *
 Allow: /
 Disallow: /jogador
+Disallow: /precos
