@@ -38,6 +38,9 @@ const SiteHome = lazy(() => import("./pages/site/SiteHome"))
 /** Página institucional pública: história da Voxen, método (IA + scout) e provas. */
 const Institucional = lazy(() => import("./pages/institucional/Institucional"))
 
+/** Tabela de preços e links de pagamento para os closers (link na descrição do grupo de WhatsApp). */
+const Precos = lazy(() => import("./pages/precos/Precos"))
+
 /** VOXEN: a plataforma da equipe (administradores e executivos), com login próprio em /voxen. */
 const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
 
@@ -119,9 +122,9 @@ const usePrefetchCoreRoutes = () => {
       return ric ? ric(cb) : window.setTimeout(cb, 1200)
     }
     idle(() => {
-      // Quem abre a VOXEN, a central de administração ou a área do atleta não vai para o onboarding: baixar
+      // Quem abre a VOXEN, a central de administração, a área do atleta ou a tabela de preços não vai para o onboarding: baixar
       // e executar o chunk dele (que traz GSAP e Lenis, ~50 KB) só disputa banda e processador com a tela que a pessoa já está usando.
-      if (/^\/(voxen|admin|minha-area)(\/|$)/.test(window.location.pathname)) return
+      if (/^\/(voxen|admin|minha-area|precos)(\/|$)/.test(window.location.pathname)) return
       // Falha aqui é só pré-carga perdida (ex.: deploy novo): a rota tenta de novo ao abrir.
       import("./pages/Onboarding").catch(() => undefined)
     })
@@ -147,6 +150,7 @@ const Home = () => {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacidade" element={<Privacy />} />
                 <Route path="/termos" element={<Terms />} />
+                <Route path="/precos" element={<Precos />} />
 
                 {/* Funil aberto — resultado disponível sem login */}
                 <Route path="/avaliacao" element={<FunnelHome />} />
