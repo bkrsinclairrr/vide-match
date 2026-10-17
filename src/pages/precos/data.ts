@@ -121,15 +121,14 @@ export const formatCents = (cents: number) => `,${String(cents % 100).padStart(2
 export const shortUrl = (url: string) => url.replace(/^https?:\/\//, "")
 
 /**
- * Mensagem pronta para colar no WhatsApp do cliente: boas-vindas, produto,
- * valor e link, e o pedido para avisar quando pagar. Os asteriscos são o
+ * Mensagem pronta para colar no WhatsApp do cliente: boas-vindas, produto e
+ * link (sem o valor), e o pedido para avisar quando pagar. Os asteriscos são o
  * negrito do WhatsApp; o link fica sozinho na linha para gerar a prévia.
  */
 export const productMessage = (p: Product) =>
   [
     "Bem-vindo ao time! Já contamos com você.",
-    `*${p.label}*\nValor: ${formatPrice(p.cents)}`,
-    `Link para pagamento:\n${p.url}`,
+    `*${p.label}*\nLink para pagamento:\n${p.url}`,
     "Assim que confirmar, me avisa para estarmos dando início ao trabalho. 🚀",
   ].join("\n\n")
 
