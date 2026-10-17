@@ -127,7 +127,7 @@ export const shortUrl = (url: string) => url.replace(/^https?:\/\//, "")
  */
 export const productMessage = (p: Product) =>
   [
-    "Bem-vindo ao time, jogador! Vamos dar início aos trabalhos",
+    "Bem-vindo ao time, jogador! Já podemos dar início aos trabalhos!",
     `*${p.label}*\nLink para pagamento:\n${p.url}`,
     "Assim que confirmar, me avisa para estarmos dando início e mudando a sua trajetória no futebol! 🚀",
   ].join("\n\n")
