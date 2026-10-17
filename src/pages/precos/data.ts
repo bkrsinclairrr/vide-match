@@ -6,7 +6,7 @@
 
 export type ProductTone = "gold" | "emerald"
 
-export type ProductIcon = "crown" | "gem" | "radar" | "scan" | "search"
+export type ProductIcon = "crown" | "gem" | "rocket" | "radar" | "scan" | "search"
 
 export interface Product {
   id: string
@@ -56,6 +56,15 @@ export const PRODUCT_LINES: ProductLine[] = [
         cents: 149790,
         url: "https://pay.sinnu.com.br/aZvpL5Uy",
         icon: "gem",
+      },
+      {
+        id: "elite-starter",
+        name: "Assessoria de Elite",
+        tier: "Starter",
+        label: "Assessoria de Elite – Starter",
+        cents: 50000,
+        url: "https://pay.sinnu.com.br/QNE9ed9z",
+        icon: "rocket",
       },
     ],
   },
