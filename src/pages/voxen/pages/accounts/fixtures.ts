@@ -19,6 +19,7 @@ let users: AccountRow[] = [
   base("u-admin2", "Beatriz Nogueira", "beatriz.nogueira@gmail.com", "admin", 140, 1),
   base("u-exec1", "Ricardo Tavares", "ricardotavares.82@gmail.com", "executive", 60, 3),
   base("u-exec2", "Marina Duarte", "marina.duarte@gmail.com", "executive", 32, 9),
+  base("u-scout1", "Thiago Prado", "thiago.prado.scout@gmail.com", "scout", 14, 0),
   base("u-a1", "Gabriel Rocha da Silva", "gabriel.rocha07@gmail.com", "user", 41, 0, { provider: "google" }),
   base("u-a2", "Arthur Lima", "arthurlima.09@gmail.com", "user", 38, 2),
   base("u-a3", "Davi Cardoso Alves", "davi.cardoso.alves@gmail.com", "user", 35, 5),

@@ -21,7 +21,7 @@ import { usePointerGlow } from "@/pages/voxen/motion"
  * Entrada dos administradores (aizyron.com/admin). Só login, sem criar conta:
  * o acesso de administrador é dado por outro administrador em Contas e acessos.
  * Administrador entra e vê a central de administração (AdminApp) neste mesmo
- * endereço; executivo e atleta recebem o caminho certo. O banco (RLS) é quem
+ * endereço; executivo, scout e atleta recebem o caminho certo. O banco (RLS) é quem
  * protege os dados; esta tela só orienta.
  */
 
@@ -151,7 +151,7 @@ function GateScreen({
             <span className="ad-splash-bar" aria-hidden="true" />
           </div>
         ) : phase === "denied" || phase === "error" ? (
-          <Denied kind={phase === "error" ? "error" : level === "executive" ? "executive" : "user"} email={email} onRetry={onRetry} onSignOut={onSignOut} />
+          <Denied kind={phase === "error" ? "error" : level === "executive" || level === "scout" ? level : "user"} email={email} onRetry={onRetry} onSignOut={onSignOut} />
         ) : (
           <AdminForm status={phase === "verifying" ? "verifying" : phase === "success" ? "success" : "idle"} onAttempt={onAttempt} />
         )}
@@ -365,11 +365,16 @@ function AdminForm({ status, onAttempt }: { status: Status; onAttempt: (on: bool
 
 function Denied({
   kind, email, onRetry, onSignOut,
-}: { kind: "executive" | "user" | "error"; email: string; onRetry: () => void; onSignOut: () => void }) {
+}: { kind: "executive" | "scout" | "user" | "error"; email: string; onRetry: () => void; onSignOut: () => void }) {
+  const team = kind === "executive" || kind === "scout"
   const copy = {
     executive: {
       title: "Esta entrada é só de administradores",
-      text: <>A conta <strong>{email}</strong> é de executivo, com acesso de leitura. A VOXEN continua aberta para você pela entrada da equipe.</>,
+      text: <>A conta <strong>{email}</strong> é de executivo. A VOXEN continua aberta para você pela entrada da equipe.</>,
+    },
+    scout: {
+      title: "Esta entrada é só de administradores",
+      text: <>A conta <strong>{email}</strong> é de scout. A VOXEN continua aberta para você pela entrada da equipe.</>,
     },
     user: {
       title: "Esta conta não é de administrador",
@@ -389,7 +394,7 @@ function Denied({
           <h1 className="ad-title ad-in" style={{ "--d": "240ms" } as CSSProperties}>{copy.title}</h1>
           <p className="ad-sub ad-in" style={{ "--d": "300ms" } as CSSProperties}>{copy.text}</p>
           <div className="ad-actions ad-in" style={{ "--d": "380ms" } as CSSProperties}>
-            {kind === "executive" && <Link to="/voxen" className="ad-submit">Abrir a VOXEN <ArrowRight /></Link>}
+            {team && <Link to="/voxen" className="ad-submit">Abrir a VOXEN <ArrowRight /></Link>}
             {kind === "user" && <Link to="/minha-area" className="ad-submit">Ir para a minha área <ArrowRight /></Link>}
             {kind === "error" && <button type="button" className="ad-submit" onClick={onRetry}><RefreshCw /> Tentar de novo</button>}
             <button type="button" className="ad-ghost" onClick={onSignOut}><LogOut /> Entrar com outra conta</button>

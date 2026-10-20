@@ -22,7 +22,7 @@ const norm = (score: number) => (score - 64) / 34
 
 /** Lead que virou cliente: abre o cadastro de membro preenchido ou o membro já criado. */
 function MemberButton({ p }: { p: Player }) {
-  const { demo, canEdit } = useVoxen()
+  const { demo, canScout } = useVoxen()
   const navigate = useNavigate()
   const leadId = p.key.startsWith("lead:") ? p.key.slice(5) : null
   const [memberId, setMemberId] = useState<string | null>(null)
@@ -40,7 +40,7 @@ function MemberButton({ p }: { p: Player }) {
   if (memberId) {
     return <Link to={`/voxen/membros/${memberId}`} className="vx-btn"><BadgeCheck /> Ver membro</Link>
   }
-  if (!canEdit) return null
+  if (!canScout) return null
   return (
     <button type="button" className="vx-btn" title="Cadastrar na área de membros com os dados do funil"
       onClick={() => navigate(`/voxen/membros?${new URLSearchParams({ de: p.key })}`)}>
@@ -50,7 +50,7 @@ function MemberButton({ p }: { p: Player }) {
 }
 
 function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: () => void }) {
-  const { updateMeta, canEdit, removePlayer } = useVoxen()
+  const { updateMeta, canScout, canAdmin, removePlayer } = useVoxen()
   const { toast } = useToast()
   const navigate = useNavigate()
   const wa = whatsappLink(p)
@@ -112,15 +112,15 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
               <Eye /> Ver como atleta
             </Link>
           )}
-          {p.source === "conta" && p.userId && (
+          {p.source === "conta" && p.userId && canAdmin && (
             <Link to={`/voxen/contas?conta=${encodeURIComponent(p.userId)}`} className="vx-btn" title="Mudar o acesso, desativar ou excluir a conta de login">
               <KeyRound /> Gerenciar acesso
             </Link>
           )}
-          {canEdit && (
+          {canScout && (
             <button type="button" className={`vx-btn ${editing ? "is-on" : ""}`} onClick={onEdit}><Pencil /> {editing ? "Fechar edição" : "Editar"}</button>
           )}
-          {canEdit && (
+          {canAdmin && (
             <button type="button" className="vx-icon-btn pp-danger" title="Excluir este cadastro" aria-label="Excluir este cadastro" onClick={() => setConfirmDelete(true)}><Trash2 /></button>
           )}
           {p.email && <a href={`mailto:${p.email}`} className="vx-icon-btn" aria-label={`E-mail para ${p.email}`} title={p.email}><Mail /></a>}
@@ -155,7 +155,7 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
                 role="radio"
                 aria-checked={on}
                 className="vx-stage-btn"
-                disabled={!canEdit}
+                disabled={!canScout}
                 style={on ? { color: s.color, borderColor: `${s.color}66`, background: `${s.color}17`, boxShadow: `0 0 18px -6px ${s.color}` } : undefined}
                 onClick={() => void updateMeta(p.key, { stage: s.key })}
               >
@@ -174,7 +174,7 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
 }
 
 function ScoutCard({ p }: { p: Player }) {
-  const { updateMeta, canEdit } = useVoxen()
+  const { updateMeta, canScout } = useVoxen()
   const { toast } = useToast()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState<Record<string, number>>({})
@@ -205,7 +205,7 @@ function ScoutCard({ p }: { p: Player }) {
         sub="Notas de 1 a 5 dadas pela equipe depois de ver os vídeos do atleta"
         actions={
           <div className="vx-no-print flex gap-2">
-            {!canEdit ? null : editing ? (
+            {!canScout ? null : editing ? (
               <>
                 <button type="button" className="vx-btn" onClick={() => setEditing(false)}><X /> Cancelar</button>
                 <button type="button" className="vx-btn vx-btn--gold" onClick={() => void save()}><Save /> Salvar</button>
@@ -221,7 +221,7 @@ function ScoutCard({ p }: { p: Player }) {
         <Empty icon={<UserRoundSearch className="h-6 w-6" />} title="Ainda sem avaliação da equipe">
           Assista aos vídeos que o atleta enviar pelo WhatsApp e registre as notas aqui: elas viram o radar,
           entram no comparativo e ficam visíveis para todos os admins.
-          {canEdit && <div className="mt-4"><button type="button" className="vx-btn vx-btn--gold" onClick={startEdit}><Pencil /> Avaliar agora</button></div>}
+          {canScout && <div className="mt-4"><button type="button" className="vx-btn vx-btn--gold" onClick={startEdit}><Pencil /> Avaliar agora</button></div>}
         </Empty>
       ) : (
         <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
@@ -268,7 +268,7 @@ function ScoutCard({ p }: { p: Player }) {
 }
 
 function NotesCard({ p }: { p: Player }) {
-  const { updateMeta, data, canEdit } = useVoxen()
+  const { updateMeta, data, canScout } = useVoxen()
   const [text, setText] = useState(p.meta.notes)
   const [saved, setSaved] = useState(true)
 
@@ -285,12 +285,12 @@ function NotesCard({ p }: { p: Player }) {
       <CardHead
         title={<span className="inline-flex items-center gap-2"><NotebookPen className="h-4 w-4 text-amber-300" /> Notas da equipe</span>}
         sub={data?.sharedMeta ? "Compartilhadas com toda a equipe" : "Salvas neste navegador até a atualização do banco"}
-        actions={!canEdit ? <span className="text-[12px] text-zinc-500">Somente leitura</span> : <span className="text-[12px] text-zinc-500" aria-live="polite">{saved ? <span className="inline-flex items-center gap-1 text-emerald-400"><Check className="h-3.5 w-3.5" /> Salvo</span> : "Salvando..."}</span>}
+        actions={!canScout ? <span className="text-[12px] text-zinc-500">Somente leitura</span> : <span className="text-[12px] text-zinc-500" aria-live="polite">{saved ? <span className="inline-flex items-center gap-1 text-emerald-400"><Check className="h-3.5 w-3.5" /> Salvo</span> : "Salvando..."}</span>}
       />
       <textarea
         className="vx-input vx-textarea"
         value={text}
-        readOnly={!canEdit}
+        readOnly={!canScout}
         maxLength={5000}
         placeholder="Combinados com a família, impressões dos vídeos, próximos passos..."
         onChange={(e) => {

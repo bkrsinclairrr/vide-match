@@ -32,7 +32,7 @@ export default function AdminMatch() {
   const { id = "", matchId = "" } = useParams()
   const isNew = matchId === "nova"
   const source = useAdminSource()
-  const { demo, canEdit } = useVoxen()
+  const { demo, canScout, canAdmin } = useVoxen()
   const navigate = useNavigate()
   const { toast } = useToast()
   const { data, error, loading, setData } = useSourceData(source, (s) => s.getBundle(id, false), [id])
@@ -66,7 +66,7 @@ export default function AdminMatch() {
     return <div className="vx-card"><Empty icon={<Film className="h-6 w-6" />} title="Partida não encontrada"><Link to={`/voxen/membros/${id}`} className="text-amber-300 underline">Voltar para o perfil</Link></Empty></div>
   }
 
-  if (isNew && !canEdit) {
+  if (isNew && !canScout) {
     return <div className="vx-card"><Empty icon={<Film className="h-6 w-6" />} title="Somente leitura"><Link to={`/voxen/membros/${id}`} className="text-amber-300 underline">Voltar para o perfil</Link></Empty></div>
   }
 
@@ -78,7 +78,7 @@ export default function AdminMatch() {
   } : b))
 
   const saveMatch = async (input: MatchInput) => {
-    if (!source || !canEdit) return false
+    if (!source || !canScout) return false
     setSaving(true)
     try {
       const saved = await source.saveMatch(input)
@@ -95,7 +95,7 @@ export default function AdminMatch() {
   }
 
   const togglePublished = async () => {
-    if (!source || !match || !canEdit) return
+    if (!source || !match || !canScout) return
     try {
       const saved = await source.saveMatch({ ...match, published: !match.published })
       putMatch(saved)
@@ -109,7 +109,7 @@ export default function AdminMatch() {
   }
 
   const removeMatch = async () => {
-    if (!source || !match || !canEdit) return
+    if (!source || !match || !canAdmin) return
     if (!confirmDelete) {
       setConfirmDelete(true)
       return
@@ -201,14 +201,14 @@ export default function AdminMatch() {
         {match && summary && (
           <div className="flex flex-wrap items-center gap-2">
             <RatingChip rating={summary.rating} />
-            <button type="button" className={`vx-chip ${match.published ? "is-on" : ""}`} aria-pressed={match.published} disabled={!canEdit} onClick={() => void togglePublished()}
+            <button type="button" className={`vx-chip ${match.published ? "is-on" : ""}`} aria-pressed={match.published} disabled={!canScout} onClick={() => void togglePublished()}
               title={match.published ? "O membro vê esta partida. Clique para voltar a rascunho." : "Só a equipe vê. Clique para publicar para o membro."}>
               {match.published ? <><Eye className="h-3.5 w-3.5" /> Publicada</> : <><EyeOff className="h-3.5 w-3.5" /> Rascunho · publicar</>}
             </button>
             {member.kind === "membro" && match.published && (
               <a className="vx-btn" href={memberAreaUrl(member.id, `/partidas/${match.id}`, demo)} target="_blank" rel="noopener noreferrer"><ExternalLink /> Ver como membro</a>
             )}
-            {canEdit && (
+            {canAdmin && (
               <button type="button" className={`vx-btn ${confirmDelete ? "mb-btn-danger" : ""}`} onClick={() => void removeMatch()}>
                 <Trash2 /> {confirmDelete ? "Confirmar exclusão" : "Excluir"}
               </button>
@@ -217,12 +217,12 @@ export default function AdminMatch() {
         )}
       </section>
 
-      <MatchForm key={match?.id ?? "nova"} member={member} matches={data.matches} match={match} readOnly={!canEdit}
+      <MatchForm key={match?.id ?? "nova"} member={member} matches={data.matches} match={match} readOnly={!canScout}
         autoNow={summary ? autoRating(summary.line) : null} saving={saving} onSave={saveMatch} />
 
       {match && summary ? (
         <>
-          {canEdit
+          {canScout
             ? <Tagger key={match.id} match={match} events={summary.events} canUndo={stack.current.length > 0}
                 onAdd={addEvent} onDelete={(ev) => deleteEvent(ev, true)} onUndo={undo} />
             : <ReadOnlyEvents key={match.id} match={match} events={summary.events} />}

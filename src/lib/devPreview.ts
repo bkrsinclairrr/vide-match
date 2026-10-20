@@ -5,10 +5,14 @@ import type { StaffRole } from "@/pages/voxen/access"
 const DEMO_KEY = "voxen:demo"
 const ROLE_KEY = "voxen:demo-role"
 
+/** ?papel= em português para o cargo. */
+const PAPEL: Record<string, StaffRole> = { admin: "admin", executivo: "executive", scout: "scout" }
+
 /**
  * Dados locais, sem login, só no `npm run dev` (liga com ?demo; ?papel=executivo
- * testa a visão somente leitura). Serve a VOXEN (/voxen) e a área do atleta
- * (/minha-area). No build de produção a condição vira `false` e o bloco some.
+ * ou ?papel=scout testa a visão de cada cargo, ?papel=admin volta ao padrão).
+ * Serve a VOXEN (/voxen) e a área do atleta (/minha-area). No build de produção
+ * a condição vira `false` e o bloco some.
  */
 export function useDevPreview(): { demo: boolean; role: StaffRole } {
   const { search } = useLocation()
@@ -21,7 +25,7 @@ export function useDevPreview(): { demo: boolean; role: StaffRole } {
       if (papel) sessionStorage.setItem(ROLE_KEY, papel)
       return {
         demo: sessionStorage.getItem(DEMO_KEY) === "1",
-        role: (sessionStorage.getItem(ROLE_KEY) === "executivo" ? "executive" : "admin") as StaffRole,
+        role: PAPEL[sessionStorage.getItem(ROLE_KEY) ?? ""] ?? "admin",
       }
     } catch {
       return { demo: false, role: "admin" as StaffRole }

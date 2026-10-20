@@ -70,7 +70,8 @@ export default function Dashboard() {
   const accs = accounts ?? []
   const admins = accs.filter((a) => a.level === "admin").length
   const execs = accs.filter((a) => a.level === "executive").length
-  const athletes = accs.length - admins - execs
+  const scouts = accs.filter((a) => a.level === "scout").length
+  const athletes = accs.filter((a) => a.level === "user").length
   const unconfirmed = accs.filter((a) => !a.confirmed && !a.disabled).length
   const disabled = accs.filter((a) => a.disabled).length
 
@@ -91,6 +92,7 @@ export default function Dashboard() {
   const slices = [
     { label: "Administradores", value: admins, color: "#fbbf24" },
     { label: "Executivos", value: execs, color: "#38bdf8" },
+    { label: "Scouts", value: scouts, color: "#a78bfa" },
     { label: "Atletas", value: athletes, color: "#a1a1aa" },
   ].filter((s) => s.value > 0)
   const [slice, setSlice] = useState<number | null>(null)
@@ -121,7 +123,7 @@ export default function Dashboard() {
 
       <div className="vx-grid vx-stagger mb-[18px] grid-cols-2 xl:grid-cols-4">
         {[
-          { label: "Contas de login", value: accs.length, icon: ShieldCheck, color: "#fbbf24", foot: accounts ? `${admins} admin · ${execs} exec · ${athletes} atletas` : accountsError ? "Não foi possível carregar" : "Carregando…", to: "/admin/contas" },
+          { label: "Contas de login", value: accs.length, icon: ShieldCheck, color: "#fbbf24", foot: accounts ? `${admins} admin · ${execs} exec · ${scouts} scout · ${athletes} atletas` : accountsError ? "Não foi possível carregar" : "Carregando…", to: "/admin/contas" },
           { label: "Cadastros", value: players.length, icon: Users, color: "#38bdf8", spark: stats.daily14, foot: `${stats.week} nos últimos 7 dias`, to: "/admin/cadastros" },
           { label: "Membros", value: onlyMembers.length, icon: BadgeCheck, color: "#34d399", foot: `${onlyMembers.filter((m) => m.active).length} ativos · ${memberRows.length - onlyMembers.length} referências`, to: "/admin/membros" },
           { label: "Partidas", value: matchTotal, icon: Eye, color: "#fb923c", foot: `${matchTotal - drafts} publicadas · ${drafts} em rascunho`, to: "/admin/membros" },

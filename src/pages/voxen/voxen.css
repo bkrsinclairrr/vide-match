@@ -258,7 +258,6 @@
 }
 
 .vx-card--flush { padding: 0; overflow: hidden; }
-.vx-readonly { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.28); gap: 5px; white-space: nowrap; }
 /* Cartão que acompanha a rolagem no desktop. Precisa ser classe própria: o
    `position: relative` do .vx-card venceria o `xl:sticky` do Tailwind. */
 @media (min-width: 1280px) { .vx-card.vx-sticky-xl { position: sticky; top: 88px; } }

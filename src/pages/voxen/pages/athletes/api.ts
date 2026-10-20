@@ -200,7 +200,7 @@ const lower = (s: string | null | undefined) => (s ?? "").trim().toLowerCase()
  * Cadastros e Membros aproveitam a lista se ela tiver menos de um minuto).
  */
 export function useAthletes({ fresh = false }: { fresh?: boolean } = {}) {
-  const { demo, players, canEdit } = useVoxen()
+  const { demo, players, canScout: canEdit, canAdmin: canRemove } = useVoxen()
   const store = storeFor(demo)
   const snap = useSyncExternalStore(store.subscribe, store.get)
 
@@ -306,11 +306,10 @@ export function useAthletes({ fresh = false }: { fresh?: boolean } = {}) {
   }, [store, players, canEdit])
 
   const remove = useCallback(async (id: string) => {
-    guard()
+    if (!canRemove) throw new Error("Só um administrador pode tirar alguém do setor.")
     await (await store.apiOf(players)).remove(id)
     store.drop(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [store, players, canEdit])
+  }, [store, players, canRemove])
 
   const reload = useCallback(() => store.load(players), [store, players])
 
@@ -320,6 +319,8 @@ export function useAthletes({ fresh = false }: { fresh?: boolean } = {}) {
     missing: snap.error instanceof AthletesMissingError,
     loading: snap.loading,
     canEdit,
+    /** Tirar do setor apaga a ficha: só o administrador. */
+    canRemove,
     reload,
     forPlayer,
     forMember,

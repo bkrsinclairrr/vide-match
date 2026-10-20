@@ -1,10 +1,10 @@
 /**
  * Contas e acessos: tudo passa pela função `admin-users` do Supabase (ela usa a
  * service role e confere o papel de quem chama: o executivo só lista, o
- * administrador faz o resto). No `npm run dev` com /voxen?demo, dados locais.
+ * administrador faz o resto; o Scout não usa). No `npm run dev` com /voxen?demo, dados locais.
  */
 import { supabase } from "@/integrations/supabase/client"
-import type { AccessLevel } from "../../access"
+import { levelFromRoles, type AccessLevel, type StaffRole } from "../../access"
 
 export type AccountRow = {
   id: string
@@ -24,9 +24,9 @@ export type AccountList = { users: AccountRow[]; me: { id: string; level: Access
 export interface AccountsApi {
   list(): Promise<AccountList>
   setLevel(id: string, level: AccessLevel): Promise<void>
-  invite(email: string, fullName: string, level: "admin" | "executive"): Promise<{ invited: boolean }>
+  invite(email: string, fullName: string, level: StaffRole): Promise<{ invited: boolean }>
   /** Cria a conta já pronta para entrar, com a senha definida por quem cria. `created: false`: a pessoa já tinha conta e só ganhou o nível. */
-  createStaff(email: string, fullName: string, level: "admin" | "executive", password: string): Promise<{ created: boolean }>
+  createStaff(email: string, fullName: string, level: StaffRole, password: string): Promise<{ created: boolean }>
   rename(id: string, fullName: string): Promise<void>
   setDisabled(id: string, disabled: boolean): Promise<void>
   remove(id: string): Promise<void>
@@ -81,7 +81,7 @@ const toRow = (u: Raw): AccountRow => ({
   disabled: u.disabled ?? false,
   provider: u.provider ?? "email",
   // Versão antiga da função só devolve `roles`.
-  level: u.level ?? (u.roles?.includes("admin") ? "admin" : u.roles?.includes("executive") ? "executive" : "user"),
+  level: u.level ?? levelFromRoles(u.roles ?? []),
 })
 
 const supabaseAccounts: AccountsApi = {

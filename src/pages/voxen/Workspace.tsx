@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  BadgeCheck, Eye, GitCompareArrows, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
+  BadgeCheck, GitCompareArrows, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
-import { LEVEL_LABEL, type StaffRole } from "./access"
+import { LEVEL_LABEL, canAdminAs, canSeeAccountsAs, type StaffRole } from "./access"
 import { positionCode } from "./data"
 import { AppShell, useCommandShortcut, type NavItem, type Shortcut, type TabItem } from "./shell"
 import { Avatar, PageSkeleton, ScoreChip, VoxenWordmark, playerPath } from "./ui"
@@ -43,6 +43,15 @@ const NAV: NavItem[] = [
   { to: "/voxen/comparativo", label: "Comparativo", icon: GitCompareArrows, section: "Plataforma" },
   { to: "/voxen/contas", label: "Contas e acessos", icon: ShieldCheck, section: "Administração" },
 ]
+
+/** O menu de cada cargo: o Scout não vê "Contas e acessos". */
+const navFor = (role: StaffRole) => NAV.filter((item) => item.to !== "/voxen/contas" || canSeeAccountsAs(role))
+
+const DEMO_EMAIL: Record<StaffRole, string> = {
+  admin: "equipe@aizyron.com",
+  executive: "executivo@aizyron.com",
+  scout: "scout@aizyron.com",
+}
 
 /** Barra de abas do celular: as quatro telas mais usadas e o menu completo. */
 const TABS: TabItem[] = [
@@ -83,7 +92,7 @@ function useTitle() {
 }
 
 function Shell() {
-  const { players, loading, reload, demo, error, role, canEdit } = useVoxen()
+  const { players, loading, reload, demo, error, role } = useVoxen()
   const { user, signOut } = useAuth()
   const { toast } = useToast()
   const [palette, setPalette] = useState(false)
@@ -94,12 +103,12 @@ function Shell() {
     if (await reload()) toast({ title: "Dados atualizados", description: "A base de atletas foi recarregada agora." })
   }
 
-  const email = demo ? (role === "admin" ? "equipe@aizyron.com" : "executivo@aizyron.com") : user?.email ?? ""
+  const email = demo ? DEMO_EMAIL[role] : user?.email ?? ""
   const onSignOut = demo ? undefined : () => void signOut()
 
-  const nav = NAV.map((item) => (item.to === "/voxen/jogadores" ? { ...item, badge: players.length } : item))
+  const nav = navFor(role).map((item) => (item.to === "/voxen/jogadores" ? { ...item, badge: players.length } : item))
   const shortcuts: Shortcut[] = [
-    ...(role === "admin" ? [{ label: "Painel de administração", to: "/admin" }] : []),
+    ...(canAdminAs(role) ? [{ label: "Painel de administração", to: "/admin" }] : []),
     { label: "Abrir o funil", href: "/avaliacao" },
     { label: "Site da Zyron", href: "/" },
   ]
@@ -115,11 +124,6 @@ function Shell() {
       onSignOut={onSignOut}
       kicker={kicker}
       title={title}
-      chip={!canEdit && (
-        <span className="vx-tag vx-readonly" title="O seu acesso é de executivo: você vê tudo, mas não altera nada.">
-          <Eye className="h-3 w-3" /> Somente leitura
-        </span>
-      )}
       searchLabel="Buscar atleta, e-mail ou telefone"
       onSearch={() => setPalette(true)}
       onRefresh={() => void refresh()}
@@ -147,7 +151,7 @@ function Shell() {
             <Route path="jogadores/:key" element={<PlayerProfile />} />
             <Route path="elenco" element={<Squad />} />
             <Route path="comparativo" element={<Compare />} />
-            <Route path="contas" element={<AccountsPage />} />
+            <Route path="contas" element={canSeeAccountsAs(role) ? <AccountsPage /> : <Navigate to="/voxen" replace />} />
             <Route path="atletas" element={<AthletesPage />} />
             <Route path="membros" element={<AdminMembers />} />
             <Route path="membros/comparar" element={<AdminCompare />} />
@@ -189,12 +193,12 @@ function Palette({
           <CommandList className="max-h-[420px]">
             <CommandEmpty>Nenhum atleta encontrado.</CommandEmpty>
             <CommandGroup heading="Páginas">
-              {NAV.map(({ to, label, icon: Icon }) => (
+              {navFor(role).map(({ to, label, icon: Icon }) => (
                 <CommandItem key={to} value={`pagina ${label}`} onSelect={() => go(to)}>
                   <Icon className="mr-2 h-4 w-4" /> {label}
                 </CommandItem>
               ))}
-              {role === "admin" && (
+              {canAdminAs(role) && (
                 <CommandItem value="pagina painel de administracao admin" onSelect={() => go("/admin")}>
                   <ShieldCheck className="mr-2 h-4 w-4" /> Painel de administração
                 </CommandItem>

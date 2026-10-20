@@ -196,7 +196,7 @@ function Palette({
               </CommandItem>
             </CommandGroup>
             <CommandGroup heading="Ações">
-              <CommandItem value="acao criar conta de equipe executivo administrador" onSelect={() => go("/admin/contas")}>
+              <CommandItem value="acao criar conta de equipe scout executivo administrador" onSelect={() => go("/admin/contas")}>
                 <UserPlus className="mr-2 h-4 w-4" /> Criar conta de equipe
               </CommandItem>
               <CommandItem value="acao novo membro" onSelect={() => go("/admin/membros?novo=1")}>

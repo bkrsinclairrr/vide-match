@@ -1,13 +1,14 @@
 /* Contas e acessos (/voxen/contas). Mesmo sistema visual da VOXEN (.vx-*). */
 
-.ac-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.ac-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
 .ac-kpi { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
 .ac-kpi > svg { flex-shrink: 0; width: 38px; height: 38px; padding: 9px; border-radius: 12px; color: var(--vx-gold); background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); }
 .ac-kpi b { display: block; font-size: 26px; font-weight: 850; letter-spacing: -0.03em; line-height: 1; }
 .ac-kpi span { display: block; margin-top: 4px; color: var(--vx-dim); font-size: 12px; font-weight: 600; }
+@media (max-width: 1180px) { .ac-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 860px) { .ac-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
-.ac-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.ac-legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
 .ac-legend-card { display: flex; gap: 14px; padding: 16px 18px; border-radius: 16px; border: 1px solid var(--vx-border); background: var(--vx-panel); }
 .ac-legend-icon { display: grid; flex-shrink: 0; place-items: center; width: 38px; height: 38px; border-radius: 12px; }
 .ac-legend-icon svg { width: 18px; height: 18px; }
@@ -15,12 +16,15 @@
 .ac-legend-card p { margin: 4px 0 0; color: var(--vx-dim); font-size: 12.5px; line-height: 1.5; }
 .ac-legend-card.is-admin .ac-legend-icon { color: #1a1203; background: linear-gradient(135deg, #fde68a, #f59e0b); }
 .ac-legend-card.is-executive .ac-legend-icon { color: #7dd3fc; background: rgba(56, 189, 248, 0.14); }
+.ac-legend-card.is-scout .ac-legend-icon { color: #c4b5fd; background: rgba(167, 139, 250, 0.14); }
 .ac-legend-card.is-user .ac-legend-icon { color: #a1a1aa; background: rgba(255, 255, 255, 0.07); }
-@media (max-width: 960px) { .ac-legend { grid-template-columns: 1fr; } }
+@media (max-width: 1180px) { .ac-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .ac-legend { grid-template-columns: 1fr; } }
 
 .ac-level { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 11.5px; font-weight: 750; white-space: nowrap; }
 .ac-level.is-admin { color: #fde68a; background: rgba(251, 191, 36, 0.14); border: 1px solid rgba(251, 191, 36, 0.3); }
 .ac-level.is-executive { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.28); }
+.ac-level.is-scout { color: #c4b5fd; background: rgba(167, 139, 250, 0.12); border: 1px solid rgba(167, 139, 250, 0.28); }
 .ac-level.is-user { color: #a1a1aa; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--vx-border-2); }
 
 .ac-readonly { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; padding: 12px 16px; border-radius: 14px; border: 1px solid rgba(56, 189, 248, 0.25); background: rgba(56, 189, 248, 0.07); color: #bae6fd; font-size: 13px; }
@@ -31,8 +35,8 @@
 .ac-create-head .vx-card-sub { max-width: 520px; }
 .ac-create-head .vx-tab { display: inline-flex; align-items: center; }
 
-.ac-picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-@media (max-width: 720px) { .ac-picks { grid-template-columns: 1fr; } }
+.ac-picks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 960px) { .ac-picks { grid-template-columns: 1fr; } }
 
 .ac-pick {
   position: relative;
@@ -52,6 +56,7 @@
 .ac-pick-icon { display: grid; flex-shrink: 0; place-items: center; width: 40px; height: 40px; border-radius: 12px; transition: transform 0.4s var(--vx-ease); }
 .ac-pick-icon svg { width: 19px; height: 19px; }
 .ac-pick.is-executive .ac-pick-icon { color: #7dd3fc; background: rgba(56, 189, 248, 0.14); }
+.ac-pick.is-scout .ac-pick-icon { color: #c4b5fd; background: rgba(167, 139, 250, 0.14); }
 .ac-pick.is-admin .ac-pick-icon { color: #1a1203; background: linear-gradient(135deg, #fde68a, #f59e0b); }
 .ac-pick-text { display: flex; flex-direction: column; min-width: 0; gap: 3px; }
 .ac-pick-text b { font-size: 14px; }
@@ -61,6 +66,8 @@
 .ac-pick.is-on { border-color: rgba(251, 191, 36, 0.5); background: rgba(251, 191, 36, 0.07); box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.12), 0 14px 34px -18px rgba(251, 191, 36, 0.55); }
 .ac-pick.is-executive.is-on { border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.07); box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12), 0 14px 34px -18px rgba(56, 189, 248, 0.5); }
 .ac-pick.is-executive.is-on .ac-pick-check { background: #38bdf8; }
+.ac-pick.is-scout.is-on { border-color: rgba(167, 139, 250, 0.5); background: rgba(167, 139, 250, 0.07); box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.12), 0 14px 34px -18px rgba(167, 139, 250, 0.5); }
+.ac-pick.is-scout.is-on .ac-pick-check { background: #a78bfa; }
 .ac-pick.is-on .ac-pick-check { opacity: 1; transform: none; }
 .ac-pick.is-on .ac-pick-icon { transform: scale(1.06) rotate(-4deg); }
 

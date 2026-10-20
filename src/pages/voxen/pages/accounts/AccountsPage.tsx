@@ -3,21 +3,23 @@ import "./accounts.css"
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import {
-  Ban, Check, CheckCircle2, Crown, Eye, Pencil, Power, Search, ShieldCheck, Trash2, UserRound, Users, X,
+  Ban, Binoculars, Check, CheckCircle2, Crown, Eye, Pencil, Power, Search, ShieldCheck, Trash2, UserRound, Users, X,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, Empty, PageSkeleton } from "../../ui"
 import { useVoxen } from "../../store"
 import { timeAgo } from "../../data"
-import { LEVEL_BLURB, LEVEL_LABEL, type AccessLevel } from "../../access"
+import { LEVEL_BLURB, LEVEL_LABEL, type AccessLevel, type StaffRole } from "../../access"
 import { getAccountsApi, type AccountRow, type AccountsApi } from "./api"
 import { StaffCreator } from "./StaffCreator"
 
 type Tab = "equipe" | "atletas"
-type TeamFilter = "todos" | "admin" | "executive"
+type TeamFilter = "todos" | StaffRole
 
-const LEVELS: AccessLevel[] = ["admin", "executive", "user"]
-const LEVEL_ICON = { admin: Crown, executive: Eye, user: UserRound } as const
+const LEVELS: AccessLevel[] = ["admin", "executive", "scout", "user"]
+const LEVEL_ICON = { admin: Crown, executive: Eye, scout: Binoculars, user: UserRound } as const
+/** Nome do cargo no plural, para os números e o filtro da equipe. */
+const TEAM_PLURAL: Record<StaffRole, string> = { admin: "Administradores", executive: "Executivos", scout: "Scouts" }
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 /** Chip do nível de acesso. */
@@ -27,7 +29,7 @@ function LevelChip({ level }: { level: AccessLevel }) {
 }
 
 export default function AccountsPage() {
-  const { demo, canEdit } = useVoxen()
+  const { demo, canAdmin } = useVoxen()
   const { toast } = useToast()
   const [params] = useSearchParams()
   const focusId = params.get("conta")
@@ -75,7 +77,8 @@ export default function AccountsPage() {
   const team = useMemo(() => (rows ?? []).filter((r) => r.level !== "user").sort((a, b) => LEVELS.indexOf(a.level) - LEVELS.indexOf(b.level) || a.fullName.localeCompare(b.fullName)), [rows])
   const athletes = useMemo(() => (rows ?? []).filter((r) => r.level === "user").sort((a, b) => b.createdAt.localeCompare(a.createdAt)), [rows])
   const admins = team.filter((r) => r.level === "admin").length
-  const executives = team.length - admins
+  const executives = team.filter((r) => r.level === "executive").length
+  const scouts = team.filter((r) => r.level === "scout").length
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
     const base = tab === "equipe" ? team.filter((r) => teamFilter === "todos" || r.level === teamFilter) : athletes
@@ -83,7 +86,7 @@ export default function AccountsPage() {
   }, [tab, team, athletes, query, teamFilter])
 
   const run = async (id: string, job: () => Promise<void>, done: string) => {
-    if (!canEdit) return
+    if (!canAdmin) return
     setBusy(id)
     try {
       await job()
@@ -124,6 +127,7 @@ export default function AccountsPage() {
         {[
           { label: "Administradores", value: admins, icon: Crown },
           { label: "Executivos", value: executives, icon: Eye },
+          { label: "Scouts", value: scouts, icon: Binoculars },
           { label: "Atletas", value: athletes.length, icon: Users },
           { label: "Desativadas", value: disabledCount, icon: Ban },
         ].map((k) => (
@@ -146,8 +150,8 @@ export default function AccountsPage() {
         })}
       </section>
 
-      {canEdit && api && <StaffCreator api={api} onDone={load} />}
-      {!canEdit && (
+      {canAdmin && api && <StaffCreator api={api} onDone={load} />}
+      {!canAdmin && (
         <p className="ac-readonly"><Eye className="h-4 w-4" /> O seu acesso é de executivo: você vê as contas e os acessos, mas só um administrador pode alterar.</p>
       )}
 
@@ -163,7 +167,7 @@ export default function AccountsPage() {
           </div>
           {tab === "equipe" && (
             <div className="vx-chips" role="group" aria-label="Filtrar a equipe por nível">
-              {([["todos", "Todos", team.length], ["admin", "Administradores", admins], ["executive", "Executivos", executives]] as const).map(([key, label, n]) => (
+              {([["todos", "Todos", team.length], ["admin", TEAM_PLURAL.admin, admins], ["executive", TEAM_PLURAL.executive, executives], ["scout", TEAM_PLURAL.scout, scouts]] as const).map(([key, label, n]) => (
                 <button key={key} type="button" aria-pressed={teamFilter === key} className={`vx-chip ${teamFilter === key ? "is-on" : ""}`} onClick={() => setTeamFilter(key)}>
                   {label} <span className="tnum opacity-60">{n}</span>
                 </button>
@@ -181,7 +185,7 @@ export default function AccountsPage() {
           <div className="overflow-x-auto">
             <table className="vx-table ac-table">
               <thead>
-                <tr><th style={{ paddingLeft: 20 }}>Conta</th><th>Acesso</th><th>Status</th><th>Último acesso</th>{canEdit && <th aria-label="Ações" />}</tr>
+                <tr><th style={{ paddingLeft: 20 }}>Conta</th><th>Acesso</th><th>Status</th><th>Último acesso</th>{canAdmin && <th aria-label="Ações" />}</tr>
               </thead>
               <tbody>
                 {shown.map((r) => {
@@ -213,7 +217,7 @@ export default function AccountsPage() {
                         </div>
                       </td>
                       <td>
-                        {canEdit && !isMe ? (
+                        {canAdmin && !isMe ? (
                           <select className="vx-input vx-select ac-select" value={r.level} disabled={busy === r.id || lastAdmin} aria-label={`Acesso de ${label}`}
                             title={lastAdmin ? "É o único administrador: promova outra pessoa antes." : undefined}
                             onChange={(e) => changeLevel(r, e.target.value as AccessLevel)}>
@@ -231,7 +235,7 @@ export default function AccountsPage() {
                         </div>
                       </td>
                       <td className="tnum text-zinc-400">{r.lastSignInAt ? timeAgo(r.lastSignInAt) : "Nunca entrou"}</td>
-                      {canEdit && (
+                      {canAdmin && (
                         <td>
                           <div className="ac-actions">
                             <button type="button" className="vx-icon-btn" title="Editar nome" aria-label={`Editar o nome de ${label}`} onClick={() => setEditing({ id: r.id, name: r.fullName })}><Pencil /></button>
@@ -252,7 +256,7 @@ export default function AccountsPage() {
                     </tr>
                     {asking && (
                       <tr className="ac-confirm-row">
-                        <td colSpan={canEdit ? 5 : 4}>
+                        <td colSpan={canAdmin ? 5 : 4}>
                           <div className="ac-confirm" role="alertdialog" aria-label="Confirmar">
                             <p>
                               {asking.kind === "delete"
@@ -281,8 +285,8 @@ export default function AccountsPage() {
             </table>
           </div>
         ) : (
-          <Empty icon={<Users className="h-6 w-6" />} title={query ? "Nenhuma conta encontrada" : tab === "equipe" ? (teamFilter === "todos" ? "Ninguém na equipe ainda" : `Nenhum ${teamFilter === "admin" ? "administrador" : "executivo"} por aqui`) : "Nenhum atleta com conta ainda"}>
-            {tab === "atletas" ? "Quem criar uma conta no aizyron.com aparece aqui. Para dar acesso de equipe, escolha o nível na lista." : canEdit ? "Use “Adicionar à equipe” acima para criar uma conta." : "Só um administrador pode adicionar pessoas à equipe."}
+          <Empty icon={<Users className="h-6 w-6" />} title={query ? "Nenhuma conta encontrada" : tab === "equipe" ? (teamFilter === "todos" ? "Ninguém na equipe ainda" : `Nenhum ${LEVEL_LABEL[teamFilter].toLowerCase()} por aqui`) : "Nenhum atleta com conta ainda"}>
+            {tab === "atletas" ? "Quem criar uma conta no aizyron.com aparece aqui. Para dar acesso de equipe, escolha o nível na lista." : canAdmin ? "Use “Adicionar à equipe” acima para criar uma conta." : "Só um administrador pode adicionar pessoas à equipe."}
           </Empty>
         )}
       </section>
