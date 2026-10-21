@@ -4,7 +4,7 @@ import {
   buildPercentiles, deletePlayer, loadVoxenData, saveMeta, updatePlayer,
   type Percentiles, type Player, type PlayerEdit, type PlayerMeta, type VoxenData,
 } from "./data"
-import { canEditAs, type StaffRole } from "./access"
+import { canAdminAs, canScoutAs, type StaffRole } from "./access"
 
 type VoxenStore = {
   data: VoxenData | null
@@ -16,12 +16,14 @@ type VoxenStore = {
   demo: boolean
   /** Nível de acesso de quem está na VOXEN. */
   role: StaffRole
-  /** Só o administrador altera; o executivo apenas lê. */
-  canEdit: boolean
+  /** Mantém jogadores (cadastro, notas, avaliação, partidas): toda a equipe. */
+  canScout: boolean
+  /** Exclui cadastros, membros e partidas e mexe em contas: só o administrador. */
+  canAdmin: boolean
   /** Recarrega a base; `true` se deu certo. */
   reload: () => Promise<boolean>
   updateMeta: (key: string, patch: Partial<PlayerMeta>) => Promise<void>
-  /** Edita o cadastro do atleta (só administrador). `partial`: o perfil do lead não pôde ser gravado. */
+  /** Edita o cadastro do atleta (toda a equipe). `partial`: o perfil do lead não pôde ser gravado. */
   editPlayer: (key: string, edit: PlayerEdit) => Promise<{ partial: boolean }>
   /** Exclui o registro (só administrador). */
   removePlayer: (key: string) => Promise<void>
@@ -72,7 +74,7 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
    * sequência viram uma gravação só, 700 ms depois da última tecla.
    */
   const updateMeta = useCallback(async (key: string, patch: Partial<PlayerMeta>) => {
-    if (!canEditAs(role)) return
+    if (!canScoutAs(role)) return
     const current = dataRef.current
     const player = current?.players.find((p) => p.key === key)
     if (!current || !player) return
@@ -102,7 +104,7 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
   const editPlayer = useCallback(async (key: string, edit: PlayerEdit) => {
     const current = dataRef.current
     const player = current?.players.find((p) => p.key === key)
-    if (!canEditAs(role) || !current || !player) throw new Error("Você não tem permissão para editar.")
+    if (!canScoutAs(role) || !current || !player) throw new Error("Você não tem permissão para editar.")
     if (demo) {
       const f = edit.profile
       const next: Player = {
@@ -130,7 +132,7 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
   const removePlayer = useCallback(async (key: string) => {
     const current = dataRef.current
     const player = current?.players.find((p) => p.key === key)
-    if (!canEditAs(role) || !current || !player) throw new Error("Você não tem permissão para excluir.")
+    if (!canAdminAs(role) || !current || !player) throw new Error("Só um administrador pode excluir.")
     if (demo) {
       const updated = { ...current, players: current.players.filter((p) => p.key !== key) }
       dataRef.current = updated
@@ -143,7 +145,7 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
 
   const removePlayers = useCallback(async (keys: string[]) => {
     const current = dataRef.current
-    if (!canEditAs(role) || !current) throw new Error("Você não tem permissão para excluir.")
+    if (!canAdminAs(role) || !current) throw new Error("Só um administrador pode excluir.")
     const wanted = new Set(keys)
     if (demo) {
       const updated = { ...current, players: current.players.filter((p) => !wanted.has(p.key)) }
@@ -178,7 +180,8 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
       error,
       demo,
       role,
-      canEdit: canEditAs(role),
+      canScout: canScoutAs(role),
+      canAdmin: canAdminAs(role),
       reload,
       updateMeta,
       editPlayer,

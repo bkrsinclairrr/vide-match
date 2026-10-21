@@ -4,7 +4,8 @@
  * verde, com laranja/vermelho só para dados.
  */
 
-.vx {
+/* `.vx-portal`: diálogos abertos fora da raiz .vx (em portal) recebem os mesmos tokens. */
+.vx, .vx-portal {
   --vx-bg: #070708;
   --vx-side: #0b0b0d;
   --vx-panel: rgba(255, 255, 255, 0.028);
@@ -25,13 +26,13 @@
   --vx-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --vx-side-w: 248px;
 
-  min-height: 100vh;
-  background: var(--vx-bg);
   color: var(--vx-text);
   font-family: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "tnum" 0;
   -webkit-font-smoothing: antialiased;
 }
+
+.vx { min-height: 100vh; background: var(--vx-bg); }
 
 .vx *:focus-visible { outline: 2px solid var(--vx-gold); outline-offset: 2px; border-radius: 6px; }
 .vx ::selection { background: rgba(251, 191, 36, 0.35); }
@@ -258,7 +259,6 @@
 }
 
 .vx-card--flush { padding: 0; overflow: hidden; }
-.vx-readonly { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.28); gap: 5px; white-space: nowrap; }
 /* Cartão que acompanha a rolagem no desktop. Precisa ser classe própria: o
    `position: relative` do .vx-card venceria o `xl:sticky` do Tailwind. */
 @media (min-width: 1280px) { .vx-card.vx-sticky-xl { position: sticky; top: 88px; } }

@@ -8,7 +8,7 @@ import {
 
 /** Estado da sincronização automática de membros e o botão "Sincronizar agora". */
 export function SyncCard({ onChanged }: { onChanged: () => void }) {
-  const { demo, canEdit } = useVoxen()
+  const { demo, canScout } = useVoxen()
   const { toast } = useToast()
   const [status, setStatus] = useState<SyncStatus | null>(null)
   const [missing, setMissing] = useState(false)
@@ -88,7 +88,7 @@ export function SyncCard({ onChanged }: { onChanged: () => void }) {
           </details>
         )}
       </div>
-      {canEdit && (
+      {canScout && (
         <button type="button" className="vx-btn vx-btn--gold" onClick={() => void sync()} disabled={busy}>
           {busy ? <><Loader2 className="cn-spin" /> Sincronizando...</> : <><RefreshCw /> Sincronizar agora</>}
         </button>

@@ -6,7 +6,7 @@ import { levelFromRoles, type AccessLevel } from "@/pages/voxen/access"
 type State = { userId: string | null; level: AccessLevel | null; failed: boolean }
 
 /**
- * Nível de acesso de quem está logado: admin, executivo ou atleta. Lê os papéis
+ * Nível de acesso de quem está logado: admin, executivo, scout ou atleta. Lê os papéis
  * da própria conta (a RLS libera) e fica com o maior. `level` é null enquanto
  * carrega, sem sessão ou se a consulta falhar (`failed`): nunca se assume
  * "atleta" por erro de rede, para não mostrar à equipe a tela errada.

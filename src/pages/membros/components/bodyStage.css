@@ -1,0 +1,275 @@
+/*
+ * Palco da foto de corpo inteiro (BodyStage). Escuro e premium, no âmbar da VOXEN com a cor do
+ * clube como acento (--bs-accent). Entrada em ~900 ms, uma vez; em repouso o holofote "respira".
+ * "Reduzir movimento": sem coreografia, só um fade curto.
+ */
+
+.bs {
+  --bs-px: 0;
+  --bs-py: 0;
+  --bs-w: 280px;
+  position: relative;
+  width: var(--bs-w);
+  max-width: 100%;
+  margin: 0;
+  padding-bottom: 46px;
+}
+
+.bs-stage { position: relative; aspect-ratio: 4 / 5; isolation: isolate; }
+
+/* Fundo do palco: holofote, nome fantasma e grão, recortados no arco */
+.bs-back {
+  position: absolute;
+  inset: 16px 0 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 50% 50% 24px 24px / 34% 34% 24px 24px;
+  background: linear-gradient(180deg, #121215, #08080a 70%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.bs-light {
+  position: absolute;
+  inset: -10% -20% 0;
+  background:
+    radial-gradient(48% 42% at 50% 34%, rgba(var(--bs-accent-rgb), 0.22), transparent 70%),
+    radial-gradient(70% 40% at 50% 100%, rgba(251, 191, 36, 0.12), transparent 70%);
+  opacity: 0;
+  animation: bs-light-on 0.5s ease forwards, bs-breathe 8s ease-in-out 0.9s infinite;
+}
+.bs-ghost {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  color: transparent;
+  font-size: calc(var(--bs-w) * 0.34);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  transform: translate(calc(-50% - 24px + var(--bs-px) * -4px), calc(var(--bs-py) * -3px));
+  animation: bs-ghost-in 0.8s var(--vx-ease) 0.2s forwards;
+  user-select: none;
+}
+.bs-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+/* O atleta */
+.bs-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+}
+.bs-frame:disabled { cursor: default; }
+.bs.is-ready .bs-frame { animation: bs-rise 0.75s var(--vx-ease) 0.12s forwards; }
+.bs-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0;
+  filter: brightness(1.04) contrast(1.04) saturate(1.05);
+  transform: translate(calc(var(--bs-px) * 6px), calc(var(--bs-py) * 4px));
+  transition: transform 0.6s var(--vx-ease);
+  -webkit-user-drag: none;
+}
+
+/* Moldura: arco com borda dourada, a base da foto dissolve no chão do palco */
+.bs--moldura .bs-frame {
+  top: 16px;
+  overflow: hidden;
+  border-radius: 50% 50% 24px 24px / 34% 34% 24px 24px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 80%, transparent 100%);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+}
+.bs--moldura .bs-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(165deg, rgba(253, 230, 138, 0.95), rgba(245, 158, 11, 0.28) 38%, rgba(var(--bs-accent-rgb), 0.45) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.bs--moldura .bs-img { transform: scale(1.03) translate(calc(var(--bs-px) * 5px), calc(var(--bs-py) * 4px)); }
+
+/* Recorte (PNG transparente): sem moldura, sombra projetada, sombra no chão e reflexo */
+.bs--recorte .bs-img {
+  object-fit: contain;
+  object-position: 50% 100%;
+  filter: brightness(1.04) contrast(1.04) saturate(1.05) drop-shadow(0 22px 26px rgba(0, 0, 0, 0.6));
+}
+.bs-floor {
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  z-index: 1;
+  width: 64%;
+  height: 7%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.75), rgba(var(--bs-accent-rgb), 0.12) 60%, transparent);
+  opacity: 0;
+  transform: translateX(-50%) scaleX(0.4);
+  animation: bs-floor 0.7s var(--vx-ease) 0.3s forwards;
+}
+.bs--moldura .bs-floor { bottom: -2%; width: 80%; opacity: 0; }
+.bs-reflection {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 0;
+  height: 22%;
+  overflow: hidden;
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000, transparent 85%);
+  animation: bs-fade-to 0.8s ease 0.6s forwards;
+  --bs-to: 0.12;
+}
+/* Espelhada no centro: o topo do reflexo mostra os pés, colado ao chão do palco. */
+.bs-reflection .bs-img { height: auto; aspect-ratio: 4 / 5; transform: scaleY(-1); transform-origin: 50% 50%; filter: blur(1px) brightness(0.9); transition: none; }
+
+/* Carregando: silhueta com brilho de esqueleto */
+.bs-skeleton {
+  position: absolute;
+  inset: 8% 26% 4%;
+  border-radius: 40% 40% 18% 18% / 22% 22% 10% 10%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0.04) 30%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.04) 70%);
+  background-size: 220% 100%;
+  animation: bs-shimmer 1.4s linear infinite;
+  transition: opacity 0.3s;
+}
+.bs.is-loading .bs-frame { opacity: 1; transform: none; }
+.bs.is-loading .bs-img { opacity: 0; }
+.bs.is-ready .bs-skeleton { opacity: 0; animation: none; }
+
+/* Selo: o rosto e o escudo, ligando o retrato ao avatar redondo */
+.bs-seal {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  transform: translateX(-50%);
+}
+.bs-seal-face, .bs-seal-crest { opacity: 0; transform: translateY(8px) scale(0.9); animation: bs-pop 0.5s var(--vx-ease) forwards; }
+.bs-seal-face { animation-delay: 0.6s; }
+.bs-seal-crest { margin-left: -10px; animation-delay: 0.68s; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6)); }
+.bs-seal-crest .gm-club-logo { background: #101012; }
+.bs-chips {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--vx-muted);
+  font-size: 11.5px;
+  font-weight: 650;
+  opacity: 0;
+  animation: bs-fade-to 0.5s ease 0.76s forwards;
+  --bs-to: 1;
+}
+.bs-chips span + span::before { content: "·"; margin-right: 6px; color: var(--vx-dim); }
+.bs-caption { display: none; }
+
+/* Celular: faixa de largura total acima do nome, nome e chips sobre o degradê */
+.bs--mobile, .bs--mobile .bs-stage { --bs-w: 100%; width: 100%; }
+.bs--mobile { padding-bottom: 0; }
+.bs--mobile .bs-stage { overflow: hidden; border-radius: 22px; }
+.bs--mobile .bs-back, .bs--mobile.bs--moldura .bs-frame { inset: 0; top: 0; border-radius: 22px; }
+.bs--mobile.bs--moldura .bs-frame { -webkit-mask-image: none; mask-image: none; }
+.bs--mobile .bs-ghost { font-size: min(26vw, 120px) !important; }
+.bs--mobile .bs-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 64px 18px 18px 106px;
+  background: linear-gradient(to top, rgba(7, 7, 8, 0.92), rgba(7, 7, 8, 0.55) 55%, transparent);
+}
+.bs--mobile .bs-caption b { color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+.bs--mobile .bs-caption span { color: #e4e4e7; font-size: 12.5px; font-weight: 600; }
+.bs--mobile .bs-seal { left: 16px; bottom: 16px; transform: none; }
+.bs--mobile .bs-chips, .bs--mobile .bs-reflection { display: none; }
+.bs--mobile .bs-img { transform: none; }
+
+@media (max-width: 760px) {
+  .bs--auto, .bs--auto .bs-stage { --bs-w: 100%; width: 100%; }
+  .bs--auto { padding-bottom: 0; }
+  .bs--auto .bs-stage { overflow: hidden; border-radius: 22px; }
+  .bs--auto .bs-back, .bs--auto.bs--moldura .bs-frame { inset: 0; top: 0; border-radius: 22px; }
+  .bs--auto.bs--moldura .bs-frame { -webkit-mask-image: none; mask-image: none; }
+  .bs--auto .bs-ghost { font-size: min(18vw, 110px) !important; }
+  .bs--auto .bs-caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 64px 18px 18px 106px;
+    background: linear-gradient(to top, rgba(7, 7, 8, 0.92), rgba(7, 7, 8, 0.55) 55%, transparent);
+  }
+  .bs--auto .bs-caption b { color: #fff; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+  .bs--auto .bs-caption span { color: #e4e4e7; font-size: 12.5px; font-weight: 600; }
+  .bs--auto .bs-seal { left: 16px; bottom: 16px; transform: none; }
+  .bs--auto .bs-chips, .bs--auto .bs-reflection { display: none; }
+  .bs--auto .bs-img { transform: none; }
+}
+
+/* Foto ampliada */
+.bs-zoom-stage {
+  overflow: hidden;
+  border-radius: 24px;
+  background: radial-gradient(60% 50% at 50% 35%, rgba(var(--bs-accent-rgb), 0.25), transparent 70%), #0b0b0d;
+  box-shadow: 0 40px 120px -20px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(253, 230, 138, 0.25);
+}
+.bs-zoom-stage img { display: block; width: 100%; height: auto; max-height: 86vh; object-fit: contain; }
+
+@keyframes bs-light-on { to { opacity: 1; } }
+@keyframes bs-breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.92; transform: scale(1.04); } }
+@keyframes bs-ghost-in { to { opacity: 0.09; transform: translate(calc(-50% + var(--bs-px) * -4px), calc(var(--bs-py) * -3px)); } }
+@keyframes bs-rise { to { opacity: 1; transform: none; } }
+@keyframes bs-floor { to { opacity: 1; transform: translateX(-50%) scaleX(1); } }
+@keyframes bs-pop { to { opacity: 1; transform: none; } }
+@keyframes bs-fade-to { to { opacity: var(--bs-to, 1); } }
+@keyframes bs-shimmer { to { background-position: -220% 0; } }
+
+/* Reduzir movimento: sem coreografia nem respiração, só um fade de 200 ms */
+.bs.is-calm *, .bs.is-calm *::before, .bs.is-calm *::after { animation-duration: 0.2s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+.bs.is-calm .bs-frame, .bs.is-calm .bs-seal-face, .bs.is-calm .bs-seal-crest { transform: none; }
+.bs.is-calm .bs-img { transform: none; transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .bs *, .bs *::before, .bs *::after { animation-duration: 0.2s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+}
+@media print { .bs * { animation: none !important; opacity: 1 !important; transform: none !important; } }

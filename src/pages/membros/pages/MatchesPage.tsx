@@ -1,36 +1,76 @@
-import { useMemo, useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useLocation } from "react-router-dom"
 import { ArrowRight, Clapperboard } from "lucide-react"
 import { Empty } from "@/pages/voxen/ui"
-import { useMember } from "../ClientArea"
+import { useAthlete } from "../ClientArea"
 import { CLIENT_BASE } from "../paths"
 import { formatMatchDate, scoreline } from "../model"
-import { pct } from "../metrics"
+import { pct, type ProfileSummary } from "../metrics"
 import { MatchThumb } from "../components/MatchThumb"
 import { RatingChip, ResultBadge } from "../components/bits"
 import { UnlockCard } from "../components/Gamify"
+import { LockedAnalysis } from "../components/Locks"
+import { SubmissionList, SubmitMatchCard } from "../components/SubmitMatch"
+import Locked from "./Locked"
 
+/**
+ * Partidas: o envio de um jogo (link do YouTube) e, quando a equipe analisa, as partidas
+ * lance a lance. Abre com o perfil pronto (para mandar o primeiro jogo) ou com jogo analisado.
+ */
 export default function MatchesPage() {
-  const { summary } = useMember()
+  const { game, member, layer, adminPreview, preview, refresh } = useAthlete()
+  const { hash } = useLocation()
+  const { gates } = game
+  const canSend = gates.analysis && layer.available
+
+  // Veio de "Enviar vídeo" numa missão: rola até o formulário.
+  useEffect(() => {
+    if (hash === "#enviar") window.setTimeout(() => document.getElementById("enviar")?.scrollIntoView({ behavior: "smooth", block: "start" }), 120)
+  }, [hash])
+
+  if (!gates.matches && !gates.analysis) return <Locked page="partidas" />
+
+  const analyzed = member && gates.matches ? member.summary : null
+
+  return (
+    <>
+      {canSend
+        ? <SubmitMatchCard preview={preview} disabled={adminPreview} onSent={() => void refresh()} />
+        : gates.analysis && !analyzed && <div className="mb-[18px]"><UnlockCard /></div>}
+      <SubmissionList submissions={layer.submissions} />
+      {analyzed
+        ? <AnalyzedMatches summary={analyzed} />
+        : gates.matches && !member
+          ? <LockedAnalysis title="As suas partidas analisadas aparecem aqui." text="Assim que a equipe analisar o primeiro jogo que você mandou, ele aparece com o vídeo, cada lance marcado, o mapa de calor e a nota." />
+          : (
+            <div className="vx-card mb-[18px]">
+              <Empty icon={<Clapperboard className="h-6 w-6" />} title="Nenhuma partida analisada ainda">
+                Assim que a equipe analisar o seu primeiro jogo, ele aparece aqui com o vídeo e cada lance marcado.
+              </Empty>
+            </div>
+          )}
+    </>
+  )
+}
+
+function AnalyzedMatches({ summary }: { summary: ProfileSummary }) {
   const [comp, setComp] = useState("Todas")
   const comps = useMemo(() => ["Todas", ...new Set(summary.matches.map((m) => m.match.competition ?? "Outras"))], [summary.matches])
   const list = comp === "Todas" ? summary.matches : summary.matches.filter((m) => (m.match.competition ?? "Outras") === comp)
 
   if (!summary.matches.length) {
     return (
-      <>
-        <div className="vx-card mb-[18px]">
-          <Empty icon={<Clapperboard className="h-6 w-6" />} title="Nenhuma partida analisada ainda">
-            Assim que a equipe analisar o seu primeiro jogo, ele aparece aqui com o vídeo e cada lance marcado.
-          </Empty>
-        </div>
-        <UnlockCard />
-      </>
+      <div className="vx-card mb-[18px]">
+        <Empty icon={<Clapperboard className="h-6 w-6" />} title="Nenhuma partida analisada ainda">
+          Assim que a equipe analisar o seu primeiro jogo, ele aparece aqui com o vídeo e cada lance marcado.
+        </Empty>
+      </div>
     )
   }
 
   return (
     <>
+      <h3 className="vx-card-title mb-3 mt-2">Partidas analisadas</h3>
       <div className="vx-chips mb-5">
         {comps.map((c) => <button key={c} type="button" className={`vx-chip ${c === comp ? "is-on" : ""}`} onClick={() => setComp(c)}>{c}</button>)}
       </div>

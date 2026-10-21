@@ -104,6 +104,8 @@ export const inputFromMember = (m: Member): MemberInput => ({
   id: m.id, kind: m.kind, fullName: m.fullName, email: m.email, birthDate: m.birthDate, position: m.position,
   category: m.category, foot: m.foot, heightCm: m.heightCm, weightKg: m.weightKg, city: m.city, team: m.team,
   photoUrl: m.photoUrl, bio: m.bio, scout: m.scout, leadId: m.leadId, active: m.active,
+  // Telefone e nacionalidade só entram quando o banco já tem as colunas.
+  ...(m.extended ? { phone: m.phone, nationality: m.nationality } : {}),
 })
 
 export function FormField({ label, children, hint, error, wide, full }: {
@@ -137,7 +139,9 @@ export function MemberForm({
   const isMember = v.kind === "membro"
   const emailOk = !isMember || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test((v.email ?? "").trim())
   const photoOk = !v.photoUrl || /^https:\/\//.test(v.photoUrl)
-  const valid = v.fullName.trim().length >= 2 && emailOk && photoOk
+  const phoneDigits = (v.phone ?? "").replace(/\D/g, "")
+  const phoneOk = !phoneDigits || (phoneDigits.length >= 10 && phoneDigits.length <= 15)
+  const valid = v.fullName.trim().length >= 2 && emailOk && photoOk && phoneOk
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -185,6 +189,16 @@ export function MemberForm({
       <FormField label="Peso (kg)">
         <input className="vx-input" inputMode="numeric" value={v.weightKg ?? ""} onChange={(e) => set("weightKg", num(e.target.value.replace(/\D/g, "")))} placeholder="72" />
       </FormField>
+      {isMember && v.phone !== undefined && (
+        <FormField label="Telefone (WhatsApp)" hint="Com DDD. Ex.: 61 99999-0000" error={phoneOk ? undefined : "Use DDD e número (10 a 15 dígitos)."}>
+          <input className="vx-input" inputMode="tel" value={v.phone ?? ""} onChange={(e) => set("phone", e.target.value.replace(/[^\d\s()+-]/g, "") || null)} placeholder="61 99999-0000" />
+        </FormField>
+      )}
+      {isMember && v.nationality !== undefined && (
+        <FormField label="Nacionalidade">
+          <input className="vx-input" value={v.nationality ?? ""} onChange={(e) => set("nationality", e.target.value || null)} placeholder="Brasil" maxLength={60} />
+        </FormField>
+      )}
       <FormField label={isMember ? "Time atual" : "Origem dos dados"}>
         <input className="vx-input" value={v.team ?? ""} onChange={(e) => set("team", e.target.value || null)} placeholder={isMember ? "Ex.: Real Brasília Sub-20" : "Ex.: Perfil de referência"} />
       </FormField>

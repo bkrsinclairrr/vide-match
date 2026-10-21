@@ -292,7 +292,7 @@ export function AthleteFile({ a, sector, origin, onRemoved }: { a: Athlete; sect
         </section>
       )}
 
-      {!ro && (
+      {sector.canRemove && (
         <section className="vx-card cn-risk">
           <h3 className="vx-card-title">Zona de risco</h3>
           {asking ? (

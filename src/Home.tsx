@@ -41,7 +41,7 @@ const Institucional = lazy(() => import("./pages/institucional/Institucional"))
 /** Tabela de preços e links de pagamento para os closers (link na descrição do grupo de WhatsApp). */
 const Precos = lazy(() => import("./pages/precos/Precos"))
 
-/** VOXEN: a plataforma da equipe (administradores e executivos), com login próprio em /voxen. */
+/** VOXEN: a plataforma da equipe (administradores, executivos e scouts), com login próprio em /voxen. */
 const VoxenApp = lazy(() => import("./pages/voxen/VoxenApp"))
 
 /** Entrada só de administradores (/admin): login sem cadastro que leva direto à VOXEN. */

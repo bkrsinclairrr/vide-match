@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  BadgeCheck, Eye, GitCompareArrows, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
+  BadgeCheck, ClipboardList, Compass, GitCompareArrows, Inbox, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/command"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { VoxenProvider, useVoxen } from "./store"
-import { LEVEL_LABEL, type StaffRole } from "./access"
+import { LEVEL_LABEL, canAdminAs, canSeeAccountsAs, type StaffRole } from "./access"
 import { positionCode } from "./data"
 import { AppShell, useCommandShortcut, type NavItem, type Shortcut, type TabItem } from "./shell"
 import { Avatar, PageSkeleton, ScoreChip, VoxenWordmark, playerPath } from "./ui"
@@ -33,16 +33,31 @@ const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
 const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
 const AccountsPage = lazy(() => import("./pages/accounts/AccountsPage"))
 const AthletesPage = lazy(() => import("./pages/athletes/AthletesPage"))
+const OpportunitiesPage = lazy(() => import("./pages/opportunities/OpportunitiesPage"))
+const ScoutDesk = lazy(() => import("./pages/scout/ScoutDesk"))
+const SubmissionsPage = lazy(() => import("./pages/scout/SubmissionsPage"))
 
 const NAV: NavItem[] = [
   { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true, section: "Plataforma" },
+  { to: "/voxen/mesa", label: "Mesa do Scout", icon: ClipboardList, section: "Plataforma" },
   { to: "/voxen/jogadores", label: "Jogadores", icon: Users, section: "Plataforma" },
+  { to: "/voxen/oportunidades", label: "Oportunidades", icon: Compass, section: "Plataforma" },
+  { to: "/voxen/envios", label: "Envios de vídeo", icon: Inbox, section: "Plataforma" },
   { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, section: "Plataforma" },
   { to: "/voxen/atletas", label: "Atletas", icon: Medal, section: "Plataforma" },
   { to: "/voxen/elenco", label: "Elenco", icon: Shirt, section: "Plataforma" },
   { to: "/voxen/comparativo", label: "Comparativo", icon: GitCompareArrows, section: "Plataforma" },
   { to: "/voxen/contas", label: "Contas e acessos", icon: ShieldCheck, section: "Administração" },
 ]
+
+/** O menu de cada cargo: o Scout não vê "Contas e acessos". */
+const navFor = (role: StaffRole) => NAV.filter((item) => item.to !== "/voxen/contas" || canSeeAccountsAs(role))
+
+const DEMO_EMAIL: Record<StaffRole, string> = {
+  admin: "equipe@aizyron.com",
+  executive: "executivo@aizyron.com",
+  scout: "scout@aizyron.com",
+}
 
 /** Barra de abas do celular: as quatro telas mais usadas e o menu completo. */
 const TABS: TabItem[] = [
@@ -73,6 +88,9 @@ function useTitle() {
   if (pathname.startsWith("/voxen/elenco")) return { kicker: "Por posição", title: "Elenco" }
   if (pathname.startsWith("/voxen/comparativo")) return { kicker: "Lado a lado", title: "Comparativo" }
   if (pathname.startsWith("/voxen/contas")) return { kicker: "Administração", title: "Contas e acessos" }
+  if (pathname.startsWith("/voxen/mesa")) return { kicker: "Fila de trabalho", title: "Mesa do Scout" }
+  if (pathname.startsWith("/voxen/oportunidades")) return { kicker: "Jogadores escolhidos", title: "Oportunidades" }
+  if (pathname.startsWith("/voxen/envios")) return { kicker: "Enviados pelos atletas", title: "Envios de vídeo" }
   if (pathname.startsWith("/voxen/atletas")) return { kicker: "Plataforma", title: "Atletas" }
   if (pathname.startsWith("/voxen/membros/comparar")) return { kicker: "Área de membros", title: "Comparar perfis" }
   if (pathname.endsWith("/partidas/nova")) return { kicker: "Área de membros", title: "Nova partida" }
@@ -83,7 +101,7 @@ function useTitle() {
 }
 
 function Shell() {
-  const { players, loading, reload, demo, error, role, canEdit } = useVoxen()
+  const { players, loading, reload, demo, error, role } = useVoxen()
   const { user, signOut } = useAuth()
   const { toast } = useToast()
   const [palette, setPalette] = useState(false)
@@ -94,12 +112,12 @@ function Shell() {
     if (await reload()) toast({ title: "Dados atualizados", description: "A base de atletas foi recarregada agora." })
   }
 
-  const email = demo ? (role === "admin" ? "equipe@aizyron.com" : "executivo@aizyron.com") : user?.email ?? ""
+  const email = demo ? DEMO_EMAIL[role] : user?.email ?? ""
   const onSignOut = demo ? undefined : () => void signOut()
 
-  const nav = NAV.map((item) => (item.to === "/voxen/jogadores" ? { ...item, badge: players.length } : item))
+  const nav = navFor(role).map((item) => (item.to === "/voxen/jogadores" ? { ...item, badge: players.length } : item))
   const shortcuts: Shortcut[] = [
-    ...(role === "admin" ? [{ label: "Painel de administração", to: "/admin" }] : []),
+    ...(canAdminAs(role) ? [{ label: "Painel de administração", to: "/admin" }] : []),
     { label: "Abrir o funil", href: "/avaliacao" },
     { label: "Site da Zyron", href: "/" },
   ]
@@ -115,11 +133,6 @@ function Shell() {
       onSignOut={onSignOut}
       kicker={kicker}
       title={title}
-      chip={!canEdit && (
-        <span className="vx-tag vx-readonly" title="O seu acesso é de executivo: você vê tudo, mas não altera nada.">
-          <Eye className="h-3 w-3" /> Somente leitura
-        </span>
-      )}
       searchLabel="Buscar atleta, e-mail ou telefone"
       onSearch={() => setPalette(true)}
       onRefresh={() => void refresh()}
@@ -147,8 +160,11 @@ function Shell() {
             <Route path="jogadores/:key" element={<PlayerProfile />} />
             <Route path="elenco" element={<Squad />} />
             <Route path="comparativo" element={<Compare />} />
-            <Route path="contas" element={<AccountsPage />} />
+            <Route path="contas" element={canSeeAccountsAs(role) ? <AccountsPage /> : <Navigate to="/voxen" replace />} />
             <Route path="atletas" element={<AthletesPage />} />
+            <Route path="mesa" element={<ScoutDesk />} />
+            <Route path="oportunidades" element={<OpportunitiesPage />} />
+            <Route path="envios" element={<SubmissionsPage />} />
             <Route path="membros" element={<AdminMembers />} />
             <Route path="membros/comparar" element={<AdminCompare />} />
             <Route path="membros/:id" element={<AdminMember />} />
@@ -189,12 +205,12 @@ function Palette({
           <CommandList className="max-h-[420px]">
             <CommandEmpty>Nenhum atleta encontrado.</CommandEmpty>
             <CommandGroup heading="Páginas">
-              {NAV.map(({ to, label, icon: Icon }) => (
+              {navFor(role).map(({ to, label, icon: Icon }) => (
                 <CommandItem key={to} value={`pagina ${label}`} onSelect={() => go(to)}>
                   <Icon className="mr-2 h-4 w-4" /> {label}
                 </CommandItem>
               ))}
-              {role === "admin" && (
+              {canAdminAs(role) && (
                 <CommandItem value="pagina painel de administracao admin" onSelect={() => go("/admin")}>
                   <ShieldCheck className="mr-2 h-4 w-4" /> Painel de administração
                 </CommandItem>

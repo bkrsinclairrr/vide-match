@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
  * Contas e acessos da VOXEN. Só a equipe chama:
  *   admin      todas as ações (listar, mudar acesso, convidar, editar nome, desativar, excluir)
  *   executive  só `list_users` (leitura)
- * Quem não tem papel de equipe recebe 403. A confirmação do papel usa a service
+ *   scout      nenhuma (a tela de contas não aparece para ele)
+ * Atleta e Scout recebem 403. A confirmação do papel usa a service
  * role (ignora RLS); o token do chamador só serve para saber quem ele é.
  */
 
@@ -16,8 +17,9 @@ const corsHeaders = {
   "Vary": "Origin",
 };
 
-type Level = "admin" | "executive" | "user";
-const STAFF = ["admin", "executive"];
+type Level = "admin" | "executive" | "scout" | "user";
+/** Do maior para o menor. */
+const STAFF: Level[] = ["admin", "executive", "scout"];
 const READ_ACTIONS = ["list_users"];
 const WRITE_ACTIONS = ["set_role", "invite_staff", "create_staff", "update_user", "disable_user", "enable_user", "delete_user"];
 
@@ -30,7 +32,7 @@ class HttpError extends Error {
 const reply = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const levelOf = (roles: string[]): Level => (roles.includes("admin") ? "admin" : roles.includes("executive") ? "executive" : "user");
+const levelOf = (roles: string[]): Level => STAFF.find((r) => roles.includes(r)) ?? "user";
 const isEmail = (v: unknown): v is string => typeof v === "string" && v.length <= 254 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
 
 Deno.serve(async (req) => {
@@ -73,6 +75,7 @@ Deno.serve(async (req) => {
 
     const me = levelOf(await rolesOf(user.id));
     if (me === "user") return reply(403, { error: "Acesso restrito à equipe." });
+    if (me === "scout") return reply(403, { error: "Contas e acessos é só de administradores e executivos." });
 
     if (Number(req.headers.get("content-length") ?? 0) > 10_000) return reply(413, { error: "Pedido grande demais." });
 
@@ -138,7 +141,7 @@ Deno.serve(async (req) => {
 
       case "set_role": {
         const level = body.level as Level;
-        if (typeof target !== "string" || !["admin", "executive", "user"].includes(level)) throw new HttpError(400, "Pedido inválido.");
+        if (typeof target !== "string" || ![...STAFF, "user"].includes(level)) throw new HttpError(400, "Pedido inválido.");
         if (target === user.id && level !== "admin") throw new HttpError(400, "Você não pode tirar o seu próprio acesso de administrador.");
         if (level !== "admin") await guardLastAdmin(target, "rebaixar");
 

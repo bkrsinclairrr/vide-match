@@ -25,7 +25,7 @@ export type SelfResult =
 
 export type ProfileListItem = Member & { matchCount: number; publishedCount: number; lastMatch: string | null }
 
-export type MemberInput = Partial<Omit<Member, "id" | "createdAt" | "updatedAt" | "userId">> & {
+export type MemberInput = Partial<Omit<Member, "id" | "createdAt" | "updatedAt" | "userId" | "extended" | "crmSyncedAt">> & {
   id?: string
   kind: MemberKind
   fullName: string
@@ -91,6 +91,10 @@ export const toMember = (r: Row): Member => ({
   leadId: str(r.lead_id),
   active: r.active !== false,
   autoSync: r.auto_sync === true,
+  phone: typeof r.phone === "string" && /^\d{8,15}$/.test(r.phone) ? r.phone : null,
+  nationality: str(r.nationality),
+  crmSyncedAt: str(r.crm_synced_at),
+  extended: "phone" in r,
   createdAt: r.created_at as string,
   updatedAt: r.updated_at as string,
 })
@@ -147,6 +151,9 @@ const memberRow = (m: MemberInput) => ({
   bio: m.bio || null,
   scout: m.scout ?? null,
   lead_id: m.leadId ?? null,
+  // Só quando o formulário conhece as colunas novas (banco com a migração da ficha completa).
+  ...(m.phone !== undefined ? { phone: (m.phone ?? "").replace(/\D/g, "") || null } : {}),
+  ...(m.nationality !== undefined ? { nationality: m.nationality?.trim() || null } : {}),
   active: m.active ?? true,
   updated_at: new Date().toISOString(),
   // Só na criação (sem id): quem edita não mexe na data em que o perfil nasceu.

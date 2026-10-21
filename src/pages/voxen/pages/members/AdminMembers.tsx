@@ -1,3 +1,5 @@
+import "@/pages/admin/console/console.css"
+
 import { useMemo, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { Check, CircleDot, GitCompareArrows, Plus, Search, UserCheck, Users } from "lucide-react"
@@ -8,6 +10,7 @@ import { placeOf, type Player } from "@/pages/voxen/data"
 import { MemberAvatar } from "@/pages/membros/components/bits"
 import { formatShortDate, positionCodeOf, type MemberKind } from "@/pages/membros/model"
 import type { MemberInput } from "@/pages/membros/api"
+import { SyncCard } from "@/pages/admin/console/SyncCard"
 import { MemberForm, SetupNotice, useAdminSource, useSourceData } from "./shared"
 
 /** Cadastro de membro preenchido com o que o atleta informou no funil. */
@@ -38,7 +41,7 @@ export default function AdminMembers() {
   const { toast } = useToast()
   const [params, setParams] = useSearchParams()
   const kind: MemberKind = params.get("tipo") === "referencias" ? "referencia" : "membro"
-  const { byKey, canEdit } = useVoxen()
+  const { byKey, canScout } = useVoxen()
   const fromKey = params.get("de")
   const fromPlayer = fromKey ? byKey.get(fromKey) : undefined
   const prefill = useMemo(() => (fromPlayer ? prefillFrom(fromPlayer) : undefined), [fromPlayer])
@@ -81,6 +84,8 @@ export default function AdminMembers() {
 
   return (
     <>
+      {/* Sincronizar agora: toda a equipe (recriar os excluídos continua só na central do administrador). */}
+      {kind === "membro" && canScout && <SyncCard onChanged={list.reload} />}
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="vx-tabs" role="tablist" aria-label="Tipo de perfil">
           <button type="button" role="tab" aria-selected={kind === "membro"} className={`vx-tab ${kind === "membro" ? "is-on" : ""}`} onClick={() => { setParams({}); setCreating(false) }}>
@@ -94,14 +99,14 @@ export default function AdminMembers() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
           <input className="vx-input vx-input--icon" placeholder="Buscar por nome, e-mail, posição ou time" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar perfis" />
         </div>
-        {canEdit && (
+        {canScout && (
           <button type="button" className="vx-btn vx-btn--gold" onClick={() => setCreating((c) => !c)}>
             <Plus /> {kind === "membro" ? "Novo membro" : "Nova referência"}
           </button>
         )}
       </div>
 
-      {creating && canEdit && (
+      {creating && canScout && (
         <section className="vx-card mb-[18px]">
           <h2 className="vx-card-title">{kind === "membro" ? (prefill ? `Tornar ${prefill.fullName} membro` : "Cadastrar membro") : "Criar perfil de referência"}</h2>
           <p className="vx-card-sub" style={{ marginBottom: 20 }}>

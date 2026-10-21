@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react"
-import { Check, Copy, Crown, Eye, EyeOff, KeyRound, MailPlus, Sparkles, UserPlus, X } from "lucide-react"
+import { Binoculars, Check, Copy, Crown, Eye, EyeOff, KeyRound, MailPlus, Sparkles, UserPlus, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { LEVEL_BLURB, LEVEL_LABEL } from "../../access"
+import { LEVEL_BLURB, LEVEL_LABEL, type StaffRole } from "../../access"
 import type { AccountsApi } from "./api"
 
-type Level = "admin" | "executive"
+type Level = StaffRole
+
+/** Do menor para o maior, na ordem em que aparecem para escolher. */
+const PICKS: Level[] = ["scout", "executive", "admin"]
+const PICK_ICON = { scout: Binoculars, executive: Eye, admin: Crown } as const
+/** Cor de cada nível no painel do resultado (RGB). */
+const LEVEL_RGB: Record<Level, string> = { admin: "251,191,36", executive: "56,189,248", scout: "167,139,250" }
 type Mode = "senha" | "convite"
 
 /** Resultado da última criação, para a pessoa que cria passar os dados adiante. */
@@ -80,7 +86,7 @@ function shareText(r: Result) {
 export function StaffCreator({ api, onDone }: { api: AccountsApi; onDone: () => Promise<void> }) {
   const { toast } = useToast()
   const [mode, setMode] = useState<Mode>("senha")
-  const [level, setLevel] = useState<Level>("executive")
+  const [level, setLevel] = useState<Level>("scout")
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -160,7 +166,7 @@ export function StaffCreator({ api, onDone }: { api: AccountsApi; onDone: () => 
       <div className="ac-create-head">
         <div>
           <h2 className="vx-card-title">Adicionar à equipe</h2>
-          <p className="vx-card-sub">Crie a conta de um executivo ou de um administrador. Quem já tem conta só ganha o acesso novo.</p>
+          <p className="vx-card-sub">Crie a conta de um scout, de um executivo ou de um administrador. Quem já tem conta só ganha o acesso novo.</p>
         </div>
         <div className="vx-tabs" role="tablist" aria-label="Como criar a conta">
           <button type="button" role="tab" aria-selected={mode === "senha"} className={`vx-tab ${mode === "senha" ? "is-on" : ""}`} onClick={() => { setMode("senha"); setConfirming(false) }}>
@@ -176,8 +182,8 @@ export function StaffCreator({ api, onDone }: { api: AccountsApi; onDone: () => 
 
       <form onSubmit={submit} noValidate>
         <div className="ac-picks" role="radiogroup" aria-label="Nível de acesso">
-          {(["executive", "admin"] as const).map((l) => {
-            const Icon = l === "admin" ? Crown : Eye
+          {PICKS.map((l) => {
+            const Icon = PICK_ICON[l]
             return (
               <label key={l} className={`ac-pick is-${l} ${level === l ? "is-on" : ""}`}>
                 <input type="radio" name="staff-level" value={l} checked={level === l} onChange={() => pick(l)} className="sr-only" />
@@ -241,7 +247,7 @@ export function StaffCreator({ api, onDone }: { api: AccountsApi; onDone: () => 
           {!confirming && (
             <button type="submit" className="vx-btn vx-btn--gold ac-create-btn" disabled={!valid || saving}>
               {mode === "senha" ? <UserPlus /> : <MailPlus />}
-              {saving ? "Criando..." : mode === "senha" ? `Criar ${level === "admin" ? "administrador" : "executivo"}` : "Enviar convite"}
+              {saving ? "Criando..." : mode === "senha" ? `Criar ${LEVEL_LABEL[level].toLowerCase()}` : "Enviar convite"}
             </button>
           )}
         </div>
@@ -263,7 +269,7 @@ function ResultPanel({
   if (result.password) rows.push({ key: "pass", label: "Senha", value: result.password })
 
   return (
-    <div className={`ac-result is-${result.kind}`} role="status" style={{ "--lvl": result.level === "admin" ? "251,191,36" : "56,189,248" } as CSSProperties}>
+    <div className={`ac-result is-${result.kind}`} role="status" style={{ "--lvl": LEVEL_RGB[result.level] } as CSSProperties}>
       <div className="ac-result-head">
         <span className="ac-result-icon"><Check /></span>
         <div>

@@ -31,6 +31,13 @@ export type Member = {
   active: boolean
   /** Criado e mantido pela sincronização automática (vira `false` quando a equipe edita os dados). */
   autoSync: boolean
+  /** Só dígitos (DDI + DDD + número). Vem do lead do funil quando está vazio. */
+  phone: string | null
+  nationality: string | null
+  /** Quando a ponte do CRM (wsltda.com) completou a ficha pela última vez. */
+  crmSyncedAt: string | null
+  /** O banco já tem as colunas de telefone e nacionalidade (migração 20261020120000). */
+  extended: boolean
   createdAt: string
   updatedAt: string
 }
