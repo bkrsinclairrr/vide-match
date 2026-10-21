@@ -17,7 +17,7 @@ import { STATUS_LABEL } from "../opportunities/model"
 import { BodyPhotoEditor } from "./BodyPhotoEditor"
 import { ScoutSetupNotice } from "./parts"
 import {
-  FIELD_LABEL, errMsg, useLoad, useScoutApi, type Club, type Conflict, type ContextPatch, type Controls, type MemberContext,
+  FIELD_LABEL, NOTE_LABEL, errMsg, useLoad, useScoutApi, type Club, type Conflict, type ContextNote, type ContextPatch, type Controls, type MemberContext,
 } from "./api"
 
 const Loading = () => <div className="vx-card"><Skeleton h={18} w="40%" /><div className="mt-4"><Skeleton h={120} /></div></div>
@@ -158,6 +158,8 @@ const CONTEXT_FIELDS: { key: keyof ContextPatch & keyof MemberContext; label: st
   { key: "opportunitiesReceived", label: "Oportunidades que já recebeu", rows: 2 },
   { key: "goal", label: "Objetivo", rows: 2 },
   { key: "blocker", label: "O que impede hoje", rows: 2 },
+  { key: "evaluatedClubs", label: "Clubes que já avaliaram o atleta", rows: 2 },
+  { key: "strengthsAndImprovements", label: "Pontos fortes e pontos a melhorar", rows: 3 },
 ]
 
 const dateTime = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "")
@@ -248,6 +250,8 @@ export function ContextTab({ member, onMemberChanged }: { member: Member; onMemb
           </Empty>
         )}
 
+        {context && !editing && <CrmDetails context={context} />}
+
         {context && context.answers.length > 0 && !editing && (
           <details className="sc-answers">
             <summary>Perguntas e respostas do formulário ({context.answers.length})</summary>
@@ -257,6 +261,48 @@ export function ContextTab({ member, onMemberChanged }: { member: Member; onMemb
       </section>
 
       <ConflictList conflicts={conflicts} onResolved={(id) => { data.set((d) => (d ? { ...d, conflicts: d.conflicts.filter((c) => c.id !== id) } : d)); onMemberChanged() }} />
+    </div>
+  )
+}
+
+const noteDay = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) : "sem data")
+
+/**
+ * O que a wsltda.com manda além do formulário (contrato v1.1): quem é o responsável, a leitura comercial do
+ * lead e as notas de atendimento. É dado sensível, de menores em boa parte: só a equipe vê, e cada nova
+ * revisão do CRM substitui o que estava aqui.
+ */
+function CrmDetails({ context }: { context: MemberContext }) {
+  const q = context.qualification
+  const has = context.guardianName || context.crmObservations || q || context.commitmentScore || context.notes.length > 0
+  if (!has) return null
+  return (
+    <div className="sc-crm">
+      <p className="sc-crm-warn"><Lock /> Dados do atendimento. Só a equipe vê, nunca o atleta nem a família.</p>
+      <dl className="sc-context">
+        {context.guardianName && (
+          <div><dt>Responsável</dt><dd>{context.guardianName}{context.guardianFilledBy ? ` · “${context.guardianFilledBy}”` : ""}</dd></div>
+        )}
+        {context.commitmentScore && <div><dt>Nota de compromisso</dt><dd>{context.commitmentScore}</dd></div>}
+        {context.crmObservations && <div className="sc-wide"><dt>Observações do atendimento</dt><dd>{context.crmObservations}</dd></div>}
+        {q?.goal && <div><dt>Objetivo (qualificação)</dt><dd>{q.goal}</dd></div>}
+        {q?.decisionMaker && <div><dt>Quem decide</dt><dd>{q.decisionMaker}</dd></div>}
+        {q?.timeline && <div><dt>Prazo</dt><dd>{q.timeline}</dd></div>}
+        {q?.summary && <div><dt>Resumo da qualificação</dt><dd>{q.summary}</dd></div>}
+      </dl>
+      {context.notes.length > 0 && (
+        <details className="sc-answers">
+          <summary>Notas de atendimento ({context.notes.length})</summary>
+          <ol className="sc-notes">
+            {[...context.notes].reverse().map((n: ContextNote, i) => (
+              <li key={i} className={`is-${n.type}`}>
+                <div><b>{NOTE_LABEL[n.type]}</b><small>{noteDay(n.createdAt)}{n.truncated ? " · texto cortado" : ""}</small></div>
+                <p>{n.content}</p>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
     </div>
   )
 }

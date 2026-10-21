@@ -1,7 +1,8 @@
 /**
  * Ponte CRM (wsltda.com) → VOXEN: limpeza do evento e interpretação dos textos do formulário.
- * Contrato: PONTE_CRM_PARA_VOXEN.md (Parte A). Funções puras, sem Deno nem Node, para rodar na
- * função crm-context-receiver e nos testes (node --test).
+ * Contrato: PONTE_CRM_PARA_VOXEN.md (Parte A, com o v1.1 decidido pelo dono em 21/10/2026).
+ * Funções puras, sem Deno nem Node, para rodar na função crm-context-receiver e nos testes
+ * (node --test).
  *
  * Regra de ouro: o que não for interpretado com segurança vai para revisão do Scout; nunca é
  * chutado. As regras ficam explícitas aqui (e testadas em crm-context.test.ts).
@@ -37,27 +38,72 @@ const clip = (v: unknown, n: number) => (typeof v === "string" && v.trim() ? v.t
 /* ------------------------------------------------------------------ */
 
 const PROFILE_KEYS = ["birth_date_raw", "state_raw", "position_category_raw", "current_club_raw", "filled_by_raw"] as const
-const CONTEXT_KEYS = ["past_clubs", "trials", "opportunities_received", "goal", "blocker"] as const
+const CONTEXT_KEYS = ["past_clubs", "trials", "opportunities_received", "goal", "blocker", "evaluated_clubs", "strengths_and_improvements"] as const
+const QUALIFICATION_KEYS = ["goal", "decision_maker", "timeline", "summary"] as const
+/** Tipos de nota de atendimento aceitos no v1.1. */
+export const NOTE_TYPES = ["whatsapp_summary", "manual_note", "call_transcript"] as const
+export const MAX_NOTES = 25
 const STRUCTURED_TEXT = ["athlete_name", "athlete_birth_date", "athlete_position", "city_state"] as const
 const STRUCTURED_NUM = ["athlete_height_cm", "athlete_weight_kg", "athlete_age"] as const
 
 /**
- * Perguntas que nunca podem chegar à VOXEN (lista "Nunca sai" do contrato). O CRM já não deve
- * mandar; esta é a segunda trava, do lado de cá.
+ * Perguntas que nunca podem chegar à VOXEN: contato, documentos e dinheiro. Desde o v1.1 o nome do
+ * responsável e as notas de atendimento podem vir, mas pelas chaves próprias (`guardian`, `notes`);
+ * esta lista só barra o que continua fora. O CRM já não deve mandar: é a segunda trava, do lado de cá.
  */
-const FORBIDDEN_QUESTION = /(telefone|celular|whats|zap|e-?mail|cpf|\brg\b|renda|sal[aá]rio|pagamento|pagar|valor|pre[cç]o|investir|investimento|cart[aã]o|pix|parcel|nome do (respons|pai|m[aã]e)|endere[cç]o|instagram|consentimento|autoriza)/i
+const FORBIDDEN_QUESTION = /(telefone|celular|whats|zap|e-?mail|cpf|\brg\b|renda|sal[aá]rio|pagamento|pagar|valor|pre[cç]o|investir|investimento|cart[aã]o|pix|parcel|endere[cç]o|instagram|consentimento|autoriza)/i
+
+const CONTACT_REMOVED = "[contato removido]"
+const EMAIL_IN_TEXT = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
+/**
+ * Telefone no meio de um texto livre: com DDI e DDD, só o celular (9xxxx-xxxx), fixo com DDD ou
+ * uma sequência de 10 a 13 dígitos. Datas, anos e medidas não casam.
+ */
+const PHONE_IN_TEXT = /(?<!\d)(?:\+?55[\s.-]?)?(?:\(\d{2}\)|\d{2})[\s.-]?9\d{4}[\s.-]?\d{4}(?!\d)|(?<!\d)9\d{4}[\s.-]?\d{4}(?!\d)|(?<!\d)(?:\+?55[\s.-]?)?(?:\(\d{2}\)|\d{2})[\s.-]?[2-5]\d{3}[\s.-]?\d{4}(?!\d)|(?<!\d)\d{10,13}(?!\d)/g
+
+/** Segunda trava do lado da VOXEN: telefone e e-mail digitados em texto livre viram "[contato removido]". */
+export function scrubContacts(text: string): string {
+  return text.replace(EMAIL_IN_TEXT, CONTACT_REMOVED).replace(PHONE_IN_TEXT, CONTACT_REMOVED)
+}
 
 type Obj = Record<string, unknown>
 const isObj = (v: unknown): v is Obj => Boolean(v) && typeof v === "object" && !Array.isArray(v)
 
-function pick<K extends string>(src: unknown, keys: readonly K[], n: number): Partial<Record<K, string>> {
+/** Texto livre: cortado no tamanho máximo e sem telefone nem e-mail. */
+const text = (v: unknown, n: number) => {
+  const t = clip(v, n)
+  return t ? scrubContacts(t) : undefined
+}
+
+function pick<K extends string>(src: unknown, keys: readonly K[], n: number, scrub = true): Partial<Record<K, string>> {
   const out: Partial<Record<K, string>> = {}
   if (!isObj(src)) return out
   for (const k of keys) {
-    const v = clip(src[k], n)
+    const v = scrub ? text(src[k], n) : clip(src[k], n)
     if (v) out[k] = v
   }
   return out
+}
+
+const ISO_MOMENT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/
+
+/** Notas de atendimento: só os tipos conhecidos, sem autor nem anexo, as 25 mais recentes em ordem cronológica. */
+function cleanNotes(v: unknown) {
+  if (!Array.isArray(v)) return []
+  const out: { type: (typeof NOTE_TYPES)[number]; content: string; created_at?: string; truncated?: true }[] = []
+  for (const n of v) {
+    if (!isObj(n) || !(NOTE_TYPES as readonly unknown[]).includes(n.type)) continue
+    const content = text(n.content, 6000)
+    if (!content) continue
+    const created = clip(n.created_at, 40)
+    out.push({
+      type: n.type as (typeof NOTE_TYPES)[number],
+      content,
+      ...(created && ISO_MOMENT.test(created) ? { created_at: created } : {}),
+      ...(n.truncated === true ? { truncated: true as const } : {}),
+    })
+  }
+  return out.slice(-MAX_NOTES)
 }
 
 /** O evento só com as chaves do contrato, textos cortados no tamanho máximo e perguntas proibidas fora. */
@@ -70,10 +116,18 @@ export function sanitizeEvent(e: Obj) {
       if (Number.isFinite(n) && n > 0 && n < 1000) structured[k] = Math.round(n)
     }
   }
+  const guardian = pick(e.guardian, ["name", "filled_by_raw"] as const, 500)
+  if (guardian.name) guardian.name = guardian.name.slice(0, 200)
+  const crmIn = isObj(e.crm) ? e.crm : {}
+  const observations = text(crmIn.observations, 10000)
+  const qualification = pick(crmIn.qualification, QUALIFICATION_KEYS, 2000)
+  const crm = { ...(observations ? { observations } : {}), ...(Object.keys(qualification).length ? { qualification } : {}) }
+  const notes = cleanNotes(e.notes)
+  const context = { ...pick(e.context, CONTEXT_KEYS, 2000), ...pick(e.context, ["commitment_score_raw"] as const, 200) }
   const answers = Array.isArray(e.answers)
     ? e.answers
       .filter(isObj)
-      .map((a) => ({ question: clip(a.question, 300), answer: clip(a.answer, 2000) }))
+      .map((a) => ({ question: text(a.question, 300), answer: text(a.answer, 2000) }))
       .filter((a): a is { question: string; answer: string } => Boolean(a.question && a.answer) && !FORBIDDEN_QUESTION.test(a.question as string))
       .slice(0, 200)
     : []
@@ -85,9 +139,12 @@ export function sanitizeEvent(e: Obj) {
     source_lead_id: e.source_lead_id,
     source_revision: e.source_revision,
     generated_at: clip(e.generated_at, 40),
-    link: pick(link, ["basis", "form_lead_id", "crm_lead_id"] as const, 64),
+    link: pick(link, ["basis", "form_lead_id", "crm_lead_id"] as const, 64, false),
     profile: pick(e.profile, PROFILE_KEYS, 500),
-    context: pick(e.context, CONTEXT_KEYS, 2000),
+    context,
+    ...(Object.keys(guardian).length ? { guardian } : {}),
+    ...(Object.keys(crm).length ? { crm } : {}),
+    ...(notes.length ? { notes } : {}),
     ...(Object.keys(structured).length ? { structured } : {}),
     answers,
   }
@@ -294,8 +351,10 @@ export function parseEvent(e: ReturnType<typeof sanitizeEvent>, today = new Date
     }
   }
 
-  if (profile.filled_by_raw) {
-    const f = parseFilledBy(profile.filled_by_raw)
+  // Quem preencheu: o texto do formulário vale; sem ele, o do bloco do responsável.
+  const filledRaw = profile.filled_by_raw ?? e.guardian?.filled_by_raw
+  if (filledRaw) {
+    const f = parseFilledBy(filledRaw)
     if (f) out.filled_by = f
   }
   return out

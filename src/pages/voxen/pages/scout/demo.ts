@@ -44,6 +44,14 @@ let contexts: MemberContext[] = [
     memberId: "m-gabriel", currentClub: "Real Brasília Sub-17", pastClubs: "Gama (2022–2023), escolinha do Brasiliense",
     trials: "Peneira do Goiás em 2024: passou para a segunda fase.", opportunitiesReceived: "Convite para teste no Capital FC (não foi por falta de transporte).",
     goal: "Jogar na base de um clube da Série A.", blocker: "Pouco vídeo dos jogos e falta de contato com os clubes.", filledBy: "responsavel",
+    evaluatedClubs: "Goiás e Capital FC", strengthsAndImprovements: "Leitura de jogo e passe curto; precisa de mais força física.", commitmentScore: "8",
+    guardianName: "Helena Rocha", guardianFilledBy: "Sou a mãe dele", crmObservations: "Família muito engajada; o pai acompanha todos os jogos.",
+    qualification: { goal: "Entrar na base de um clube de Série A", decisionMaker: "A mãe, com o pai", timeline: "Até dezembro", summary: "Interessado e com urgência." },
+    notes: [
+      { type: "whatsapp_summary", content: "Perguntou como funciona a assessoria e pediu um resumo dos próximos passos.", createdAt: ago(9), truncated: false },
+      { type: "call_transcript", content: "Ligação de 12 minutos: a mãe contou que o filho treina três vezes por semana e que a família pode viajar para peneiras.", createdAt: ago(6), truncated: false },
+      { type: "manual_note", content: "Combinado enviar três vídeos do segundo tempo até sexta.", createdAt: ago(3), truncated: false },
+    ],
     answers: [
       { question: "Qual a data de nascimento do atleta?", answer: "14/03/2007" },
       { question: "Qual a posição e a categoria atual?", answer: "Meia, sub 17" },
@@ -150,7 +158,8 @@ export const demoScout: ScoutApi = {
   async saveContext(memberId, patch) {
     const base: MemberContext = contexts.find((c) => c.memberId === memberId) ?? {
       memberId, currentClub: null, pastClubs: null, trials: null, opportunitiesReceived: null, goal: null, blocker: null,
-      filledBy: null, answers: [], source: "equipe", importedAt: null, updatedAt: null,
+      filledBy: null, evaluatedClubs: null, strengthsAndImprovements: null, commitmentScore: null, guardianName: null, guardianFilledBy: null,
+      crmObservations: null, qualification: null, notes: [], answers: [], source: "equipe", importedAt: null, updatedAt: null,
     }
     const next: MemberContext = { ...base, ...patch, source: "equipe", updatedAt: now() }
     contexts = contexts.some((c) => c.memberId === memberId) ? contexts.map((c) => (c.memberId === memberId ? next : c)) : [...contexts, next]
