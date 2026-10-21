@@ -99,6 +99,22 @@ export type SubmissionPatch = Partial<Pick<Submission, "status" | "reviewNote" |
 
 export type Answer = { question: string; answer: string }
 
+/** Nota de atendimento vinda do CRM (v1.1): só a equipe vê. */
+export type ContextNote = {
+  type: "whatsapp_summary" | "manual_note" | "call_transcript"
+  content: string
+  createdAt: string | null
+  truncated: boolean
+}
+
+export const NOTE_LABEL: Record<ContextNote["type"], string> = {
+  whatsapp_summary: "Resumo de WhatsApp",
+  manual_note: "Nota do atendimento",
+  call_transcript: "Transcrição de ligação",
+}
+
+export type Qualification = { goal?: string; decisionMaker?: string; timeline?: string; summary?: string }
+
 export type MemberContext = {
   memberId: string
   currentClub: string | null
@@ -108,13 +124,22 @@ export type MemberContext = {
   goal: string | null
   blocker: string | null
   filledBy: "atleta" | "responsavel" | null
+  evaluatedClubs: string | null
+  strengthsAndImprovements: string | null
+  commitmentScore: string | null
+  /** Quem preencheu o formulário como responsável, e o texto de como se apresentou. */
+  guardianName: string | null
+  guardianFilledBy: string | null
+  crmObservations: string | null
+  qualification: Qualification | null
+  notes: ContextNote[]
   answers: Answer[]
   source: "crm" | "equipe"
   importedAt: string | null
   updatedAt: string | null
 }
 
-export type ContextPatch = Partial<Pick<MemberContext, "currentClub" | "pastClubs" | "trials" | "opportunitiesReceived" | "goal" | "blocker" | "filledBy">>
+export type ContextPatch = Partial<Pick<MemberContext, "currentClub" | "pastClubs" | "trials" | "opportunitiesReceived" | "goal" | "blocker" | "filledBy" | "evaluatedClubs" | "strengthsAndImprovements">>
 
 export type ConflictField = "birth_date" | "position" | "category" | "team" | "city"
 
@@ -260,6 +285,31 @@ const answersOf = (v: unknown): Answer[] =>
       .filter((a): a is Answer => Boolean(a && a.question && a.answer))
     : []
 
+const NOTE_TYPES = ["whatsapp_summary", "manual_note", "call_transcript"] as const
+
+const notesOf = (v: unknown): ContextNote[] =>
+  Array.isArray(v)
+    ? v.map((n): ContextNote | null => {
+        const r = n as Row | null
+        const content = r && typeof r.content === "string" ? r.content.trim() : ""
+        const type = r?.type as ContextNote["type"]
+        return content && (NOTE_TYPES as readonly string[]).includes(type)
+          ? { type, content, createdAt: str(r?.created_at), truncated: r?.truncated === true }
+          : null
+      }).filter((n): n is ContextNote => n !== null)
+    : []
+
+const qualificationOf = (v: unknown): Qualification | null => {
+  if (!v || typeof v !== "object") return null
+  const r = v as Row
+  const q: Qualification = {}
+  if (str(r.goal)) q.goal = str(r.goal) as string
+  if (str(r.decision_maker)) q.decisionMaker = str(r.decision_maker) as string
+  if (str(r.timeline)) q.timeline = str(r.timeline) as string
+  if (str(r.summary)) q.summary = str(r.summary) as string
+  return Object.keys(q).length ? q : null
+}
+
 export const toContext = (r: Row): MemberContext => ({
   memberId: r.member_id as string,
   currentClub: str(r.current_club),
@@ -269,6 +319,14 @@ export const toContext = (r: Row): MemberContext => ({
   goal: str(r.goal),
   blocker: str(r.blocker),
   filledBy: r.filled_by === "atleta" || r.filled_by === "responsavel" ? r.filled_by : null,
+  evaluatedClubs: str(r.evaluated_clubs),
+  strengthsAndImprovements: str(r.strengths_and_improvements),
+  commitmentScore: str(r.commitment_score),
+  guardianName: str(r.guardian_name),
+  guardianFilledBy: str(r.guardian_filled_by_raw),
+  crmObservations: str(r.crm_observations),
+  qualification: qualificationOf(r.crm_qualification),
+  notes: notesOf(r.notes),
   answers: answersOf(r.answers),
   source: r.source === "crm" ? "crm" : "equipe",
   importedAt: str(r.imported_at),
@@ -284,6 +342,8 @@ const contextRow = (p: ContextPatch) => {
   if (p.opportunitiesReceived !== undefined) out.opportunities_received = t(p.opportunitiesReceived, 2000)
   if (p.goal !== undefined) out.goal = t(p.goal, 2000)
   if (p.blocker !== undefined) out.blocker = t(p.blocker, 2000)
+  if (p.evaluatedClubs !== undefined) out.evaluated_clubs = t(p.evaluatedClubs, 2000)
+  if (p.strengthsAndImprovements !== undefined) out.strengths_and_improvements = t(p.strengthsAndImprovements, 2000)
   if (p.filledBy !== undefined) out.filled_by = p.filledBy
   return out
 }

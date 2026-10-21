@@ -2,11 +2,12 @@
  * Testes da ponte CRM → VOXEN (lado da VOXEN). Rodam com o Node, sem dependência nova:
  *   npm run test:ponte
  * Cobrem a assinatura (HMAC, janela de horário, adulteração), o formato do contrato, a lista
- * fechada de dados (nada da lista "Nunca sai") e a interpretação dos textos do formulário.
+ * fechada de dados (contato, dinheiro e funil comercial continuam de fora), o contrato v1.1
+ * (responsável, observações, qualificação e notas de atendimento) e a interpretação dos textos.
  */
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { invalidReason, parseBirthDate, parseClub, parseEvent, parseFilledBy, parsePositionCategory, parseState, sanitizeEvent } from "./crm-context-parse.ts"
+import { invalidReason, parseBirthDate, parseClub, parseEvent, parseFilledBy, parsePositionCategory, parseState, sanitizeEvent, scrubContacts } from "./crm-context-parse.ts"
 import { safeEqual, signHex, verifySignature } from "./crm-bridge-signature.ts"
 
 const enc = new TextEncoder()
@@ -91,22 +92,95 @@ test("formato do contrato v1", () => {
   assert.match(invalidReason([], PROJECT) ?? "", /objeto/)
 })
 
-test("nada da lista 'Nunca sai' passa pela limpeza", () => {
+test("o que continua fora (contato, dinheiro, funil comercial) não passa pela limpeza", () => {
   const dirty = event({
     phone: "71999990000",
     email: "pai@exemplo.com",
-    observations: "cliente quente",
+    observations: "chave solta na raiz",
     qualification_score: 90,
+    lead_score: 77,
+    temperature: "quente",
+    campaign: "Anúncio X",
+    utm_source: "facebook",
     payments: [{ value: 497 }],
-    profile: { ...event().profile, phone_raw: "71999990000", guardian_name_raw: "Fulano" },
-    context: { ...event().context, whatsapp_summary: "conversa de venda", manual_note: "objeção de preço" },
+    followup_at: "2026-11-01",
+    profile: { ...event().profile, phone_raw: "71999990000", guardian_phone_raw: "71988887777" },
+    context: { ...event().context, whatsapp_number: "71999990000" },
+    guardian: { name: "Maria Silva", phone: "71988887777", email: "mae@exemplo.com" },
+    crm: { observations: "ok", qualification: { goal: "g", decision_maker: "d", timeline: "t", summary: "s", score: 99, temperature: "quente" }, payment_status: "pago" },
   })
-  const clean = sanitizeEvent(dirty)
-  const text = JSON.stringify(clean)
-  for (const banned of ["71999990000", "71 99999-0000", "pai@exemplo.com", "cliente quente", "qualification", "payments", "497", "Fulano", "whatsapp_summary", "objeção", "R$ 3.000", "renda"]) {
+  const text = JSON.stringify(sanitizeEvent(dirty))
+  for (const banned of ["71999990000", "71988887777", "pai@exemplo.com", "mae@exemplo.com", "chave solta", "lead_score", "qualification_score", "temperature", "quente", "Anúncio X", "utm_", "payments", "497", "followup", "payment_status", "pago", "\"score\""]) {
     assert.equal(text.includes(banned), false, `vazou: ${banned}`)
   }
-  assert.deepEqual(clean.answers, [{ question: "Qual a posição?", answer: "Meia" }])
+  const clean = sanitizeEvent(dirty)
+  assert.deepEqual(clean.answers, [{ question: "Qual a posição?", answer: "Meia" }], "perguntas de contato e renda continuam barradas")
+  assert.deepEqual(clean.guardian, { name: "Maria Silva" })
+})
+
+/* Contrato v1.1 (decisão do dono em 21/10/2026) ---------------------- */
+
+test("v1.1: aceita responsável, observações, qualificação, notas e os campos extras de contexto", () => {
+  const clean = sanitizeEvent(event({
+    guardian: { name: "Maria Silva", filled_by_raw: "Sou a mãe dele" },
+    crm: { observations: "Família muito engajada.", qualification: { goal: "Base de Série A", decision_maker: "Mãe", timeline: "Até dezembro", summary: "Quente" } },
+    context: { ...event().context, evaluated_clubs: "Bahia e Vitória", strengths_and_improvements: "Passe curto; precisa de força", commitment_score_raw: "8" },
+    notes: [
+      { type: "whatsapp_summary", content: "Pediu valores e prazo.", created_at: "2026-10-01T12:00:00Z" },
+      { type: "call_transcript", content: "x".repeat(7000), created_at: "2026-10-02T15:30:00Z", truncated: true },
+    ],
+  }))
+  assert.deepEqual(clean.guardian, { name: "Maria Silva", filled_by_raw: "Sou a mãe dele" })
+  assert.equal(clean.crm?.observations, "Família muito engajada.")
+  assert.deepEqual(clean.crm?.qualification, { goal: "Base de Série A", decision_maker: "Mãe", timeline: "Até dezembro", summary: "Quente" })
+  assert.equal(clean.context.evaluated_clubs, "Bahia e Vitória")
+  assert.equal(clean.context.strengths_and_improvements, "Passe curto; precisa de força")
+  assert.equal(clean.context.commitment_score_raw, "8")
+  assert.equal(clean.notes?.length, 2)
+  assert.equal(clean.notes?.[1].content.length, 6000, "nota cortada em 6000 caracteres")
+  assert.equal(clean.notes?.[1].truncated, true)
+})
+
+test("v1.1: notas só dos tipos conhecidos, sem autor nem anexo, no máximo as 25 mais recentes", () => {
+  const notes = Array.from({ length: 30 }, (_, i) => ({ type: "manual_note", content: `nota ${i}`, created_at: "2026-10-01T10:00:00Z", author: "Fulano", attachment: "arquivo.pdf" }))
+  const clean = sanitizeEvent(event({ notes: [{ type: "email", content: "tipo desconhecido" }, { type: "manual_note", content: "   " }, ...notes] }))
+  assert.equal(clean.notes?.length, 25)
+  assert.equal(clean.notes?.[0].content, "nota 5", "ficam as 25 últimas")
+  assert.equal(clean.notes?.[24].content, "nota 29")
+  const text = JSON.stringify(clean.notes)
+  assert.equal(text.includes("author"), false)
+  assert.equal(text.includes("attachment"), false)
+  assert.equal(text.includes("tipo desconhecido"), false)
+  assert.equal(sanitizeEvent(event({ notes: [{ type: "manual_note", content: "a", created_at: "ontem" }] })).notes?.[0].created_at, undefined, "data inválida é ignorada")
+  assert.equal(sanitizeEvent(event()).notes, undefined, "sem notas, a chave nem existe")
+})
+
+test("v1.1: telefone e e-mail digitados em texto livre viram [contato removido]", () => {
+  const clean = sanitizeEvent(event({
+    guardian: { name: "Maria" },
+    crm: { observations: "Ligar para (71) 99999-0000 ou mandar para mae@exemplo.com", qualification: { summary: "WhatsApp +55 71 98888-7777" } },
+    notes: [{ type: "whatsapp_summary", content: "Passou o número 71999990000 e o fixo 71 3333-4444; também 99999-1234." }],
+    context: { goal: "Falar com 5571999990000" },
+  }))
+  const text = JSON.stringify(clean)
+  for (const banned of ["99999-0000", "mae@exemplo.com", "98888-7777", "71999990000", "3333-4444", "99999-1234", "5571999990000"]) {
+    assert.equal(text.includes(banned), false, `sobrou: ${banned}`)
+  }
+  assert.match(clean.crm?.observations ?? "", /\[contato removido\] ou mandar para \[contato removido\]/)
+  assert.match(clean.notes?.[0].content ?? "", /^Passou o número \[contato removido\] e o fixo \[contato removido\]; também \[contato removido\]\.$/)
+})
+
+test("v1.1: datas, anos e medidas não são confundidos com telefone", () => {
+  for (const safe of ["Nascido em 14/03/2009", "2009-03-14", "Gama 2022-2023 e Vitória 2021", "Altura 1,78 m, 68 kg", "Sub 17, camisa 10", "Passou em 12/2024 com nota 8,5", "Entre 2020 2021 2022"]) {
+    assert.equal(scrubContacts(safe), safe, safe)
+  }
+})
+
+test("v1.1: o bloco do responsável também diz quem preencheu quando o formulário não diz", () => {
+  const e = event({ profile: { birth_date_raw: "14/03/2009" }, guardian: { name: "Maria", filled_by_raw: "Sou a mãe" } })
+  assert.equal(parseEvent(sanitizeEvent(e), TODAY).filled_by, "responsavel")
+  const f = event({ guardian: { name: "Maria", filled_by_raw: "Sou o atleta" } })
+  assert.equal(parseEvent(sanitizeEvent(f), TODAY).filled_by, "responsavel", "o texto do formulário (profile) vale primeiro")
 })
 
 /* Interpretação ------------------------------------------------------ */

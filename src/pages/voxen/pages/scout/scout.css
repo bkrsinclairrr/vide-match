@@ -23,6 +23,21 @@
 .sc-context dd { margin: 4px 0 0; font-size: 13.5px; line-height: 1.55; white-space: pre-line; }
 .sc-context .is-empty dd { color: var(--vx-dim); font-style: italic; }
 @media (max-width: 640px) { .sc-context { grid-template-columns: 1fr; } }
+.sc-wide { grid-column: 1 / -1; }
+.sc-crm { margin-top: 20px; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.22); background: rgba(56, 189, 248, 0.04); }
+.sc-crm-warn { display: flex; align-items: center; gap: 6px; margin: 0; color: #7dd3fc; font-size: 12px; font-weight: 650; }
+.sc-crm-warn svg { width: 13px; height: 13px; flex-shrink: 0; }
+.sc-crm .sc-context { margin-top: 14px; }
+.sc-crm .sc-answers { margin-top: 14px; padding-top: 12px; }
+.sc-notes { display: grid; gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
+.sc-notes li { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--vx-border); background: rgba(255, 255, 255, 0.02); border-left: 3px solid var(--vx-border-2); }
+.sc-notes li.is-whatsapp_summary { border-left-color: #34d399; }
+.sc-notes li.is-call_transcript { border-left-color: #38bdf8; }
+.sc-notes li.is-manual_note { border-left-color: var(--vx-gold); }
+.sc-notes li div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.sc-notes b { font-size: 12.5px; }
+.sc-notes small { color: var(--vx-dim); font-size: 11.5px; }
+.sc-notes p { margin: 6px 0 0; color: var(--vx-muted); font-size: 12.5px; line-height: 1.55; white-space: pre-line; }
 .sc-answers { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--vx-border); }
 .sc-answers summary { cursor: pointer; color: var(--vx-gold); font-size: 13px; font-weight: 700; }
 .sc-answers dl { display: grid; gap: 10px; margin: 12px 0 0; }
