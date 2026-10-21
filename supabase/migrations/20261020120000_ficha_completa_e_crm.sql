@@ -429,11 +429,11 @@ BEGIN
     IF public.zyron_crm_conflict(m.id, 'city', m.city, v_city, raw->>'city', e.event_id, 'divergente') THEN v_conf := v_conf + 1; END IF;
   END IF;
 
-  IF m.birth_date IS NULL AND v_birth IS NOT NULL THEN v_fill := v_fill || 'birth_date'; END IF;
-  IF m.position IS NULL AND v_pos IS NOT NULL THEN v_fill := v_fill || 'position'; END IF;
-  IF m.category IS NULL AND v_cat IS NOT NULL THEN v_fill := v_fill || 'category'; END IF;
-  IF m.team IS NULL AND v_team IS NOT NULL THEN v_fill := v_fill || 'team'; END IF;
-  IF m.city IS NULL AND v_city IS NOT NULL THEN v_fill := v_fill || 'city'; END IF;
+  IF m.birth_date IS NULL AND v_birth IS NOT NULL THEN v_fill := array_append(v_fill, 'birth_date'); END IF;
+  IF m.position IS NULL AND v_pos IS NOT NULL THEN v_fill := array_append(v_fill, 'position'); END IF;
+  IF m.category IS NULL AND v_cat IS NOT NULL THEN v_fill := array_append(v_fill, 'category'); END IF;
+  IF m.team IS NULL AND v_team IS NOT NULL THEN v_fill := array_append(v_fill, 'team'); END IF;
+  IF m.city IS NULL AND v_city IS NOT NULL THEN v_fill := array_append(v_fill, 'city'); END IF;
 
   -- Pelo caminho da sincronização: preencher não desliga o automático nem conta como edição da equipe.
   PERFORM set_config('zyron.sync', 'on', true);
