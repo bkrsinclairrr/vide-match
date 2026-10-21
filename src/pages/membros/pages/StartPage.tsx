@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { ArrowRight, Compass, MapPin, Signpost, Sparkles, Trophy } from "lucide-react"
 import { CountUp, Ring } from "@/pages/voxen/charts"
@@ -10,15 +10,19 @@ import { MemberAvatar, SectionTitle } from "../components/bits"
 import { useJustUnlocked } from "../news"
 import { LevelChip, MissionList, TeamCta, UnlockCard, XpBar } from "../components/Gamify"
 import { LockTag, LockedAnalysis, LockedClubsMini, RevealSeal } from "../components/Locks"
+import { BodyStage } from "../components/BodyStage"
+import { ClubCrest, DeadlineChip } from "../components/ClubCrest"
+import { deadlineInfo } from "../scoutLayer"
 import HomePage from "./HomePage"
 
 const ASK = "text-[12.5px] font-semibold text-amber-300 hover:underline whitespace-nowrap"
 
 /** Clubes que combinam com o perfil (só depois do perfil completo). */
 function OpportunitiesCard() {
-  const { account, category, fresh } = useAthlete()
+  const { account, category, fresh, layer } = useAthlete()
   const opp = useMemo(() => opportunitiesFor(account, category), [account, category])
   const reveal = useJustUnlocked(fresh, "perfil", "inicio")
+  const [real, ...moreReal] = layer.opportunities
   return (
     <section className={`vx-card ${reveal ? "lk-reveal" : ""}`}>
       <CardHead
@@ -26,7 +30,17 @@ function OpportunitiesCard() {
         sub={`${opp.related.clubs} clubes da base procuram uma função igual ou próxima da sua, com ${opp.related.vacancies} vagas abertas.`}
         actions={<Link to={`${CLIENT_BASE}/oportunidades`} className={ASK}>Ver todas</Link>}
       />
-      {opp.highlight && (
+      {real ? (
+        <div className="gm-spot">
+          <ClubCrest club={real.club} size={46} pop />
+          <div className="min-w-0 flex-1">
+            <p className="gm-spot-kicker">Seu melhor encaixe · da equipe</p>
+            <h3 className="truncate">{real.club.name}</h3>
+            <div className="mt-1"><DeadlineChip {...deadlineInfo(real.deadline)} /></div>
+          </div>
+          <span className="gm-compat tnum">{real.compatibility}%<small>encaixe</small></span>
+        </div>
+      ) : opp.highlight && (
         <div className="gm-spot">
           <span className="gm-club-logo" aria-hidden="true">{opp.highlight.club.logo}</span>
           <div className="min-w-0 flex-1">
@@ -38,7 +52,13 @@ function OpportunitiesCard() {
         </div>
       )}
       <ul className="gm-minilist">
-        {opp.list.slice(0, 5).map((f) => (
+        {moreReal.map((o) => (
+          <li key={o.id}>
+            <ClubCrest club={o.club} size={32} />
+            <span className="min-w-0 flex-1"><b className="block truncate">{o.club.name}</b><small className="block truncate">Da equipe · {deadlineInfo(o.deadline).label.toLowerCase()}</small></span>
+          </li>
+        ))}
+        {opp.list.slice(0, Math.max(0, 5 - moreReal.length)).map((f) => (
           <li key={f.club.id}>
             <span className="gm-club-logo is-sm" aria-hidden="true">{f.club.logo}</span>
             <span className="min-w-0 flex-1"><b className="block truncate">{f.club.name}</b><small className="block truncate">{f.club.preferredStyle} · {f.club.openPositions} vagas</small></span>
@@ -79,17 +99,24 @@ function LockedOpportunitiesCard() {
 }
 
 export default function StartPage() {
-  const { account, category, report, game, member } = useAthlete()
+  const { account, category, report, game, member, layer } = useAthlete()
   const tier = report ? tierOf(report.overall) : null
   const chips = [account.position, category, account.city].filter(Boolean) as string[]
   const { gates, newcomer, current } = game
+  // A foto que não carrega some sem deixar buraco: volta o herói de sempre.
+  const [bodyFailed, setBodyFailed] = useState<string | null>(null)
+  const body = layer.bodyPhoto && bodyFailed !== layer.bodyPhoto.url ? layer.bodyPhoto : null
 
   return (
     <>
-      <section className="vx-card gm-hero">
+      <section className={`vx-card gm-hero ${body ? "has-body" : ""}`}>
         <div aria-hidden="true" className="gm-hero-glow" />
+        {body && (
+          <BodyStage photo={body} name={account.name} chips={[account.position, category].filter(Boolean) as string[]} avatarUrl={account.avatarUrl}
+            onFail={() => setBodyFailed(body.url)} />
+        )}
         <div className="gm-hero-who">
-          <MemberAvatar member={{ fullName: account.name, photoUrl: account.avatarUrl, kind: "membro" }} size={84} ring="#fbbf24" />
+          {!body && <MemberAvatar member={{ fullName: account.name, photoUrl: account.avatarUrl, kind: "membro" }} size={84} ring="#fbbf24" />}
           <div className="min-w-0">
             <p className="gm-eyebrow">{newcomer ? "Bem-vindo à Zyron" : "Bem-vindo de volta"}</p>
             <h2>{newcomer ? `${account.firstName}, a sua jornada começa aqui.` : `${account.firstName}, o seu jogo está em evolução.`}</h2>

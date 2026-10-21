@@ -7,3 +7,7 @@ verify_jwt = false
 
 [functions.funnel-lead-delivery]
 verify_jwt = false
+
+# Ponte CRM (wsltda.com) → VOXEN: a origem é provada pela assinatura HMAC (CRM_BRIDGE_SHARED_SECRET).
+[functions.crm-context-receiver]
+verify_jwt = false

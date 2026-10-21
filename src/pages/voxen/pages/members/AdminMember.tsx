@@ -14,8 +14,10 @@ import { ageFrom, formatMatchDate, positionCodeOf, sortMatchesDesc, type Match }
 import { summarizeMatch, summarizeProfile } from "@/pages/membros/metrics"
 import type { MemberInput } from "@/pages/membros/api"
 import { MemberForm, ScoutEditor, SetupNotice, inputFromMember, memberAreaUrl, useAdminSource, useSourceData } from "./shared"
+import { AccessTab, BodyTab, ContextTab, HistoryTab, OpportunitiesTab } from "../scout/ScoutTabs"
+import { useScoutApi } from "../scout/api"
 
-type Tab = "partidas" | "dados" | "scout" | "desempenho"
+type Tab = "partidas" | "dados" | "scout" | "desempenho" | "oportunidades" | "acessos" | "corpo" | "contexto" | "historico"
 
 export default function AdminMember() {
   const { id = "" } = useParams()
@@ -28,6 +30,7 @@ export default function AdminMember() {
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const bundle = useSourceData(source, (s) => s.getBundle(id, false), [id])
+  const scoutApi = useScoutApi(demo)
 
   const summary = useMemo(() => (bundle.data ? summarizeProfile(bundle.data) : null), [bundle.data])
 
@@ -73,6 +76,7 @@ export default function AdminMember() {
     if (!source || !canScout) return
     try {
       const saved = await source.saveMatch({ ...m, published: !m.published })
+      if (saved.published) void scoutApi?.markAnalyzed(saved.id).catch(() => undefined)
       bundle.setData((b) => (b ? { ...b, matches: b.matches.map((x) => (x.id === saved.id ? saved : x)) } : b))
       toast({ title: saved.published ? "Partida publicada" : "Partida despublicada", description: `${saved.team} × ${saved.opponent}` })
     } catch (e) {
@@ -90,7 +94,11 @@ export default function AdminMember() {
   }
 
   const ordered = sortMatchesDesc(matches)
-  const TABS: [Tab, string][] = [["partidas", `Partidas (${matches.length})`], ["dados", "Dados"], ["scout", "Avaliação do scout"], ["desempenho", "Desempenho"]]
+  const TABS: [Tab, string][] = [
+    ["partidas", `Partidas (${matches.length})`], ["dados", "Dados"], ["scout", "Avaliação do scout"], ["desempenho", "Desempenho"],
+    // A ficha do Scout: só para membros (referência não tem área de atleta).
+    ...(isMember ? [["oportunidades", "Oportunidades"], ["acessos", "Acessos"], ["corpo", "Foto de corpo inteiro"], ["contexto", "Contexto"], ["historico", "Histórico"]] as [Tab, string][] : []),
+  ]
 
   return (
     <>
@@ -153,7 +161,7 @@ export default function AdminMember() {
         )}
       </section>
 
-      <div className="vx-tabs mb-5" role="tablist">
+      <div className="vx-tabs mb-5 max-w-full overflow-x-auto" role="tablist">
         {TABS.map(([k, label]) => (
           <button key={k} type="button" role="tab" aria-selected={tab === k} className={`vx-tab ${tab === k ? "is-on" : ""}`} onClick={() => setParams(k === "partidas" ? {} : { aba: k })}>{label}</button>
         ))}
@@ -240,6 +248,12 @@ export default function AdminMember() {
           )
           : <div className="vx-card"><Empty icon={<Film className="h-6 w-6" />} title="Sem partidas para calcular o desempenho" /></div>
       )}
+
+      {isMember && tab === "oportunidades" && <OpportunitiesTab member={member} />}
+      {isMember && tab === "acessos" && <AccessTab member={member} />}
+      {isMember && tab === "corpo" && <BodyTab member={member} />}
+      {isMember && tab === "contexto" && <ContextTab member={member} onMemberChanged={bundle.reload} />}
+      {isMember && tab === "historico" && <HistoryTab member={member} matches={matches} />}
     </>
   )
 }

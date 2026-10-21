@@ -1,3 +1,5 @@
+import "@/pages/admin/console/console.css"
+
 import { useMemo, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { Check, CircleDot, GitCompareArrows, Plus, Search, UserCheck, Users } from "lucide-react"
@@ -8,6 +10,7 @@ import { placeOf, type Player } from "@/pages/voxen/data"
 import { MemberAvatar } from "@/pages/membros/components/bits"
 import { formatShortDate, positionCodeOf, type MemberKind } from "@/pages/membros/model"
 import type { MemberInput } from "@/pages/membros/api"
+import { SyncCard } from "@/pages/admin/console/SyncCard"
 import { MemberForm, SetupNotice, useAdminSource, useSourceData } from "./shared"
 
 /** Cadastro de membro preenchido com o que o atleta informou no funil. */
@@ -81,6 +84,8 @@ export default function AdminMembers() {
 
   return (
     <>
+      {/* Sincronizar agora: toda a equipe (recriar os excluídos continua só na central do administrador). */}
+      {kind === "membro" && canScout && <SyncCard onChanged={list.reload} />}
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="vx-tabs" role="tablist" aria-label="Tipo de perfil">
           <button type="button" role="tab" aria-selected={kind === "membro"} className={`vx-tab ${kind === "membro" ? "is-on" : ""}`} onClick={() => { setParams({}); setCreating(false) }}>

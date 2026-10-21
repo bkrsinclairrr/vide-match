@@ -10,7 +10,8 @@
 import type { DataSource, EventInput, MatchInput, MemberInput, ProfileListItem } from "./api"
 import type { AthleteAccount } from "./account"
 import { NO_CAREER, type Career } from "./game"
-import { ACTION_KEYS, type ActionKey, type Bundle, type Match, type MatchEvent, type Member } from "./model"
+import { ACTION_KEYS, parseVideo, type ActionKey, type Bundle, type Match, type MatchEvent, type Member } from "./model"
+import { LOCK_KEYS, type ClubRef, type ScoutLayer, type Submission, type SubmitInput } from "./scoutLayer"
 
 const TEST_VIDEO =
   "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/ba/Match_de_football_France-Allemagne_-_16_octobre_2018_-_Phase_de_jeu_%281%29.ogv/Match_de_football_France-Allemagne_-_16_octobre_2018_-_Phase_de_jeu_%281%29.ogv.480p.vp9.webm"
@@ -92,7 +93,7 @@ const COMPETITIONS = ["Candangão Sub-20", "Copa Brasília", "Amistoso", "Copa A
 const iso = (d: Date) => d.toISOString().slice(0, 10)
 const stamp = new Date().toISOString()
 
-type Seed = Omit<Member, "id" | "createdAt" | "updatedAt" | "userId" | "leadId" | "active" | "autoSync"> & { id: string; elite?: boolean; matches: number }
+type Seed = Omit<Member, "id" | "createdAt" | "updatedAt" | "userId" | "leadId" | "active" | "autoSync" | "phone" | "nationality" | "crmSyncedAt" | "extended"> & { id: string; elite?: boolean; matches: number }
 
 const SEEDS: Seed[] = [
   {
@@ -143,7 +144,11 @@ function build() {
 
   for (const seed of SEEDS) {
     const { matches: count, elite, ...rest } = seed
-    members.push({ ...rest, userId: seed.kind === "membro" ? `user-${seed.id}` : null, leadId: null, active: true, autoSync: seed.kind === "membro" && seed.id.length % 2 === 0, createdAt: stamp, updatedAt: stamp })
+    members.push({
+      ...rest, userId: seed.kind === "membro" ? `user-${seed.id}` : null, leadId: null, active: true, autoSync: seed.kind === "membro" && seed.id.length % 2 === 0,
+      phone: seed.kind === "membro" ? `55619${String(9e7 + seed.id.length * 1234567).slice(0, 8)}` : null, nationality: seed.kind === "membro" ? "Brasil" : null,
+      crmSyncedAt: seed.id === "m-gabriel" ? stamp : null, extended: true, createdAt: stamp, updatedAt: stamp,
+    })
     const role = ROLES[seed.position as string]
     const isZag = seed.position === "Zagueiro"
 
@@ -278,6 +283,10 @@ export const fixtureSource: DataSource = {
       leadId: input.leadId ?? existing?.leadId ?? null,
       active: input.active ?? true,
       autoSync: existing?.autoSync ?? false,
+      phone: input.phone !== undefined ? input.phone : existing?.phone ?? null,
+      nationality: input.nationality !== undefined ? input.nationality : existing?.nationality ?? null,
+      crmSyncedAt: existing?.crmSyncedAt ?? null,
+      extended: true,
       createdAt: existing?.createdAt ?? input.createdAt ?? now,
       updatedAt: now,
     }
@@ -375,4 +384,74 @@ export const FIXTURE_ACCOUNT: AthleteAccount = {
   city: "Salvador - BA",
   hasProfile: true,
   seed: "00000000-0000-4000-8000-0000000000a1",
+}
+
+/* ------------------------------------------------------------------ */
+/* Camada do Scout (só no `npm run dev`)                               */
+/* ------------------------------------------------------------------ */
+
+const daysFrom = (n: number) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10)
+
+const demoClub = (id: string, name: string, league: string, emblem: string, color: string): ClubRef =>
+  ({ id: `club-${id}`, name, country: "Brasil", league, crestUrl: null, emblem, color, catalogId: id })
+
+/** Atleta de teste em pé, desenhado em SVG (só para ver o palco sem uma foto real). */
+function demoBodySvg(cutout: boolean, kit: string) {
+  const bg = cutout ? "" : `<defs><radialGradient id="s" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#3a3a40"/><stop offset="1" stop-color="#121214"/></radialGradient></defs><rect width="800" height="1000" fill="url(#s)"/>`
+  const skin = "#8d5a3b"
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">${bg}
+<ellipse cx="400" cy="128" rx="58" ry="70" fill="${skin}"/><path d="M342 110q58-70 116 0q-6-58-58-62q-52 4-58 62z" fill="#1b1b1b"/>
+<rect x="378" y="186" width="44" height="40" rx="10" fill="${skin}"/>
+<path d="M262 238q138-40 276 0l34 236-70 10-14-120-10 190H322l-10-190-14 120-70-10z" fill="${kit}"/>
+<path d="M372 226h56l-28 34z" fill="#fff" opacity=".85"/>
+<path d="M228 474l34-236 26 6-24 228z" fill="${skin}"/><path d="M572 474l-34-236-26 6 24 228z" fill="${skin}"/>
+<path d="M322 544h156l8 118H314z" fill="#f4f4f5"/>
+<path d="M330 662h58l-6 214h-46z" fill="${skin}"/><path d="M412 662h58l-6 214h-46z" fill="${skin}"/>
+<path d="M330 700h58v120h-58zM412 700h58v120h-58z" fill="${kit}"/>
+<path d="M330 876h52l20 34h-80zM418 876h52l8 34h-80z" fill="#111"/>
+</svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+const demoSubmissions: Submission[] = [
+  { id: "env-1", videoId: "M7lc1UVf-VE", opponent: "Ceilândia Sub-17", playedOn: daysFrom(-6), note: "Entrei no 2º tempo, camisa 10.", status: "em_analise", reviewNote: null, matchId: null, createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
+]
+
+/**
+ * Camada de teste. O membro principal tem duas oportunidades reais. `?corpo=moldura` ou
+ * `?corpo=recorte` liga a foto de corpo inteiro; `?trava=matches` tranca uma parte da área.
+ */
+export function fixtureScoutLayer(memberId: string | null): ScoutLayer {
+  const q = new URLSearchParams(window.location.search)
+  const corpo = q.get("corpo")
+  const kit = demoClub("br2", "Palmeiras", "Série A", "🟢⚪", "#0b6b3a")
+  const trava = q.get("trava")
+  const main = memberId === "m-gabriel" || memberId === null
+  return {
+    memberId,
+    locks: trava && (LOCK_KEYS as string[]).includes(trava) ? { [trava]: "locked" } : {},
+    bodyPhoto: corpo === "moldura" || corpo === "recorte"
+      ? { url: demoBodySvg(corpo === "recorte", kit.color ?? "#0b6b3a"), smallUrl: null, style: corpo, kit }
+      : null,
+    opportunities: main
+      ? [
+          { id: "op-1", club: kit, compatibility: 94, deadline: daysFrom(5), status: "aberta", athleteNote: "A base procura um meia-atacante canhoto para a avaliação de novembro.", publishedAt: new Date().toISOString() },
+          { id: "op-2", club: demoClub("br10", "Athletico-PR", "Série A", "🔴⚫", "#c8102e"), compatibility: 88, deadline: daysFrom(16), status: "enviada", athleteNote: "Seu perfil já foi enviado ao coordenador da base.", publishedAt: new Date().toISOString() },
+        ]
+      : [],
+    submissions: [...demoSubmissions],
+    available: true,
+  }
+}
+
+export async function fixtureSubmit(input: SubmitInput): Promise<Submission> {
+  const video = parseVideo(input.url)
+  if (video?.kind !== "youtube" || !/^[A-Za-z0-9_-]{11}$/.test(video.id)) throw new Error("Envie um link do YouTube (youtube.com ou youtu.be).")
+  if (demoSubmissions.some((s) => s.videoId === video.id)) throw new Error("Este vídeo já foi enviado.")
+  const s: Submission = {
+    id: crypto.randomUUID(), videoId: video.id, opponent: input.opponent.trim() || null, playedOn: input.playedOn || null,
+    note: input.note.trim() || null, status: "enviado", reviewNote: null, matchId: null, createdAt: new Date().toISOString(),
+  }
+  demoSubmissions.unshift(s)
+  return delay(s)
 }

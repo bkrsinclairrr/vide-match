@@ -18,6 +18,7 @@ import { getAllClubs, getBrazilianClubBySeed, getClubBySeed, type Club } from "@
 import type { AthleteAccount } from "./account"
 import type { ProfileSummary } from "./metrics"
 import { CLIENT_BASE } from "./paths"
+import { EMPTY_LAYER, LOCK_KEYS, type ScoutLayer } from "./scoutLayer"
 
 /* ------------------------------------------------------------------ */
 /* Categoria e relatório                                               */
@@ -284,7 +285,8 @@ export const NO_CAREER: Career = {
 
 /**
  * O que cada etapa libera. Menu, Início, Oportunidades, Comparativo, Partidas e Desempenho
- * leem daqui, então trancam e abrem juntos.
+ * leem daqui, então trancam e abrem juntos. A equipe pode forçar cada parte (aberta ou
+ * trancada) na ficha do Scout; sem isso, vale o cálculo da jornada.
  */
 export type Gates = {
   /** Os 7 dados do perfil preenchidos: o primeiro passo da jornada. */
@@ -295,8 +297,10 @@ export type Gates = {
   analysis: boolean
   /** Tem ao menos um jogo analisado pela equipe. */
   analyzed: boolean
-  /** Partidas e Desempenho abertos: jogo analisado, ou acesso liberado com o perfil pronto. */
+  /** Partidas abertas: jogo analisado, ou acesso liberado com o perfil pronto. */
   matches: boolean
+  /** Desempenho aberto (mesma regra das partidas, mas a equipe pode trancar à parte). */
+  performance: boolean
   /** Comparativo (precisa do relatório, que nasce com o perfil). */
   compare: boolean
 }
@@ -361,7 +365,7 @@ function bestStreak(summary: ProfileSummary | null) {
 /** XP de cada etapa de carreira (as três últimas da jornada). */
 const CAREER_XP = { selecionado: 200, encaminhado: 250, contrato: 400 } as const
 
-export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, career: Career = NO_CAREER): Game {
+export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, career: Career = NO_CAREER, layer: ScoutLayer = EMPTY_LAYER): Game {
   const comp = completion(account)
   const t = summary?.total
   const matches = summary?.matches.length ?? 0
@@ -372,17 +376,22 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, 
   const profile = comp.done === comp.total
   const analyzed = matches > 0
 
-  // A trava é para quem está chegando: quem já tem jogo analisado ou foi selecionado pela equipe
-  // não perde as oportunidades por causa de um dado do perfil que ficou para trás.
+  // A trava é para quem está chegando: quem já tem jogo analisado, foi selecionado pela equipe ou
+  // recebeu uma oportunidade real não perde as oportunidades por causa de um dado do perfil.
   const gates: Gates = {
     profile,
-    opportunities: profile || analyzed || career.selected,
+    opportunities: profile || analyzed || career.selected || layer.opportunities.length > 0,
     analysis: profile || analyzed,
     analyzed,
     matches: analyzed || (Boolean(summary) && profile),
+    performance: analyzed || (Boolean(summary) && profile),
     compare: account.hasProfile,
   }
-
+  // O que a equipe abriu ou trancou à mão vale por cima do cálculo.
+  for (const key of LOCK_KEYS) {
+    if (layer.locks[key] === "open") gates[key] = true
+    else if (layer.locks[key] === "locked") gates[key] = false
+  }
   const badges: Badge[] = [
     { key: "perfil", title: "Perfil completo", desc: "Preencha os 7 dados do seu perfil.", icon: ClipboardCheck, progress: comp.done, target: comp.total, earned: profile, group: "Conta", xp: 0 },
     { key: "foto", title: "Cara de craque", desc: "Coloque a sua foto no perfil.", icon: Camera, progress: account.avatarUrl ? 1 : 0, target: 1, earned: Boolean(account.avatarUrl), group: "Conta", xp: 0 },
@@ -416,6 +425,11 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, 
   const span = next ? next.at - LEVELS[idx].at : 1
 
   const wa = (topic: string) => `Olá! Sou ${account.name}, da Zyron. ${topic}`
+  // Com o envio pela área, as missões de vídeo levam à página de partidas em vez do WhatsApp.
+  const sendCta = (label: string, topic: string): Cta => layer.available && gates.analysis
+    ? { label, to: `${CLIENT_BASE}/partidas#enviar` }
+    : { label, whatsapp: wa(topic) }
+
   type Draft = Omit<Mission, "locked" | "after" | "step">
   const drafts: Record<JourneyKey, Draft> = {
     perfil: {
@@ -428,13 +442,13 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, 
       key: "analise", title: "Libere a análise dos seus jogos",
       desc: "Envie o vídeo de um jogo: a equipe marca cada lance seu e a análise aparece aqui.",
       progress: Math.min(matches, 1), target: 1, done: analyzed, xp: 150,
-      cta: { label: "Enviar vídeo", whatsapp: wa("Quero enviar o vídeo de um jogo para liberar a análise lance a lance.") },
+      cta: sendCta("Enviar vídeo", "Quero enviar o vídeo de um jogo para liberar a análise lance a lance."),
     },
     tres: {
       key: "tres", title: "Chegue a 3 jogos analisados",
       desc: "Com 3 jogos, a equipe já enxerga o seu padrão de jogo.",
       progress: Math.min(matches, 3), target: 3, done: matches >= 3, xp: 80 * Math.max(0, 3 - matches),
-      cta: { label: "Enviar outro jogo", whatsapp: wa("Quero enviar o vídeo de mais um jogo para a análise.") },
+      cta: sendCta("Enviar outro jogo", "Quero enviar o vídeo de mais um jogo para a análise."),
     },
     selecionado: {
       key: "selecionado", title: "Seja selecionado pela Zyron",

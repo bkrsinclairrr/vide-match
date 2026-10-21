@@ -18,6 +18,7 @@ import { PageSkeleton } from "@/pages/voxen/ui"
 import { SetupMissingError, getPreviewAccount, getSource, type DataSource } from "./api"
 import { loadAccountByAtletaId, loadAccountByUserId, loadOwnAccount, withMember, type AthleteAccount } from "./account"
 import { loadCareer } from "./career"
+import { loadScoutLayer, type ScoutLayer } from "./scoutLayer"
 import { categoryOf, gameOf, reportOf, type Career, type Game, type Gates, type Report } from "./game"
 import { summarizeProfile, type ProfileSummary } from "./metrics"
 import type { Bundle, Member } from "./model"
@@ -37,20 +38,21 @@ const MatchPage = lazy(() => import("./pages/MatchPage"))
 const PerformancePage = lazy(() => import("./pages/PerformancePage"))
 const Locked = lazy(() => import("./pages/Locked"))
 
-/** `gate`: a parte da jornada que abre o item; sem ela, o item mostra o cadeado (e a página explica como liberar). */
-const NAV: { to: string; label: string; icon: typeof Home; end: boolean; gate: keyof Gates | null; hint?: string }[] = [
-  { to: CLIENT_BASE, label: "Início", icon: Home, end: true, gate: null },
-  { to: `${CLIENT_BASE}/oportunidades`, label: "Oportunidades", icon: Compass, end: false, gate: "opportunities", hint: "Libera quando você completar o perfil" },
-  { to: `${CLIENT_BASE}/conquistas`, label: "Conquistas", icon: Trophy, end: false, gate: null },
-  { to: `${CLIENT_BASE}/comparativo`, label: "Comparativo", icon: GitCompareArrows, end: false, gate: "compare", hint: "Libera quando você criar o perfil" },
-  { to: `${CLIENT_BASE}/partidas`, label: "Partidas", icon: Clapperboard, end: false, gate: "matches", hint: "Libera com a análise dos seus jogos" },
-  { to: `${CLIENT_BASE}/desempenho`, label: "Desempenho", icon: BarChart3, end: false, gate: "matches", hint: "Libera com a análise dos seus jogos" },
-  { to: `${CLIENT_BASE}/perfil`, label: "Perfil", icon: UserRound, end: false, gate: null },
+/** `open`: quando o item fica aberto; sem isso, o item mostra o cadeado (e a página explica como liberar). */
+const NAV: { to: string; label: string; icon: typeof Home; end: boolean; open: ((g: Gates) => boolean) | null; hint?: string }[] = [
+  { to: CLIENT_BASE, label: "Início", icon: Home, end: true, open: null },
+  { to: `${CLIENT_BASE}/oportunidades`, label: "Oportunidades", icon: Compass, end: false, open: (g) => g.opportunities, hint: "Libera quando você completar o perfil" },
+  { to: `${CLIENT_BASE}/conquistas`, label: "Conquistas", icon: Trophy, end: false, open: null },
+  { to: `${CLIENT_BASE}/comparativo`, label: "Comparativo", icon: GitCompareArrows, end: false, open: (g) => g.compare, hint: "Libera quando você criar o perfil" },
+  // Partidas abre já para enviar o primeiro jogo; a análise aparece quando a equipe terminar.
+  { to: `${CLIENT_BASE}/partidas`, label: "Partidas", icon: Clapperboard, end: false, open: (g) => g.matches || g.analysis, hint: "Libera quando você completar o perfil" },
+  { to: `${CLIENT_BASE}/desempenho`, label: "Desempenho", icon: BarChart3, end: false, open: (g) => g.performance, hint: "Libera com a análise dos seus jogos" },
+  { to: `${CLIENT_BASE}/perfil`, label: "Perfil", icon: UserRound, end: false, open: null },
 ]
 
 /** Itens do menu que uma missão recém-cumprida acabou de abrir (ganham o selo "Novo" até a pessoa visitar). */
 const OPENS: Record<string, string[]> = {
-  perfil: [`${CLIENT_BASE}/oportunidades`, `${CLIENT_BASE}/comparativo`],
+  perfil: [`${CLIENT_BASE}/oportunidades`, `${CLIENT_BASE}/comparativo`, `${CLIENT_BASE}/partidas`],
   analise: [`${CLIENT_BASE}/partidas`, `${CLIENT_BASE}/desempenho`],
 }
 
@@ -78,8 +80,12 @@ type AthleteCtx = {
   report: Report | null
   game: Game
   career: Career
+  /** O que a equipe publicou para a pessoa: travas, foto de corpo inteiro, oportunidades e os vídeos enviados. */
+  layer: ScoutLayer
   member: MemberCtx | null
   adminPreview: boolean
+  /** Dados locais do `npm run dev` (?demo). */
+  preview: boolean
   whatsapp: (text?: string) => string
   /** Lê tudo de novo do banco sem piscar a tela (volta de outra aba, foto nova...). */
   refresh: () => Promise<void>
@@ -143,6 +149,7 @@ type Loaded = {
   account: AthleteAccount
   membership: { bundle: Bundle; references: Member[] } | null
   career: Career
+  layer: ScoutLayer
 }
 
 type LoadState = { status: "loading" } | ({ status: "ok" } & Loaded) | { status: "erro"; message: string }
@@ -151,16 +158,16 @@ type LoadOpts = { preview: boolean; asMember: string | null; own: () => Promise<
 
 async function loadClient(opts: LoadOpts): Promise<Loaded> {
   const base = await loadBase(opts)
-  const career = await loadCareer({
-    preview: opts.preview,
-    asStaff: Boolean(opts.asMember) && !opts.preview,
-    account: base.account,
-    memberId: base.membership?.bundle.member.id ?? null,
-  })
-  return { ...base, career }
+  const asStaff = Boolean(opts.asMember) && !opts.preview
+  const memberId = base.membership?.bundle.member.id ?? null
+  const [career, layer] = await Promise.all([
+    loadCareer({ preview: opts.preview, asStaff, account: base.account, memberId }),
+    loadScoutLayer({ preview: opts.preview, asStaff, memberId, userId: base.account.userId }),
+  ])
+  return { ...base, career, layer }
 }
 
-async function loadBase(opts: LoadOpts): Promise<Omit<Loaded, "career">> {
+async function loadBase(opts: LoadOpts): Promise<Omit<Loaded, "career" | "layer">> {
   const { preview, asMember } = opts
   const source = await getSource(preview)
 
@@ -305,7 +312,7 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
 
   const value = useMemo(() => {
     if (state.status !== "ok") return null
-    const { source, membership, career } = state
+    const { source, membership, career, layer } = state
     const account = photoNow ? { ...state.account, avatarUrl: photoNow } : state.account
     const whatsapp = (text?: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text ?? `Olá! Sou ${account.name}, da Zyron.`)}`
     const summary = membership ? summarizeProfile(membership.bundle) : null
@@ -328,7 +335,7 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
         }
       : null
     const category = categoryOf(account.age) ?? membership?.bundle.member.category ?? null
-    return { account, category, report: reportOf(account), game: gameOf(account, summary, career), career, member: memberCtx, whatsapp, source }
+    return { account, category, report: reportOf(account), game: gameOf(account, summary, career, layer), career, layer, member: memberCtx, whatsapp, source }
   }, [state, photoNow, adminPreview])
 
   // O que foi cumprido desde a última visita vira comemoração (a equipe vendo como o atleta não grava nada).
@@ -341,8 +348,10 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
     report: value.report,
     game: value.game,
     career: value.career,
+    layer: value.layer,
     member: value.member,
     adminPreview,
+    preview: value.source.preview,
     whatsapp: value.whatsapp,
     refresh,
     pickPhoto: canPickPhoto ? () => photoInput.current?.click() : null,
@@ -388,7 +397,8 @@ function useTitle() {
  */
 function MemberOnly({ page, children }: { page: "partidas" | "desempenho"; children: ReactNode }) {
   const { member, game } = useAthlete()
-  return member && game.gates.matches ? <>{children}</> : <Locked page={page} />
+  const open = page === "desempenho" ? game.gates.performance : game.gates.matches
+  return member && open ? <>{children}</> : <Locked page={page} />
 }
 
 function Shell({ asMember, previewing }: { asMember: string | null; previewing: boolean }) {
@@ -440,7 +450,7 @@ function Shell({ asMember, previewing }: { asMember: string | null; previewing: 
                 <Route path="oportunidades" element={<OpportunitiesPage />} />
                 <Route path="conquistas" element={<AchievementsPage />} />
                 <Route path="comparativo" element={<AthleteComparePage />} />
-                <Route path="partidas" element={<MemberOnly page="partidas"><MatchesPage /></MemberOnly>} />
+                <Route path="partidas" element={<MatchesPage />} />
                 <Route path="partidas/:id" element={<MemberOnly page="partidas"><MatchPage /></MemberOnly>} />
                 <Route path="desempenho" element={<MemberOnly page="desempenho"><PerformancePage /></MemberOnly>} />
                 <Route path="perfil" element={<AthleteProfilePage />} />
@@ -506,8 +516,8 @@ function ClientSidebar({ open, email, onSignOut }: { open: boolean; email: strin
       <p className="vx-nav-label">Minha área</p>
       <nav ref={navRef} className="vx-nav">
         <span className="vx-nav-pill" style={{ transform: `translateY(${pill.y}px)`, opacity: pill.visible ? 1 : 0 }} aria-hidden="true" />
-        {NAV.map(({ to, label, icon: Icon, end, gate, hint }) => {
-          const locked = gate !== null && !game.gates[gate]
+        {NAV.map(({ to, label, icon: Icon, end, open, hint }) => {
+          const locked = open !== null && !open(game.gates)
           const isNew = !locked && opened.has(to) && !visited.has(to)
           return (
             <NavLink key={to} to={to} end={end} className={({ isActive }) => `vx-nav-item ${isActive ? "is-active" : ""} ${locked ? "is-locked" : ""}`}

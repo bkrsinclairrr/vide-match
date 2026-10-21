@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  BadgeCheck, GitCompareArrows, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
+  BadgeCheck, ClipboardList, Compass, GitCompareArrows, Inbox, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -33,10 +33,16 @@ const AdminMatch = lazy(() => import("./pages/members/AdminMatch"))
 const AdminCompare = lazy(() => import("./pages/members/AdminCompare"))
 const AccountsPage = lazy(() => import("./pages/accounts/AccountsPage"))
 const AthletesPage = lazy(() => import("./pages/athletes/AthletesPage"))
+const OpportunitiesPage = lazy(() => import("./pages/opportunities/OpportunitiesPage"))
+const ScoutDesk = lazy(() => import("./pages/scout/ScoutDesk"))
+const SubmissionsPage = lazy(() => import("./pages/scout/SubmissionsPage"))
 
 const NAV: NavItem[] = [
   { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true, section: "Plataforma" },
+  { to: "/voxen/mesa", label: "Mesa do Scout", icon: ClipboardList, section: "Plataforma" },
   { to: "/voxen/jogadores", label: "Jogadores", icon: Users, section: "Plataforma" },
+  { to: "/voxen/oportunidades", label: "Oportunidades", icon: Compass, section: "Plataforma" },
+  { to: "/voxen/envios", label: "Envios de vídeo", icon: Inbox, section: "Plataforma" },
   { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, section: "Plataforma" },
   { to: "/voxen/atletas", label: "Atletas", icon: Medal, section: "Plataforma" },
   { to: "/voxen/elenco", label: "Elenco", icon: Shirt, section: "Plataforma" },
@@ -82,6 +88,9 @@ function useTitle() {
   if (pathname.startsWith("/voxen/elenco")) return { kicker: "Por posição", title: "Elenco" }
   if (pathname.startsWith("/voxen/comparativo")) return { kicker: "Lado a lado", title: "Comparativo" }
   if (pathname.startsWith("/voxen/contas")) return { kicker: "Administração", title: "Contas e acessos" }
+  if (pathname.startsWith("/voxen/mesa")) return { kicker: "Fila de trabalho", title: "Mesa do Scout" }
+  if (pathname.startsWith("/voxen/oportunidades")) return { kicker: "Jogadores escolhidos", title: "Oportunidades" }
+  if (pathname.startsWith("/voxen/envios")) return { kicker: "Enviados pelos atletas", title: "Envios de vídeo" }
   if (pathname.startsWith("/voxen/atletas")) return { kicker: "Plataforma", title: "Atletas" }
   if (pathname.startsWith("/voxen/membros/comparar")) return { kicker: "Área de membros", title: "Comparar perfis" }
   if (pathname.endsWith("/partidas/nova")) return { kicker: "Área de membros", title: "Nova partida" }
@@ -153,6 +162,9 @@ function Shell() {
             <Route path="comparativo" element={<Compare />} />
             <Route path="contas" element={canSeeAccountsAs(role) ? <AccountsPage /> : <Navigate to="/voxen" replace />} />
             <Route path="atletas" element={<AthletesPage />} />
+            <Route path="mesa" element={<ScoutDesk />} />
+            <Route path="oportunidades" element={<OpportunitiesPage />} />
+            <Route path="envios" element={<SubmissionsPage />} />
             <Route path="membros" element={<AdminMembers />} />
             <Route path="membros/comparar" element={<AdminCompare />} />
             <Route path="membros/:id" element={<AdminMember />} />

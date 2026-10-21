@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type MouseEvent as ReactMouseEvent } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import {
   ArrowLeft, Check, ExternalLink, Eye, EyeOff, FastForward, Film, Keyboard, MapPin, MousePointerClick, Pause, Pencil, Play,
   Rewind, Save, Trash2, Undo2, X,
@@ -21,6 +21,8 @@ import { EventList, EventTimeline, VideoPlayer, type PlayerApi } from "@/pages/m
 import { MemberAvatar, RatingChip } from "@/pages/membros/components/bits"
 import { IndexBars, StatGrid } from "@/pages/membros/components/Stats"
 import { FormField, SetupNotice, memberAreaUrl, useAdminSource, useSourceData } from "./shared"
+import { useScoutApi } from "../scout/api"
+import { youtubeWatch } from "@/pages/membros/scoutLayer"
 
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
@@ -36,6 +38,11 @@ export default function AdminMatch() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { data, error, loading, setData } = useSourceData(source, (s) => s.getBundle(id, false), [id])
+  const scoutApi = useScoutApi(demo)
+  const [params] = useSearchParams()
+  // Partida nova a partir de um envio do atleta (caixa de envios): o link e o adversário vêm prontos.
+  const envioId = isNew ? params.get("envio") : null
+  const [prefill, setPrefill] = useState<Partial<Draft> | null>(null)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   // Lances marcados nesta sessão, para o Ctrl+Z. Ids "tmp-" ainda estão sendo gravados.
@@ -50,6 +57,18 @@ export default function AdminMatch() {
     stack.current = []
     cancelled.current.clear()
   }, [matchId])
+
+  useEffect(() => {
+    if (!envioId || !scoutApi) return
+    let off = false
+    scoutApi.submission(envioId)
+      .then((s) => {
+        if (off || !s) return
+        setPrefill({ videoUrl: youtubeWatch(s.videoId) ?? "", opponent: s.opponent ?? "", ...(s.playedOn ? { playedOn: s.playedOn } : {}) })
+      })
+      .catch(() => undefined)
+    return () => { off = true }
+  }, [envioId, scoutApi])
 
   useEffect(() => {
     if (!confirmDelete) return
@@ -83,6 +102,11 @@ export default function AdminMatch() {
     try {
       const saved = await source.saveMatch(input)
       putMatch(saved)
+      // O envio do atleta passa a "em análise", ligado a esta partida.
+      if (isNew && envioId && scoutApi) {
+        void scoutApi.updateSubmission(envioId, { status: "em_analise", matchId: saved.id, memberId: member.id })
+          .catch((e) => toast({ title: "A partida foi criada, mas o envio não foi atualizado", description: errMsg(e), variant: "destructive" }))
+      }
       toast({ title: isNew ? "Partida criada" : "Partida salva", description: isNew ? "Agora marque as ações no vídeo." : `${saved.team} × ${saved.opponent}` })
       if (isNew) navigate(`/voxen/membros/${member.id}/partidas/${saved.id}`, { replace: true })
       return true
@@ -99,6 +123,7 @@ export default function AdminMatch() {
     try {
       const saved = await source.saveMatch({ ...match, published: !match.published })
       putMatch(saved)
+      if (saved.published) void scoutApi?.markAnalyzed(saved.id).catch(() => undefined)
       toast({
         title: saved.published ? "Partida publicada" : "Partida voltou para rascunho",
         description: saved.published ? "O membro já vê esta partida." : "O membro deixa de ver esta partida.",
@@ -217,7 +242,7 @@ export default function AdminMatch() {
         )}
       </section>
 
-      <MatchForm key={match?.id ?? "nova"} member={member} matches={data.matches} match={match} readOnly={!canScout}
+      <MatchForm key={match?.id ?? (prefill ? "nova-envio" : "nova")} member={member} matches={data.matches} match={match} readOnly={!canScout} prefill={prefill}
         autoNow={summary ? autoRating(summary.line) : null} saving={saving} onSave={saveMatch} />
 
       {match && summary ? (
@@ -329,17 +354,19 @@ function toMatchInput(d: Draft, memberId: string, base: Match | null): MatchInpu
 
 const uniq = (values: (string | null | undefined)[]) => [...new Set(values.filter((v): v is string => Boolean(v && v.trim())))]
 
-function MatchForm({ member, matches, match, autoNow, saving, onSave, readOnly = false }: {
+function MatchForm({ member, matches, match, autoNow, saving, onSave, readOnly = false, prefill = null }: {
   member: Member
   matches: Match[]
   match: Match | null
+  /** Partida nova vinda de um envio do atleta. */
+  prefill?: Partial<Draft> | null
   /** Executivo: mostra os dados sem o botão de editar. */
   readOnly?: boolean
   autoNow: number | null
   saving: boolean
   onSave: (input: MatchInput) => Promise<boolean>
 }) {
-  const [d, setD] = useState<Draft>(() => draftFrom(match, member))
+  const [d, setD] = useState<Draft>(() => ({ ...draftFrom(match, member), ...(match ? {} : prefill ?? {}) }))
   const [open, setOpen] = useState(!match)
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }))
   const errors = draftErrors(d)
