@@ -318,7 +318,9 @@
 .cn-bulkedit-note { margin: 0; color: var(--vx-dim); font-size: 12px; }
 .cn-bulkedit-note strong { color: #fff; }
 .cn-bulkedit-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
-.cn-bulk.is-confirm:has(.cn-bulkedit) { border-color: rgba(251, 191, 36, 0.5); width: min(760px, calc(100vw - var(--vx-side-w) - 40px)); }
+.cn-bulk.is-confirm:has(.cn-bulkedit) { border-color: rgba(251, 191, 36, 0.5); }
+@media (min-width: 1024px) { .cn-bulk.is-confirm:has(.cn-bulkedit) { width: min(760px, calc(100vw - var(--vx-side-w) - 40px)); } }
+@media (max-width: 640px) { .cn-bulkedit .cn-bulk-select { flex: 1 1 140px; min-width: 0; } .cn-bulkedit-actions .vx-btn { flex: 1; justify-content: center; } }
 
 .cn-drawer-nav { display: inline-flex; align-items: center; gap: 4px; margin-left: 12px; vertical-align: middle; color: var(--vx-dim); font-size: 12px; }
 .cn-drawer-nav .vx-icon-btn { width: 26px; height: 26px; }
