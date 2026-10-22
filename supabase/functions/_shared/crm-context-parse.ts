@@ -124,13 +124,20 @@ export function sanitizeEvent(e: Obj) {
   const crm = { ...(observations ? { observations } : {}), ...(Object.keys(qualification).length ? { qualification } : {}) }
   const notes = cleanNotes(e.notes)
   const context = { ...pick(e.context, CONTEXT_KEYS, 2000), ...pick(e.context, ["commitment_score_raw"] as const, 200) }
-  const answers = Array.isArray(e.answers)
+  // Perguntas e respostas: no máximo 4000 caracteres por resposta e um orçamento de 50 mil no total
+  // (a coluna do banco aceita 64 KB; passar disso apagaria TODAS as respostas, então corta no fim da lista).
+  let budget = 50000
+  const answers = (Array.isArray(e.answers)
     ? e.answers
       .filter(isObj)
-      .map((a) => ({ question: text(a.question, 300), answer: text(a.answer, 2000) }))
+      .map((a) => ({ question: text(a.question, 300), answer: text(a.answer, 4000) }))
       .filter((a): a is { question: string; answer: string } => Boolean(a.question && a.answer) && !FORBIDDEN_QUESTION.test(a.question as string))
       .slice(0, 200)
     : []
+  ).filter((a) => {
+    budget -= a.question.length + a.answer.length
+    return budget >= 0
+  })
   return {
     schema_version: e.schema_version,
     kind: e.kind,
@@ -156,11 +163,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export function invalidReason(e: unknown, sourceProject: string): string | null {
   if (!isObj(e)) return "Corpo não é um objeto JSON."
   if (e.schema_version !== 1) return "schema_version precisa ser 1."
-  if (e.kind !== "athlete_context") return "kind precisa ser athlete_context."
+  if (e.kind !== "athlete_context" && e.kind !== "prospect_context") return "kind precisa ser athlete_context ou prospect_context."
   if (e.source_project !== sourceProject) return "source_project desconhecido."
   if (typeof e.event_id !== "string" || !UUID.test(e.event_id)) return "event_id precisa ser um uuid."
   if (typeof e.source_lead_id !== "string" || !UUID.test(e.source_lead_id)) return "source_lead_id precisa ser um uuid."
   if (!Number.isInteger(e.source_revision) || (e.source_revision as number) < 1) return "source_revision precisa ser um inteiro a partir de 1."
+  // Pré-cadastro: o id é do lead do CRM, e o vínculo com o atleta (quando ele se cadastrar) é por link.crm_lead_id.
+  if (e.kind === "prospect_context") {
+    const crm = isObj(e.link) ? e.link.crm_lead_id : undefined
+    if (typeof crm !== "string" || crm.toLowerCase() !== e.source_lead_id.toLowerCase()) return "No prospect_context, link.crm_lead_id precisa ser igual a source_lead_id."
+  }
   return null
 }
 
