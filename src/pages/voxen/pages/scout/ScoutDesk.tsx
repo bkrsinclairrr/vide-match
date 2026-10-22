@@ -207,7 +207,7 @@ function CrmLine({ health }: { health: CrmHealth | null }) {
             <span><b className="tnum text-white">{health.aplicados}</b> aplicados</span>
             <span><b className="tnum text-white">{health.esperando}</b> esperando virar membro</span>
             <span><b className="tnum text-white">{health.comContexto}</b> jogadores com contexto</span>
-            {health.preCadastros > 0 && <Link to="/voxen/pre-cadastros" className="text-sky-300 hover:underline"><b className="tnum">{health.preCadastros}</b> pré-cadastros (ainda sem conta)</Link>}
+            {health.preCadastros > 0 && <Link to="/voxen/importados?tipo=pre" className="text-sky-300 hover:underline"><b className="tnum">{health.preCadastros}</b> pré-cadastros (ainda sem conta)</Link>}
             {health.ultimo && <span>último em {formatMatchDate(health.ultimo.slice(0, 10))}</span>}
           </>
         : <span>ainda não recebeu nada (o envio é ligado na wsltda.com).</span>}

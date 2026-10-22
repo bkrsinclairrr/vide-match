@@ -158,41 +158,6 @@ export const FIELD_LABEL: Record<ConflictField, string> = {
   birth_date: "Nascimento", position: "Posição", category: "Categoria", team: "Time atual", city: "Cidade",
 }
 
-/**
- * Pré-cadastro: lead do CRM (wsltda.com) que ainda não se cadastrou na VOXEN. NÃO é atleta nem membro:
- * ninguém é contatado a partir daqui. Só a equipe vê. Quando a pessoa se cadastra, o texto daqui é apagado.
- */
-export type Prospect = {
-  /** Id do lead no CRM (a chave do pré-cadastro). */
-  id: string
-  athleteName: string | null
-  guardianName: string | null
-  guardianFilledBy: string | null
-  filledBy: "atleta" | "responsavel" | null
-  birthDate: string | null
-  position: string | null
-  category: string | null
-  team: string | null
-  city: string | null
-  /** Textos do formulário que o intérprete não entendeu com segurança. */
-  review: { field: string; raw: string }[]
-  pastClubs: string | null
-  trials: string | null
-  opportunitiesReceived: string | null
-  goal: string | null
-  blocker: string | null
-  evaluatedClubs: string | null
-  strengthsAndImprovements: string | null
-  commitmentScore: string | null
-  crmObservations: string | null
-  qualification: Qualification | null
-  notes: ContextNote[]
-  answers: Answer[]
-  revision: number
-  firstReceivedAt: string
-  updatedAt: string
-}
-
 export type CrmHealth = {
   recebidos: number
   /** Pré-cadastros abertos (não ligados a um atleta e não descartados). */
@@ -228,10 +193,6 @@ export interface ScoutApi {
   context(memberId: string): Promise<MemberContext | null>
   saveContext(memberId: string, patch: ContextPatch): Promise<MemberContext>
   conflicts(memberId?: string): Promise<Conflict[]>
-  /** Pré-cadastros do CRM abertos, do mais recente ao mais antigo. */
-  prospects(): Promise<Prospect[]>
-  /** Só o administrador: apaga o texto e impede que as próximas versões o recriem. */
-  discardProspect(id: string): Promise<void>
   resolveConflict(id: string, accept: boolean, value?: string): Promise<void>
   crmHealth(): Promise<CrmHealth | null>
 }
@@ -242,7 +203,7 @@ export interface ScoutApi {
 
 type Row = Record<string, unknown>
 
-function check(error: { code?: string; message?: string } | null) {
+export function check(error: { code?: string; message?: string } | null) {
   if (!error) return
   if (isMissing(error)) throw new ScoutSetupMissingError()
   if (error.code === "42501" || /row-level security|permission denied/i.test(error.message ?? "")) {
@@ -251,7 +212,7 @@ function check(error: { code?: string; message?: string } | null) {
   throw new Error(error.message || "Erro ao acessar o banco de dados.")
 }
 
-const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : null)
+export const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : null)
 
 const clubOf = (r: Row): Club => ({ ...(toClub(r) as ClubRef), active: r.active !== false })
 
@@ -320,7 +281,7 @@ const toStaffSubmission = (r: Row): StaffSubmission | null => {
   return s ? { ...s, userId: r.user_id as string, memberId: str(r.member_id), updatedAt: (r.updated_at as string) ?? s.createdAt } : null
 }
 
-const answersOf = (v: unknown): Answer[] =>
+export const answersOf = (v: unknown): Answer[] =>
   Array.isArray(v)
     ? v.map((a) => (a && typeof a === "object" ? { question: String((a as Row).question ?? ""), answer: String((a as Row).answer ?? "") } : null))
       .filter((a): a is Answer => Boolean(a && a.question && a.answer))
@@ -328,7 +289,7 @@ const answersOf = (v: unknown): Answer[] =>
 
 const NOTE_TYPES = ["whatsapp_summary", "manual_note", "call_transcript"] as const
 
-const notesOf = (v: unknown): ContextNote[] =>
+export const notesOf = (v: unknown): ContextNote[] =>
   Array.isArray(v)
     ? v.map((n): ContextNote | null => {
         const r = n as Row | null
@@ -340,7 +301,7 @@ const notesOf = (v: unknown): ContextNote[] =>
       }).filter((n): n is ContextNote => n !== null)
     : []
 
-const qualificationOf = (v: unknown): Qualification | null => {
+export const qualificationOf = (v: unknown): Qualification | null => {
   if (!v || typeof v !== "object") return null
   const r = v as Row
   const q: Qualification = {}
@@ -372,43 +333,6 @@ export const toContext = (r: Row): MemberContext => ({
   source: r.source === "crm" ? "crm" : "equipe",
   importedAt: str(r.imported_at),
   updatedAt: str(r.updated_at),
-})
-
-const reviewOf = (v: unknown): { field: string; raw: string }[] =>
-  Array.isArray(v)
-    ? v.map((x) => {
-        const r = x as Row | null
-        return r && typeof r.field === "string" && typeof r.raw === "string" ? { field: r.field, raw: r.raw } : null
-      }).filter((x): x is { field: string; raw: string } => x !== null)
-    : []
-
-export const toProspect = (r: Row): Prospect => ({
-  id: r.crm_lead_id as string,
-  athleteName: str(r.athlete_name),
-  guardianName: str(r.guardian_name),
-  guardianFilledBy: str(r.guardian_filled_by_raw),
-  filledBy: r.filled_by === "atleta" || r.filled_by === "responsavel" ? r.filled_by : null,
-  birthDate: str(r.birth_date)?.slice(0, 10) ?? null,
-  position: str(r.position),
-  category: str(r.category),
-  team: str(r.team),
-  city: str(r.city),
-  review: reviewOf(r.review),
-  pastClubs: str(r.past_clubs),
-  trials: str(r.trials),
-  opportunitiesReceived: str(r.opportunities_received),
-  goal: str(r.goal),
-  blocker: str(r.blocker),
-  evaluatedClubs: str(r.evaluated_clubs),
-  strengthsAndImprovements: str(r.strengths_and_improvements),
-  commitmentScore: str(r.commitment_score),
-  crmObservations: str(r.crm_observations),
-  qualification: qualificationOf(r.crm_qualification),
-  notes: notesOf(r.notes),
-  answers: answersOf(r.answers),
-  revision: Number(r.source_revision) || 1,
-  firstReceivedAt: (r.first_received_at as string) ?? "",
-  updatedAt: (r.updated_at as string) ?? "",
 })
 
 const contextRow = (p: ContextPatch) => {
@@ -598,17 +522,6 @@ const supabaseScout: ScoutApi = {
     return (data ?? []).map(toConflict)
   },
 
-  async prospects() {
-    const { data, error } = await db.from("zyron_prospects").select("*").is("linked_member_id", null).is("discarded_at", null).order("updated_at", { ascending: false }).limit(1000)
-    check(error)
-    return (data ?? []).map(toProspect)
-  },
-
-  async discardProspect(id) {
-    const { error } = await db.rpc("zyron_discard_prospect", { p_lead: id })
-    check(error)
-  },
-
   async resolveConflict(id, accept, value) {
     const { error } = await db.rpc("zyron_resolve_crm_conflict", { p_id: id, p_accept: accept, p_value: value ?? null })
     check(error)
@@ -654,7 +567,7 @@ export function useScoutApi(demo: boolean) {
 export type Loaded<T> = { data: T | null; error: Error | null; loading: boolean; reload: () => void; set: (fn: (d: T | null) => T | null) => void }
 
 /** Busca com a fonte pronta; `reload` busca de novo sem apagar o que está na tela. */
-export function useLoad<T>(api: ScoutApi | null, fn: (a: ScoutApi) => Promise<T>, deps: unknown[]): Loaded<T> {
+export function useLoad<T, A = ScoutApi>(api: A | null, fn: (a: A) => Promise<T>, deps: unknown[]): Loaded<T> {
   const [data, setData] = useState<T | null>(null)
   const [error, setError] = useState<Error | null>(null)
   const [loading, setLoading] = useState(true)

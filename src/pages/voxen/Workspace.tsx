@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react"
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  BadgeCheck, ClipboardList, Compass, UserSearch, GitCompareArrows, Inbox, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
+  BadgeCheck, ClipboardList, Compass, GitCompareArrows, Import, Inbox, LayoutDashboard, LogOut, Medal, RefreshCw, ShieldAlert, ShieldCheck, Shirt, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -14,6 +14,8 @@ import { VoxenProvider, useVoxen } from "./store"
 import { LEVEL_LABEL, canAdminAs, canSeeAccountsAs, type StaffRole } from "./access"
 import { positionCode } from "./data"
 import { AppShell, useCommandShortcut, type NavItem, type Shortcut, type TabItem } from "./shell"
+import { PreCadastrosRedirect } from "./pages/imported/redirect"
+import { useImportedPending } from "./pages/imported/pending"
 import { Avatar, PageSkeleton, ScoreChip, VoxenWordmark, playerPath } from "./ui"
 
 /*
@@ -36,7 +38,7 @@ const AthletesPage = lazy(() => import("./pages/athletes/AthletesPage"))
 const OpportunitiesPage = lazy(() => import("./pages/opportunities/OpportunitiesPage"))
 const ScoutDesk = lazy(() => import("./pages/scout/ScoutDesk"))
 const SubmissionsPage = lazy(() => import("./pages/scout/SubmissionsPage"))
-const ProspectsPage = lazy(() => import("./pages/scout/ProspectsPage"))
+const ImportedPage = lazy(() => import("./pages/imported/ImportedPage"))
 
 const NAV: NavItem[] = [
   { to: "/voxen", label: "Visão geral", icon: LayoutDashboard, end: true, section: "Plataforma" },
@@ -44,7 +46,7 @@ const NAV: NavItem[] = [
   { to: "/voxen/jogadores", label: "Jogadores", icon: Users, section: "Plataforma" },
   { to: "/voxen/oportunidades", label: "Oportunidades", icon: Compass, section: "Plataforma" },
   { to: "/voxen/envios", label: "Envios de vídeo", icon: Inbox, section: "Plataforma" },
-  { to: "/voxen/pre-cadastros", label: "Pré-cadastros", icon: UserSearch, section: "Plataforma" },
+  { to: "/voxen/importados", label: "Importados", icon: Import, section: "Plataforma" },
   { to: "/voxen/membros", label: "Membros", icon: BadgeCheck, section: "Plataforma" },
   { to: "/voxen/atletas", label: "Atletas", icon: Medal, section: "Plataforma" },
   { to: "/voxen/elenco", label: "Elenco", icon: Shirt, section: "Plataforma" },
@@ -93,7 +95,7 @@ function useTitle() {
   if (pathname.startsWith("/voxen/mesa")) return { kicker: "Fila de trabalho", title: "Mesa do Scout" }
   if (pathname.startsWith("/voxen/oportunidades")) return { kicker: "Jogadores escolhidos", title: "Oportunidades" }
   if (pathname.startsWith("/voxen/envios")) return { kicker: "Enviados pelos atletas", title: "Envios de vídeo" }
-  if (pathname.startsWith("/voxen/pre-cadastros")) return { kicker: "Leads do CRM, só a equipe", title: "Pré-cadastros" }
+  if (pathname.startsWith("/voxen/importados") || pathname.startsWith("/voxen/pre-cadastros")) return { kicker: "Vindo do CRM, só a equipe", title: "Importados" }
   if (pathname.startsWith("/voxen/atletas")) return { kicker: "Plataforma", title: "Atletas" }
   if (pathname.startsWith("/voxen/membros/comparar")) return { kicker: "Área de membros", title: "Comparar perfis" }
   if (pathname.endsWith("/partidas/nova")) return { kicker: "Área de membros", title: "Nova partida" }
@@ -118,7 +120,12 @@ function Shell() {
   const email = demo ? DEMO_EMAIL[role] : user?.email ?? ""
   const onSignOut = demo ? undefined : () => void signOut()
 
-  const nav = navFor(role).map((item) => (item.to === "/voxen/jogadores" ? { ...item, badge: players.length } : item))
+  const pending = useImportedPending(demo)
+  const nav = navFor(role).map((item) => {
+    if (item.to === "/voxen/jogadores") return { ...item, badge: players.length }
+    if (item.to === "/voxen/importados" && pending) return { ...item, badge: pending }
+    return item
+  })
   const shortcuts: Shortcut[] = [
     ...(canAdminAs(role) ? [{ label: "Painel de administração", to: "/admin" }] : []),
     { label: "Abrir o funil", href: "/avaliacao" },
@@ -168,7 +175,8 @@ function Shell() {
             <Route path="mesa" element={<ScoutDesk />} />
             <Route path="oportunidades" element={<OpportunitiesPage />} />
             <Route path="envios" element={<SubmissionsPage />} />
-            <Route path="pre-cadastros" element={<ProspectsPage />} />
+            <Route path="importados" element={<ImportedPage />} />
+            <Route path="pre-cadastros" element={<PreCadastrosRedirect to="/voxen/importados" />} />
             <Route path="membros" element={<AdminMembers />} />
             <Route path="membros/comparar" element={<AdminCompare />} />
             <Route path="membros/:id" element={<AdminMember />} />

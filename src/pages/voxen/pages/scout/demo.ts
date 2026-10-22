@@ -5,7 +5,7 @@
  * da área de membros (m-gabriel, m-arthur, m-davi).
  */
 import type {
-  Club, Conflict, Controls, MemberContext, Opportunity, Prospect, ScoutApi, StaffSubmission,
+  Club, Conflict, Controls, MemberContext, Opportunity, ScoutApi, StaffSubmission,
 } from "./api"
 import { emptyControls } from "./api"
 
@@ -64,32 +64,6 @@ let contexts: MemberContext[] = [
 let conflicts: Conflict[] = [
   { id: "cf-1", memberId: "m-gabriel", field: "team", kind: "divergente", currentValue: "Real Brasília Sub-20", proposedValue: "Real Brasília", rawValue: "Real Brasília", createdAt: ago(3) },
   { id: "cf-2", memberId: "m-davi", field: "position", kind: "revisar", currentValue: null, proposedValue: null, rawValue: "meia e volante", createdAt: ago(2) },
-]
-
-let prospects: Prospect[] = [
-  {
-    id: "7d1c0f3a-0b7e-4c52-9f3a-1a2b3c4d5e60", athleteName: "Enzo Barbosa Nunes", guardianName: "Carla Nunes", guardianFilledBy: "Sou a mãe dele", filledBy: "responsavel",
-    birthDate: "2010-06-21", position: "Meia-Atacante", category: "Sub 15", team: "Vitória Sub-15", city: "Bahia", review: [],
-    pastClubs: "Escolinha do Vitória (2021–2023)", trials: "Peneira do Bahia em 2025: não passou da primeira fase.", opportunitiesReceived: null,
-    goal: "Entrar na base de um clube profissional.", blocker: "Falta de visibilidade fora da Bahia.", evaluatedClubs: "Bahia e Vitória",
-    strengthsAndImprovements: "Visão de jogo; precisa melhorar a finalização.", commitmentScore: "9", crmObservations: "A família pode viajar nas férias.",
-    qualification: { goal: "Base de Série A", decisionMaker: "A mãe", timeline: "Até o fim do ano", summary: "Interessada, quer saber valores antes de decidir." },
-    notes: [
-      { type: "whatsapp_summary", content: "A mãe perguntou como funcionam os testes e pediu um exemplo de atleta que passou.", createdAt: ago(5), truncated: false },
-      { type: "manual_note", content: "Pediu retorno na semana que vem.", createdAt: ago(2), truncated: false },
-    ],
-    answers: [{ question: "Qual a data de nascimento do atleta?", answer: "21/06/2010" }, { question: "Qual a posição e a categoria atual?", answer: "Meia, sub 15" }],
-    revision: 3, firstReceivedAt: ago(9), updatedAt: ago(2),
-  },
-  {
-    id: "9e5b2c71-4d80-4a1b-8c3d-2b3c4d5e6f71", athleteName: "Pedro Henrique Silva", guardianName: null, guardianFilledBy: null, filledBy: null,
-    birthDate: null, position: null, category: "Sub 17", team: null, city: null,
-    review: [{ field: "position", raw: "atacante" }, { field: "birth_date", raw: "1982-04-10" }],
-    pastClubs: null, trials: null, opportunitiesReceived: null, goal: "Jogar profissionalmente.", blocker: null, evaluatedClubs: null,
-    strengthsAndImprovements: null, commitmentScore: null, crmObservations: null, qualification: null,
-    notes: [{ type: "call_transcript", content: "Ligação curta: o atleta atendeu sozinho e pediu para falar com o pai depois das 18h.", createdAt: ago(1), truncated: false }],
-    answers: [], revision: 1, firstReceivedAt: ago(1), updatedAt: ago(1),
-  },
 ]
 
 const withClub = (o: Opportunity): Opportunity => ({ ...o, club: clubOf(o.clubId) })
@@ -199,14 +173,7 @@ export const demoScout: ScoutApi = {
     return delay(undefined)
   },
 
-  async prospects() { return delay([...prospects].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))) },
-
-  async discardProspect(id) {
-    prospects = prospects.filter((p) => p.id !== id)
-    return delay(undefined)
-  },
-
   async crmHealth() {
-    return delay({ preCadastros: prospects.length, recebidos: 3, aplicados: 2, esperando: 1, quarentena: 0, conflitos: conflicts.length, comContexto: contexts.length, ultimo: ago(3) })
+    return delay({ preCadastros: 14, recebidos: 3, aplicados: 2, esperando: 1, quarentena: 0, conflitos: conflicts.length, comContexto: contexts.length, ultimo: ago(3) })
   },
 }
