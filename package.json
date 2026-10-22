@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "test:ponte": "node --test supabase/functions/_shared/crm-context.test.ts",
+    "test:importados": "node --test src/pages/voxen/pages/imported/model.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

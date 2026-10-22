@@ -6,7 +6,7 @@ import "./console.css"
 import { lazy, Suspense, useEffect, useRef, useState } from "react"
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import {
-  BadgeCheck, LayoutDashboard, LogOut, Medal, MonitorCog, Plus, RefreshCw, ShieldAlert, ShieldCheck, UserPlus, UserSearch, Users, X,
+  BadgeCheck, Import, LayoutDashboard, LogOut, Medal, MonitorCog, Plus, RefreshCw, ShieldAlert, ShieldCheck, UserPlus, Users, X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useToast } from "@/hooks/use-toast"
@@ -19,6 +19,8 @@ import { positionCode } from "@/pages/voxen/data"
 import { usePointerGlow } from "@/pages/voxen/motion"
 import { AppShell, useCommandShortcut, type NavItem, type Shortcut, type TabItem } from "@/pages/voxen/shell"
 import { Avatar, PageSkeleton, ScoreChip, VoxenMark } from "@/pages/voxen/ui"
+import { PreCadastrosRedirect } from "@/pages/voxen/pages/imported/redirect"
+import { useImportedPending } from "@/pages/voxen/pages/imported/pending"
 
 const Dashboard = lazy(() => import("./Dashboard"))
 const Records = lazy(() => import("./Records"))
@@ -26,14 +28,14 @@ const Members = lazy(() => import("./Members"))
 const System = lazy(() => import("./System"))
 const AccountsPage = lazy(() => import("@/pages/voxen/pages/accounts/AccountsPage"))
 const AthletesPage = lazy(() => import("@/pages/voxen/pages/athletes/AthletesPage"))
-const ProspectsPage = lazy(() => import("@/pages/voxen/pages/scout/ProspectsPage"))
+const ImportedPage = lazy(() => import("@/pages/voxen/pages/imported/ImportedPage"))
 
 const NAV: NavItem[] = [
   { to: "/admin", label: "Painel", icon: LayoutDashboard, end: true, section: "Gestão" },
   { to: "/admin/cadastros", label: "Cadastros", icon: Users, section: "Gestão" },
   { to: "/admin/membros", label: "Membros", icon: BadgeCheck, section: "Gestão" },
   { to: "/admin/atletas", label: "Atletas", icon: Medal, section: "Gestão" },
-  { to: "/admin/pre-cadastros", label: "Pré-cadastros", icon: UserSearch, section: "Gestão" },
+  { to: "/admin/importados", label: "Importados", icon: Import, section: "Gestão" },
   { to: "/admin/contas", label: "Contas e acessos", icon: ShieldCheck, section: "Acessos" },
   { to: "/admin/sistema", label: "Sistema", icon: MonitorCog, section: "Manutenção" },
 ]
@@ -56,7 +58,8 @@ const TITLES: [string, string, string][] = [
   ["/admin/cadastros", "Gestão", "Cadastros"],
   ["/admin/membros", "Gestão", "Membros e referências"],
   ["/admin/atletas", "Gestão", "Atletas"],
-  ["/admin/pre-cadastros", "Gestão", "Pré-cadastros do CRM"],
+  ["/admin/importados", "Gestão", "Importados do CRM"],
+  ["/admin/pre-cadastros", "Gestão", "Importados do CRM"],
   ["/admin/contas", "Acessos", "Contas e acessos"],
   ["/admin/sistema", "Manutenção", "Sistema"],
 ]
@@ -114,13 +117,18 @@ function Shell() {
 
   const [, kicker, title] = TITLES.find(([prefix]) => pathname.startsWith(prefix)) ?? ["", "Central", "Painel"]
   // Estas páginas não dependem da lista de cadastros: abrem mesmo que ela falhe ao carregar.
-  const standalone = pathname.startsWith("/admin/sistema") || pathname.startsWith("/admin/contas") || pathname.startsWith("/admin/pre-cadastros")
+  const standalone = pathname.startsWith("/admin/sistema") || pathname.startsWith("/admin/contas") || pathname.startsWith("/admin/importados") || pathname.startsWith("/admin/pre-cadastros")
 
   const refresh = async () => {
     if (await reload()) toast({ title: "Dados atualizados", description: "Os cadastros foram recarregados agora." })
   }
 
-  const nav = NAV.map((item) => (item.to === "/admin/cadastros" ? { ...item, badge: players.length } : item))
+  const pending = useImportedPending(demo)
+  const nav = NAV.map((item) => {
+    if (item.to === "/admin/cadastros") return { ...item, badge: players.length }
+    if (item.to === "/admin/importados" && pending) return { ...item, badge: pending }
+    return item
+  })
   const onSignOut = demo ? undefined : () => void signOut()
 
   return (
@@ -163,7 +171,8 @@ function Shell() {
             <Route path="cadastros" element={<Records />} />
             <Route path="membros" element={<Members />} />
             <Route path="atletas" element={<AthletesPage />} />
-            <Route path="pre-cadastros" element={<ProspectsPage />} />
+            <Route path="importados" element={<ImportedPage />} />
+            <Route path="pre-cadastros" element={<PreCadastrosRedirect to="/admin/importados" />} />
             <Route path="contas" element={<AccountsPage />} />
             <Route path="sistema" element={<System />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
