@@ -4,26 +4,36 @@ import "./imported.css"
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { useSearchParams } from "react-router-dom"
-import { AlertTriangle, BadgeCheck, CheckCircle2, CircleX, Pencil, RefreshCw, RotateCcw, Search, UserSearch, X } from "lucide-react"
+import { AlertTriangle, BadgeCheck, CheckCircle2, CircleX, Download, Layers, Pencil, RefreshCw, RotateCcw, Search, UserSearch, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { downloadFile } from "@/lib/exportFile"
 import { Avatar, Empty, PageSkeleton } from "@/pages/voxen/ui"
 import { useVoxen } from "@/pages/voxen/store"
 import { errMsg, useLoad } from "../scout/api"
 import { announceImportedChange, useImportedApi, type ImportedApi } from "./api"
 import { ImportedDetail } from "./Detail"
-import { ImportedNotice, KindBadge, SectionChip, StatusBadge, Tick } from "./parts"
+import { contextFile, contextFileName, type ContextEntry } from "./markdown"
+import { ArrivalTag, BasicsDots, ImportedNotice, KindBadge, SectionChip, StatusBadge, Tick } from "./parts"
 import { SectionForm, SectionsDialog } from "./SectionsDialog"
 import {
-  KINDS, KIND_LABEL, KIND_NOUN, applyFilters, arrivalDays, countBySection, dayLabel, displayName, isFiltered, needsReview, planApproval,
-  plural, pruneSelection, rangeKeys, readinessOf, subline, summarize, toItems,
-  type Filters, type ImportKind, type ImportRow, type ImportSection, type SortKey, type StatusFilter,
+  KINDS, KIND_LABEL, KIND_NOUN, applyFilters, arrivalCounts, arrivalDays, arrivalLabel, countBySection, dayKey, dayLabel, displayName, isFiltered, isReady,
+  latestBatch, nameTwins, needsReview, planApproval, plural, pruneSelection, rangeKeys, readinessOf, rowKey, subline, summarize, toItems,
+  type ArrivalFilter, type ContextFilter, type DataFilter, type Filters, type ImportKind, type ImportRow, type ImportSection, type SortKey, type StatusFilter, type Twin,
 } from "./model"
 
 const STATUS_FILTERS: StatusFilter[] = ["conferir", "aprovados", "mudou", "incompletos"]
-const SORTS: SortKey[] = ["antigos", "nome"]
+const SORTS: SortKey[] = ["recentes", "antigos", "nome"]
+const DATA_FILTERS: DataFilter[] = ["completos", "incompletos"]
+const CONTEXT_FILTERS: ContextFilter[] = ["com", "sem"]
+const ARRIVALS: ArrivalFilter[] = ["novos", "reenviados"]
 const NO_SECTIONS: ImportSection[] = []
+const NO_TWINS: Twin[] = []
+
+/** O valor do endereço, se for um dos permitidos; senão o padrão. */
+const oneOf = <T extends string>(list: readonly T[], v: string, fallback: T): T => ((list as readonly string[]).includes(v) ? (v as T) : fallback)
 
 type BarMode = "idle" | "approve" | "new"
+type Exporting = { done: number; total: number }
 
 /**
  * Importados (/voxen/importados e /admin/importados): tudo o que a ponte da wsltda.com trouxe (pré-cadastros,
@@ -31,9 +41,13 @@ type BarMode = "idle" | "approve" | "new"
  * um veio (subseções editáveis) e confere o contexto, um a um ou em levas: marcar vários, marcar todos do
  * filtro, mover de subseção e aprovar. Aprovar é só "conferido": não cria atleta nem contata ninguém. Se o CRM
  * mandar uma versão nova depois da aprovação, o item volta a pedir conferência.
+ *
+ * Quem já tem os dados básicos preenchidos vem primeiro. O CRM pode mandar de novo quem já foi importado: a pessoa
+ * continua sendo uma só (marcada "Reenviado"), nunca vira uma segunda linha. O contexto aparece só para quem de fato
+ * tem contexto, e pode ser baixado em um arquivo .md.
  */
 export default function ImportedPage() {
-  const { demo, canScout, canAdmin } = useVoxen()
+  const { demo, canScout, canAdmin, players } = useVoxen()
   const { toast } = useToast()
   const api = useImportedApi(demo)
   const [params, setParams] = useSearchParams()
@@ -44,20 +58,21 @@ export default function ImportedPage() {
   const [mode, setMode] = useState<BarMode>("idle")
   const [busy, setBusy] = useState(false)
   const [manager, setManager] = useState(false)
+  const [exporting, setExporting] = useState<Exporting | null>(null)
   const anchor = useRef<string | null>(null)
 
   const filters = useMemo<Filters>(() => {
-    const tipo = params.get("tipo") ?? ""
-    const situacao = params.get("situacao") ?? ""
     const dia = params.get("dia") ?? ""
-    const ordem = params.get("ordem") ?? ""
     return {
       query,
-      kind: (KINDS as string[]).includes(tipo) ? (tipo as ImportKind) : "todos",
+      kind: oneOf<ImportKind | "todos">(KINDS, params.get("tipo") ?? "", "todos"),
       section: params.get("sub") || "todas",
-      status: (STATUS_FILTERS as string[]).includes(situacao) ? (situacao as StatusFilter) : "todos",
+      status: oneOf<StatusFilter | "todos">(STATUS_FILTERS, params.get("situacao") ?? "", "todos"),
       day: /^\d{4}-\d{2}-\d{2}$/.test(dia) ? dia : "",
-      sort: (SORTS as string[]).includes(ordem) ? (ordem as SortKey) : "recentes",
+      arrival: oneOf<ArrivalFilter>(["todos", ...ARRIVALS], params.get("chegada") ?? "", "todos"),
+      context: oneOf<ContextFilter>(["todos", ...CONTEXT_FILTERS], params.get("contexto") ?? "", "todos"),
+      data: oneOf<DataFilter>(["todos", ...DATA_FILTERS], params.get("dados") ?? "", "todos"),
+      sort: oneOf<SortKey>(["completos", ...SORTS], params.get("ordem") ?? "", "completos"),
     }
   }, [query, params])
 
@@ -79,7 +94,12 @@ export default function ImportedPage() {
   const summary = useMemo(() => summarize(all ?? []), [all])
   const counts = useMemo(() => countBySection(all ?? []), [all])
   const days = useMemo(() => arrivalDays(all ?? []), [all])
+  const batch = useMemo(() => latestBatch(all ?? []), [all])
+  const arrivals = useMemo(() => arrivalCounts(all ?? [], filters.day), [all, filters.day])
+  const twins = useMemo(() => (all ? nameTwins(all, players) : new Map<string, Twin[]>()), [all, players])
   const selRows = useMemo(() => visible.filter((r) => selected.has(r.key)), [visible, selected])
+  const readyRows = useMemo(() => visible.filter(isReady), [visible])
+  const withContext = useMemo(() => visible.filter((r) => r.hasContext).length, [visible])
 
   // A seleção nunca age sobre o que a pessoa não está vendo: ao mudar o filtro, sai o que sumiu da lista.
   useEffect(() => { setSelected((s) => pruneSelection(s, visible)) }, [visible])
@@ -218,6 +238,38 @@ export default function ImportedPage() {
     }
   }
 
+  /**
+   * Baixa o contexto de quem tem contexto (a lista na ordem em que está na tela: quem tem os dados completos vem primeiro) num
+   * arquivo .md só. Quem veio só com dados básicos fica de fora, e o aviso diz quantos.
+   */
+  const exportContext = async (api: ImportedApi, rows: ImportRow[]) => {
+    const withCtx = rows.filter((r) => r.hasContext)
+    if (!withCtx.length) {
+      toast({ title: "Nenhum contexto para baixar", description: "Quem está nesta escolha veio do CRM só com dados básicos." })
+      return
+    }
+    setExporting({ done: 0, total: withCtx.length })
+    try {
+      const details = await api.details(toItems(withCtx), (done, total) => setExporting({ done, total }))
+      const byKey = new Map(details.map((d) => [rowKey(d.kind, d.ref), d]))
+      const entries: ContextEntry[] = withCtx.flatMap((row) => {
+        const detail = byKey.get(row.key)
+        return detail ? [{ row, detail, sectionName: row.sectionId ? sectionById.get(row.sectionId)?.name ?? null : null }] : []
+      })
+      const today = dayKey(new Date().toISOString())
+      const file = contextFile(entries, { today, skipped: rows.length - withCtx.length })
+      downloadFile(contextFileName(entries, today), file.text, "text/markdown;charset=utf-8")
+      toast({
+        title: `Arquivo pronto com o contexto de ${plural(file.included, "pessoa", "pessoas")}`,
+        description: file.skipped ? `${plural(file.skipped, "ficou de fora", "ficaram de fora")} por não ${file.skipped === 1 ? "ter" : "terem"} nenhum contexto do CRM.` : "Está na pasta de downloads do navegador.",
+      })
+    } catch (e) {
+      toast({ title: "Não foi possível baixar o contexto", description: errMsg(e), variant: "destructive" })
+    } finally {
+      setExporting(null)
+    }
+  }
+
   if (rowsQ.error) return <ImportedNotice error={rowsQ.error} />
   if (secQ.error) return <ImportedNotice error={secQ.error} />
   if (!api || !all || !secQ.data) return <PageSkeleton />
@@ -226,7 +278,11 @@ export default function ImportedPage() {
   const pct = summary.total ? Math.round((summary.approved / summary.total) * 100) : 0
   const allOn = visible.length > 0 && selRows.length === visible.length
   const selectable = canScout
-  const clearFilters = () => { setQuery(""); setFilter({ tipo: "", sub: "", situacao: "", dia: "" }) }
+  const clearFilters = () => { setQuery(""); setFilter({ tipo: "", sub: "", situacao: "", dia: "", dados: "", contexto: "", chegada: "" }) }
+  const toggleFilter = (key: string, value: string, now: string) => setFilter({ [key]: now === value ? "" : value })
+  const exportLabel = exporting
+    ? `Preparando ${exporting.done} de ${exporting.total}…`
+    : filtered ? `Baixar contexto da lista (${withContext})` : `Baixar contexto de todos (${withContext})`
 
   return (
     <div className={`im-root ${selRows.length ? "has-bulk" : ""} ${current ? "has-detail" : ""}`}>
@@ -234,13 +290,19 @@ export default function ImportedPage() {
         <div className="im-top-head">
           <div className="im-kpis">
             <button type="button" className="im-kpi" onClick={clearFilters}><b className="tnum">{summary.total}</b><span>Importados</span></button>
-            <button type="button" className={`im-kpi is-warn ${filters.status === "conferir" ? "is-on" : ""}`} onClick={() => setFilter({ situacao: filters.status === "conferir" ? "" : "conferir" })}><b className="tnum">{summary.toReview}</b><span>Para conferir</span></button>
-            <button type="button" className={`im-kpi is-ok ${filters.status === "aprovados" ? "is-on" : ""}`} onClick={() => setFilter({ situacao: filters.status === "aprovados" ? "" : "aprovados" })}><b className="tnum">{summary.approved}</b><span>Aprovados</span></button>
+            <button type="button" className={`im-kpi is-warn ${filters.status === "conferir" ? "is-on" : ""}`} onClick={() => toggleFilter("situacao", "conferir", filters.status)}><b className="tnum">{summary.toReview}</b><span>Para conferir</span></button>
+            <button type="button" className={`im-kpi is-ok ${filters.status === "aprovados" ? "is-on" : ""}`} onClick={() => toggleFilter("situacao", "aprovados", filters.status)}><b className="tnum">{summary.approved}</b><span>Aprovados</span></button>
+            <button type="button" className={`im-kpi is-ok ${filters.data === "completos" ? "is-on" : ""}`} onClick={() => toggleFilter("dados", "completos", filters.data)} title="Têm idade, posição, categoria e cidade"><b className="tnum">{summary.basicsComplete}</b><span>Dados completos</span></button>
+            <button type="button" className={`im-kpi ${filters.context === "com" ? "is-on" : ""}`} onClick={() => toggleFilter("contexto", "com", filters.context)} title="O CRM trouxe respostas, notas, responsável ou histórico"><b className="tnum">{summary.withContext}</b><span>Com contexto</span></button>
             <button type="button" className={`im-kpi ${filters.section === "nenhuma" ? "is-on" : ""}`} onClick={() => setFilter({ sub: filters.section === "nenhuma" ? "" : "nenhuma" })}><b className="tnum">{summary.noSection}</b><span>Sem subseção</span></button>
           </div>
           <div className="im-top-actions">
             <button type="button" className="vx-btn h-9" onClick={() => { rowsQ.reload(); secQ.reload() }} disabled={rowsQ.loading}>
               <RefreshCw className={rowsQ.loading ? "op-spin" : ""} /> Atualizar
+            </button>
+            <button type="button" className="vx-btn im-export h-9" disabled={exporting !== null || withContext === 0} onClick={() => void exportContext(api, visible)}
+              title="Baixa um arquivo .md com o resumo e tudo o que o CRM contou de cada pessoa da lista que tem contexto">
+              <Download className={exporting ? "op-spin" : ""} /> {exportLabel}
             </button>
             {canScout && <button type="button" className="vx-btn vx-btn--gold h-9" onClick={() => setManager(true)}><Pencil /> Subseções</button>}
           </div>
@@ -255,6 +317,24 @@ export default function ImportedPage() {
             <span key={k}>{i > 0 ? " · " : ""}<button type="button" className={`im-link ${filters.kind === k ? "is-on" : ""}`} onClick={() => setFilter({ tipo: filters.kind === k ? "" : k })}>{plural(summary.byKind[k], ...KIND_NOUN[k])}</button></span>
           ))}
         </p>
+
+        {batch && (
+          <p className="im-batch">
+            <Layers aria-hidden="true" />
+            <span>
+              Última leva do CRM: <strong>{dayLabel(batch.day)}</strong> · {plural(batch.count, "importado", "importados")}:{" "}
+              <button type="button" className={`im-link ${filters.day === batch.day && filters.arrival === "novos" ? "is-on" : ""}`} onClick={() => setFilter({ dia: batch.day, chegada: "novos" })}>{plural(batch.fresh, "novo", "novos")}</button>
+              {batch.resent > 0 && (
+                <>
+                  {" "}e{" "}
+                  <button type="button" className={`im-link ${filters.day === batch.day && filters.arrival === "reenviados" ? "is-on" : ""}`} onClick={() => setFilter({ dia: batch.day, chegada: "reenviados" })}>{plural(batch.resent, "reenviado", "reenviados")}</button>
+                  <span className="im-batch-hint"> (já estavam aqui; o CRM mandou de novo e eles foram atualizados, sem duplicar)</span>
+                </>
+              )}
+              {" · "}<button type="button" className="im-link" onClick={() => setFilter({ dia: batch.day, chegada: "" })}>ver a leva toda</button>
+            </span>
+          </p>
+        )}
 
         <div className="im-sections" aria-label="Subseções">
           <button type="button" className={`im-sec ${filters.section === "todas" ? "is-on" : ""}`} onClick={() => setFilter({ sub: "" })}>Todas <em className="tnum">{summary.total}</em></button>
@@ -280,18 +360,40 @@ export default function ImportedPage() {
               <option value="conferir">Para conferir ({summary.toReview})</option>
               <option value="aprovados">Aprovados ({summary.approved})</option>
               <option value="mudou">Mudaram depois de aprovados ({summary.changed})</option>
-              <option value="incompletos">Contexto incompleto ({all.filter((r) => readinessOf(r) !== "completo").length})</option>
+              <option value="incompletos">Falta subseção ou contexto ({all.filter((r) => readinessOf(r) !== "completo").length})</option>
+            </select>
+          </label>
+          <label><span>Dados básicos</span>
+            <select className="vx-input vx-select vx-filter" value={filters.data === "todos" ? "" : filters.data} onChange={(e) => setFilter({ dados: e.target.value })} aria-label="Dados básicos: idade, posição, categoria e cidade">
+              <option value="">Completos ou não</option>
+              <option value="completos">Completos ({summary.basicsComplete})</option>
+              <option value="incompletos">Incompletos ({summary.total - summary.basicsComplete})</option>
+            </select>
+          </label>
+          <label><span>Contexto</span>
+            <select className="vx-input vx-select vx-filter" value={filters.context === "todos" ? "" : filters.context} onChange={(e) => setFilter({ contexto: e.target.value })} aria-label="Contexto do CRM">
+              <option value="">Com ou sem</option>
+              <option value="com">Com contexto ({summary.withContext})</option>
+              <option value="sem">Sem contexto ({summary.empty})</option>
             </select>
           </label>
           <label><span>Chegada</span>
             <select className="vx-input vx-select vx-filter" value={filters.day} onChange={(e) => setFilter({ dia: e.target.value })} aria-label="Dia em que chegou do CRM">
               <option value="">Qualquer dia</option>
-              {days.map((d) => <option key={d.day} value={d.day}>{dayLabel(d.day)} ({d.count})</option>)}
+              {days.map((d) => <option key={d.day} value={d.day}>{arrivalLabel(d)}</option>)}
+            </select>
+          </label>
+          <label><span>Novos ou reenviados</span>
+            <select className="vx-input vx-select vx-filter" value={filters.arrival === "todos" ? "" : filters.arrival} onChange={(e) => setFilter({ chegada: e.target.value })} aria-label="Novos ou reenviados">
+              <option value="">Novos e reenviados</option>
+              <option value="novos">Só os novos ({arrivals.novos})</option>
+              <option value="reenviados">Só os reenviados ({arrivals.reenviados})</option>
             </select>
           </label>
           <label><span>Ordem</span>
-            <select className="vx-input vx-select vx-filter" value={filters.sort === "recentes" ? "" : filters.sort} onChange={(e) => setFilter({ ordem: e.target.value })} aria-label="Ordem da lista">
-              <option value="">Chegaram há menos tempo</option>
+            <select className="vx-input vx-select vx-filter" value={filters.sort === "completos" ? "" : filters.sort} onChange={(e) => setFilter({ ordem: e.target.value })} aria-label="Ordem da lista">
+              <option value="">Dados completos primeiro</option>
+              <option value="recentes">Chegaram há menos tempo</option>
               <option value="antigos">Chegaram há mais tempo</option>
               <option value="nome">Nome (A a Z)</option>
             </select>
@@ -308,7 +410,7 @@ export default function ImportedPage() {
             </h2>
             <div className="relative mt-3">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-              <input className="vx-input vx-input--icon" placeholder="Buscar por nome, responsável, posição ou cidade" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar importados" />
+              <input className="vx-input vx-input--icon" placeholder="Buscar por nome, responsável, posição, cidade ou time" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar importados" />
             </div>
           </div>
 
@@ -321,6 +423,11 @@ export default function ImportedPage() {
                   : allOn ? <>Os {visible.length} {filtered ? "do filtro estão marcados" : "estão marcados"}</> : <><strong className="tnum">{selRows.length}</strong> marcados</>}
               </span>
               {selRows.length > 0 && !allOn && <button type="button" className="im-link" onClick={() => setSelected(new Set(visible.map((r) => r.key)))}>Marcar os {visible.length}</button>}
+              {readyRows.length > 0 && readyRows.length < visible.length && (
+                <button type="button" className="im-link" onClick={() => setSelected(new Set(readyRows.map((r) => r.key)))} title="Têm idade, posição, categoria, cidade e contexto do CRM">
+                  Marcar só os {readyRows.length} com dados e contexto completos
+                </button>
+              )}
               {selRows.length > 0 && <button type="button" className="im-link" onClick={() => setSelected(new Set())}>Limpar</button>}
             </div>
           )}
@@ -328,7 +435,8 @@ export default function ImportedPage() {
           {visible.length ? (
             <ul className="op-rows im-rows">
               {visible.map((r, i) => (
-                <ImportRowItem key={r.key} row={r} index={i} section={r.sectionId ? sectionById.get(r.sectionId) : undefined}
+                <ImportRowItem key={r.key} row={r} index={i} section={r.sectionId ? sectionById.get(r.sectionId) : undefined} batchDay={batch?.day ?? ""}
+                  twinCount={twins.get(r.key)?.length ?? 0}
                   picked={selected.has(r.key)} active={itemKey === r.key} selectable={selectable} showKind={filters.kind === "todos"} onToggle={toggle} onOpen={open} />
               ))}
             </ul>
@@ -344,7 +452,9 @@ export default function ImportedPage() {
         <section className="op-detail" aria-live="polite">
           {current ? (
             <ImportedDetail key={current.key} row={current} api={api} sections={sections} canScout={canScout} canAdmin={canAdmin} busy={busy}
+              twins={twins.get(current.key) ?? NO_TWINS}
               onBack={() => setFilter({ item: "" })}
+              onOpenTwin={(key) => setFilter({ item: key })}
               onSection={(id) => void moveTo(api, [current], id)}
               onApprove={(ok) => void approveRows(api, [current], ok)}
               onManage={() => setManager(true)}
@@ -352,7 +462,7 @@ export default function ImportedPage() {
           ) : (
             <div className="vx-card op-pick">
               <Empty icon={<UserSearch className="h-6 w-6" />} title="Escolha um importado">
-                À esquerda está tudo o que veio do CRM. Abra um para ver o contexto e dizer de onde veio. Para fazer em levas, marque vários (Shift marca do último ao clicado) e use a barra que aparece embaixo.
+                À esquerda está tudo o que veio do CRM, com quem já tem os dados completos primeiro. Abra um para ver o contexto e dizer de onde veio. Para fazer em levas, marque vários (Shift marca do último ao clicado) e use a barra que aparece embaixo.
               </Empty>
             </div>
           )}
@@ -360,9 +470,10 @@ export default function ImportedPage() {
       </div>
 
       {selectable && selRows.length > 0 && (
-        <BulkBar rows={selRows} sections={sections} mode={mode} busy={busy} onMode={setMode} onClear={() => setSelected(new Set())}
+        <BulkBar rows={selRows} sections={sections} mode={mode} busy={busy} exporting={exporting} onMode={setMode} onClear={() => setSelected(new Set())}
           onMove={(id) => void moveTo(api, selRows, id)}
           onApprove={(ok, only) => void approveRows(api, only ?? selRows, ok, selRows)}
+          onExport={() => void exportContext(api, selRows)}
           onCreate={(d) => void createAndMove(api, selRows, d)} />
       )}
 
@@ -380,10 +491,14 @@ export default function ImportedPage() {
 
 /* ------------------------------------------------------------------ */
 
-const ImportRowItem = memo(function ImportRowItem({ row, index, section, picked, active, selectable, showKind, onToggle, onOpen }: {
+const ImportRowItem = memo(function ImportRowItem({ row, index, section, batchDay, twinCount, picked, active, selectable, showKind, onToggle, onOpen }: {
   row: ImportRow
   index: number
   section: ImportSection | undefined
+  /** O dia da leva mais recente: quem chegou nela aparece como "Novo" ou "Reenviado". */
+  batchDay: string
+  /** Quantas outras pessoas têm o mesmo nome (jogadores ou outros importados). */
+  twinCount: number
   picked: boolean
   active: boolean
   selectable: boolean
@@ -402,9 +517,13 @@ const ImportRowItem = memo(function ImportRowItem({ row, index, section, picked,
           <b className="block truncate">{name}</b>
           <small className="block truncate">{subline(row) || KIND_LABEL[row.kind]}</small>
           <span className="im-row-tags">
+            <BasicsDots row={row} />
             {showKind && <KindBadge kind={row.kind} short />}
             <SectionChip section={section} />
             {(row.approvedAt !== null) && <StatusBadge row={row} />}
+            {batchDay && <ArrivalTag row={row} day={batchDay} />}
+            {row.wasProspect && <span className="im-tag-was" title="Veio antes como pré-cadastro e depois chegou como atleta: é o mesmo registro">Já era pré-cadastro</span>}
+            {twinCount > 0 && <span className="im-tag-twin" title="Há outra pessoa com o mesmo nome. Pode ser a mesma que chegou por outro caminho: abra para conferir.">Mesmo nome</span>}
             {empty && <span className="im-tag-empty" title="O CRM não trouxe nenhum contexto"><CircleX aria-hidden="true" /> Sem contexto</span>}
           </span>
         </span>
@@ -413,20 +532,23 @@ const ImportRowItem = memo(function ImportRowItem({ row, index, section, picked,
   )
 })
 
-/** Barra fixa de ações em levas: mover para a subseção, aprovar (com a conferência do contexto) e tirar a aprovação. */
-function BulkBar({ rows, sections, mode, busy, onMode, onClear, onMove, onApprove, onCreate }: {
+/** Barra fixa de ações em levas: mover para a subseção, aprovar (com a conferência do contexto), tirar a aprovação e baixar o contexto. */
+function BulkBar({ rows, sections, mode, busy, exporting, onMode, onClear, onMove, onApprove, onExport, onCreate }: {
   rows: ImportRow[]
   sections: ImportSection[]
   mode: BarMode
   busy: boolean
+  exporting: Exporting | null
   onMode: (m: BarMode) => void
   onClear: () => void
   onMove: (sectionId: string | null) => void
   onApprove: (approve: boolean, only?: ImportRow[]) => void
+  onExport: () => void
   onCreate: (d: { name: string; note: string; color: string }) => void
 }) {
   const plan = useMemo(() => planApproval(rows), [rows])
   const anyApproved = rows.some((r) => r.approvedAt !== null)
+  const withContext = rows.filter((r) => r.hasContext).length
   const n = rows.length
 
   if (mode === "new") {
@@ -482,6 +604,11 @@ function BulkBar({ rows, sections, mode, busy, onMode, onClear, onMove, onApprov
           <button type="button" className="vx-btn vx-btn--gold" disabled={busy} onClick={() => onMode("approve")}><BadgeCheck /> Aprovar {plan.toApprove.length}</button>
         )}
         {anyApproved && <button type="button" className="vx-btn" disabled={busy} onClick={() => onApprove(false)}><RotateCcw /> Tirar a aprovação</button>}
+        {withContext > 0 && (
+          <button type="button" className="vx-btn" disabled={exporting !== null} onClick={onExport} title="Baixa um arquivo .md com o contexto dos marcados que têm contexto">
+            <Download className={exporting ? "op-spin" : ""} /> {exporting ? `Preparando ${exporting.done} de ${exporting.total}…` : `Baixar contexto (${withContext})`}
+          </button>
+        )}
       </div>
       <button type="button" className="vx-icon-btn" onClick={onClear} aria-label="Limpar a seleção" title="Limpar a seleção"><X /></button>
     </div>

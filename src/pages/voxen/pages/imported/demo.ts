@@ -9,6 +9,13 @@ import { needsReview, rowKey, type ImportItem, type ImportKind, type ImportRow, 
 const HOUR = 3600000
 const BASE = Date.now()
 const ago = (days: number, hours = 0, minutes = 0) => new Date(BASE - days * 24 * HOUR - hours * HOUR - minutes * 60000).toISOString()
+/** Meio-dia (horário local) de N dias atrás, mais alguns minutos: a leva fica no mesmo dia mesmo perto da meia-noite. */
+const noon = (days: number, minutes = 0) => {
+  const d = new Date()
+  d.setHours(12, minutes, 0, 0)
+  d.setDate(d.getDate() - days)
+  return d.toISOString()
+}
 const delay = <T,>(v: T) => new Promise<T>((r) => setTimeout(() => r(v), 120))
 
 let sections: ImportSection[] = [
@@ -16,36 +23,61 @@ let sections: ImportSection[] = [
   { id: "sec-peneira", name: "Peneira Brasília", note: null, color: "#34d399", createdAt: ago(4) },
 ]
 
-type Seed = [
-  kind: ImportKind, name: string | null, guardian: string | null, position: string | null, category: string | null, city: string | null,
-  answers: number, notes: number, review: number, daysAgo: number, section: string | null, approval: 0 | 1 | 2,
-]
+type Seed = {
+  kind: ImportKind
+  name: string | null
+  guardian?: string
+  position?: string
+  category?: string
+  city?: string
+  age?: number
+  team?: string
+  answers?: number
+  notes?: number
+  review?: number
+  /** Há quantos dias o CRM mandou pela primeira vez. */
+  first: number
+  /** Há quantos dias o CRM mandou de novo (reenvios). */
+  again?: number[]
+  section?: string
+  /** 1 = aprovado na versão atual · 2 = aprovado numa versão anterior (mudou depois). */
+  approval?: 1 | 2
+  /** Veio antes como pré-cadastro. */
+  was?: boolean
+}
 
 const SEEDS: Seed[] = [
-  ["pre", "Enzo Barbosa Nunes", "Carla Nunes", "Meia-Atacante", "Sub 15", "Bahia", 11, 2, 0, 0, "sec-insta", 1],
-  ["pre", "Pedro Henrique Silva", null, null, "Sub 17", null, 9, 1, 2, 0, null, 0],
-  ["pre", "Lucas Almeida Rocha", "Marcos Rocha", "Zagueiro", "Sub 17", "Goiânia", 11, 0, 0, 0, null, 0],
-  ["pre", "Gabriel Moura Teixeira", null, "Volante", "Sub 20", "Recife", 10, 0, 0, 0, "sec-insta", 0],
-  ["pre", null, "Helena Duarte", "Lateral-Direito", null, "Fortaleza", 11, 1, 1, 0, null, 0],
-  ["pre", "Thiago Ferreira Lima", "Sandra Lima", "Goleiro", "Sub 15", "Curitiba", 11, 0, 0, 0, "sec-peneira", 1],
-  ["pre", "Davi Lucca Martins", null, "Atacante", "Sub 17", "Salvador", 11, 3, 0, 0, null, 0],
-  ["pre", "Rafael Costa Pinto", "Julio Pinto", "Meia", "Sub 13", "Manaus", 8, 0, 0, 1, null, 0],
-  ["pre", "Matheus Oliveira Brito", null, "Ponta-Esquerda", "Sub 17", "Belém", 11, 0, 0, 1, "sec-peneira", 0],
-  ["pre", "Arthur Vieira Campos", "Eliane Campos", "Zagueiro", "Sub 15", "Natal", 11, 2, 0, 1, null, 2],
-  ["pre", "João Pedro Azevedo", null, "Meia-Atacante", "Sub 17", "Vitória", 11, 0, 0, 3, "sec-peneira", 1],
-  ["pre", "Caio Mendes Barros", "Paulo Barros", "Atacante", "Sub 20", "Maceió", 10, 0, 1, 3, null, 0],
-  ["pre", "Vinícius Prado Souza", null, "Volante", "Sub 15", "Aracaju", 11, 0, 0, 3, null, 0],
-  ["pre", "Bruno Carvalho Dias", null, null, null, null, 0, 0, 0, 3, null, 0],
-  ["conta", "Gabriel Rocha Lima", null, "Meia", "Sub 17", "Brasília", 11, 3, 0, 5, "sec-insta", 1],
-  ["conta", "Henrique Lopes Faria", "Rosa Faria", "Zagueiro", "Sub 15", "Taguatinga", 11, 1, 0, 5, null, 0],
-  ["conta", "Lorenzo Cardoso Neves", null, "Atacante", "Sub 17", "Gama", 11, 0, 2, 5, null, 0],
-  ["conta", "Samuel Pires Andrade", null, "Goleiro", "Sub 20", "Ceilândia", 10, 0, 0, 5, "sec-peneira", 1],
-  ["conta", "Nicolas Barreto Luz", "Patrícia Luz", "Lateral-Esquerdo", "Sub 15", "Sobradinho", 11, 2, 0, 5, null, 0],
-  ["conta", "Felipe Araújo Melo", null, "Meia", "Sub 17", "Planaltina", 0, 0, 0, 5, null, 0],
-  ["conta", "Otávio Ramos Tavares", null, "Volante", "Sub 17", "Brasília", 11, 0, 1, 6, null, 0],
-  ["conta", "Leonardo Gomes Veiga", "Cláudia Veiga", "Ponta-Direita", "Sub 15", "Águas Claras", 11, 1, 0, 6, "sec-insta", 0],
-  ["espera", "Kauê Nascimento Braga", null, null, "Sub 17", "São Paulo", 11, 0, 0, 2, null, 0],
-  ["espera", "Ryan Medeiros Cunha", null, "Atacante", null, null, 11, 0, 1, 2, null, 0],
+  // Pré-cadastros que chegaram hoje (a leva mais nova): uns com todos os dados, uns incompletos, dois reenviados.
+  { kind: "pre", name: "Enzo Barbosa Nunes", guardian: "Carla Nunes", position: "Meia-Atacante", category: "Sub 15", city: "Bahia", age: 14, team: "Escolinha do bairro", answers: 11, notes: 2, first: 0, section: "sec-insta", approval: 1 },
+  { kind: "pre", name: "Pedro Henrique Silva", category: "Sub 17", age: 16, answers: 9, notes: 1, review: 2, first: 0 },
+  { kind: "pre", name: "Lucas Almeida Rocha", guardian: "Marcos Rocha", position: "Zagueiro", category: "Sub 17", city: "Goiânia", age: 16, answers: 11, first: 0 },
+  { kind: "pre", name: "Gabriel Moura Teixeira", position: "Volante", category: "Sub 20", city: "Recife", age: 19, answers: 10, first: 0, section: "sec-insta" },
+  { kind: "pre", name: null, guardian: "Helena Duarte", position: "Lateral-Direito", city: "Fortaleza", answers: 11, notes: 1, review: 1, first: 0 },
+  { kind: "pre", name: "Thiago Ferreira Lima", guardian: "Sandra Lima", position: "Goleiro", category: "Sub 15", city: "Curitiba", age: 14, answers: 11, first: 5, again: [0], section: "sec-peneira", approval: 2 },
+  { kind: "pre", name: "Davi Lucca Martins", position: "Atacante", category: "Sub 17", city: "Salvador", age: 16, answers: 11, notes: 3, first: 3, again: [0] },
+  { kind: "pre", name: "Camilo Karam Escobar", position: "Atacante", category: "Sub 17", city: "Brasília", age: 16, answers: 7, first: 0 },
+  // Chegaram em outros dias.
+  { kind: "pre", name: "Rafael Costa Pinto", guardian: "Julio Pinto", position: "Meia", category: "Sub 13", city: "Manaus", age: 12, answers: 8, first: 1 },
+  { kind: "pre", name: "Matheus Oliveira Brito", position: "Ponta-Esquerda", category: "Sub 17", city: "Belém", age: 16, answers: 11, first: 1, section: "sec-peneira" },
+  { kind: "pre", name: "Arthur Vieira Campos", guardian: "Eliane Campos", position: "Zagueiro", category: "Sub 15", city: "Natal", age: 14, answers: 11, notes: 2, first: 6, again: [1], approval: 2 },
+  { kind: "pre", name: "João Pedro Azevedo", position: "Meia-Atacante", category: "Sub 17", city: "Vitória", age: 16, answers: 11, first: 3, section: "sec-peneira", approval: 1 },
+  { kind: "pre", name: "Caio Mendes Barros", guardian: "Paulo Barros", position: "Atacante", category: "Sub 20", city: "Maceió", age: 19, answers: 10, review: 1, first: 3 },
+  { kind: "pre", name: "Vinícius Prado Souza", position: "Volante", category: "Sub 15", city: "Aracaju", answers: 11, first: 3 },
+  { kind: "pre", name: "Bruno Carvalho Dias", first: 3 },
+  // Dados básicos completos, mas o CRM não trouxe nenhum contexto.
+  { kind: "pre", name: "Mateus Rodrigues Leal", position: "Zagueiro", category: "Sub 15", city: "Santos", age: 14, first: 2 },
+  // Atletas com conta.
+  { kind: "conta", name: "Gabriel Rocha Lima", position: "Meia", category: "Sub 17", city: "Brasília", age: 16, team: "Real Brasília Sub-17", answers: 11, notes: 3, first: 5, section: "sec-insta", approval: 1 },
+  { kind: "conta", name: "Henrique Lopes Faria", guardian: "Rosa Faria", position: "Zagueiro", category: "Sub 15", city: "Taguatinga", age: 14, answers: 11, notes: 1, first: 5, was: true },
+  { kind: "conta", name: "Lorenzo Cardoso Neves", position: "Atacante", category: "Sub 17", city: "Gama", age: 16, answers: 11, review: 2, first: 5 },
+  { kind: "conta", name: "Samuel Pires Andrade", position: "Goleiro", category: "Sub 20", city: "Ceilândia", age: 19, answers: 10, first: 5, section: "sec-peneira", approval: 1 },
+  { kind: "conta", name: "Nicolas Barreto Luz", guardian: "Patrícia Luz", position: "Lateral-Esquerdo", category: "Sub 15", city: "Sobradinho", answers: 11, notes: 2, first: 5 },
+  { kind: "conta", name: "Felipe Araújo Melo", position: "Meia", category: "Sub 17", city: "Planaltina", age: 16, first: 5 },
+  { kind: "conta", name: "Otávio Ramos Tavares", position: "Volante", category: "Sub 17", answers: 11, review: 1, first: 6 },
+  { kind: "conta", name: "Leonardo Gomes Veiga", guardian: "Cláudia Veiga", position: "Ponta-Direita", category: "Sub 15", city: "Águas Claras", age: 14, answers: 11, notes: 1, first: 6, section: "sec-insta" },
+  // Aguardando virar membro.
+  { kind: "espera", name: "Kauê Nascimento Braga", category: "Sub 17", city: "São Paulo", age: 16, answers: 11, first: 2, section: "sec-insta", was: true },
+  { kind: "espera", name: "Ryan Medeiros Cunha", position: "Atacante", answers: 11, review: 1, first: 2 },
 ]
 
 const QUESTIONS = [
@@ -68,17 +100,29 @@ const ANSWERS = [
   "Escolinha do bairro (2021–2023)", "Dois clubes avaliaram, sem retorno ainda", "Visão de jogo, passe curto e disciplina", "9",
 ]
 
-let rows: ImportRow[] = SEEDS.map(([kind, name, guardian, position, category, city, answers, notes, review, daysAgo, section, approval], i) => {
-  const ref = kind === "conta" && i === 14 ? "m-gabriel" : `${kind}-demo-${String(i + 1).padStart(4, "0")}`
-  const revision = approval === 2 ? 3 : 1 + (i % 3 === 0 ? 1 : 0)
+const birthOf = (age: number) => {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - age, 5, 21)
+  return d.toISOString().slice(0, 10)
+}
+
+let rows: ImportRow[] = SEEDS.map((s, i) => {
+  const ref = s.kind === "conta" && s.name === "Gabriel Rocha Lima" ? "m-gabriel" : `${s.kind}-demo-${String(i + 1).padStart(4, "0")}`
   // Um minuto de diferença por posição: a ordem da lista não depende do relógio.
-  const when = ago(daysAgo, i % 5, i)
+  const days = [s.first, ...(s.again ?? [])]
+  const receipts = days.map((d, k) => noon(d, i + k)).sort().reverse()
+  const revision = s.approval === 2 ? Math.max(3, days.length) : days.length
+  const answers = s.answers ?? 0
+  const notes = s.notes ?? 0
   return {
-    key: rowKey(kind, ref), kind, ref, name, guardianName: guardian, position, category, city,
-    answersCount: answers, notesCount: notes, hasContext: answers + notes > 0 || Boolean(guardian), reviewCount: review, revision,
-    firstAt: when, updatedAt: when, memberId: kind === "conta" ? ref : null, sectionId: section,
-    approvedAt: approval ? ago(Math.max(0, daysAgo - 1)) : null, approvedByName: approval ? "Ana (equipe)" : null,
-    approvedRevision: approval === 2 ? 2 : approval === 1 ? revision : null,
+    key: rowKey(s.kind, ref), kind: s.kind, ref, name: s.name, guardianName: s.guardian ?? null,
+    position: s.position ?? null, category: s.category ?? null, city: s.city ?? null, team: s.team ?? null,
+    birthDate: s.age ? birthOf(s.age) : null, age: s.age ?? null,
+    answersCount: answers, notesCount: notes, hasContext: answers + notes > 0 || Boolean(s.guardian), reviewCount: s.review ?? 0, revision,
+    firstAt: receipts[receipts.length - 1], updatedAt: receipts[0], receipts, wasProspect: s.was === true,
+    memberId: s.kind === "conta" ? ref : null, sectionId: s.section ?? null,
+    approvedAt: s.approval ? ago(Math.max(0, Math.min(...days) - 1)) : null, approvedByName: s.approval ? "Ana (equipe)" : null,
+    approvedRevision: s.approval === 2 ? revision - 1 : s.approval === 1 ? revision : null,
   }
 })
 
@@ -93,8 +137,8 @@ function detailOf(row: ImportRow): ImportDetail {
   const rich = row.answersCount > 0 || row.notesCount > 0
   return {
     kind: row.kind, ref: row.ref, name: row.name, guardianName: row.guardianName, guardianFilledBy: row.guardianName ? "Sou o responsável pelo atleta" : null,
-    filledBy: row.guardianName ? "responsavel" : rich ? "atleta" : null, birthDate: rich ? "2010-06-21" : null, position: row.position, category: row.category,
-    team: rich ? "Escolinha do bairro" : null, city: row.city, review: reviewFor(row), currentClub: row.kind === "conta" && rich ? "Real Brasília Sub-17" : null,
+    filledBy: row.guardianName ? "responsavel" : rich ? "atleta" : null, birthDate: row.birthDate, position: row.position, category: row.category,
+    team: row.team ?? (rich ? "Escolinha do bairro" : null), city: row.city, review: reviewFor(row), currentClub: row.kind === "conta" && rich ? "Real Brasília Sub-17" : null,
     pastClubs: rich ? "Escolinha do bairro (2021–2023)" : null, trials: rich ? "Peneira em 2025: não passou da primeira fase." : null, opportunitiesReceived: null,
     goal: rich ? "Entrar na base de um clube profissional." : null, blocker: rich ? "Falta de visibilidade fora da cidade." : null,
     evaluatedClubs: rich ? "Dois clubes avaliaram" : null, strengthsAndImprovements: rich ? "Visão de jogo; precisa melhorar a finalização." : null,
@@ -118,11 +162,19 @@ const find = (items: ImportItem[]) => {
 export const demoImported: ImportedApi = {
   demo: true,
 
-  async list() { return delay(rows.map((r) => ({ ...r }))) },
+  async list() { return delay(rows.map((r) => ({ ...r, receipts: [...r.receipts] }))) },
 
   async detail(kind, ref) {
     const row = rows.find((r) => r.kind === kind && r.ref === ref)
     return delay(row ? detailOf(row) : null)
+  },
+
+  async details(items, onProgress) {
+    const hit = find(items)
+    onProgress?.(0, items.length)
+    await delay(null)
+    onProgress?.(items.length, items.length)
+    return hit.map(detailOf)
   },
 
   async sections() { return delay([...sections].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))) },
