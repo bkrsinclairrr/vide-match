@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import {
-  CircleDot, Download, ExternalLink, Eye, Medal, Pencil, Plus, Power, Search, Trash2, UserCheck, Users, Zap,
+  CircleDot, Database, Download, ExternalLink, Eye, Medal, Pencil, Plus, Power, Search, Trash2, UserCheck, Users, Zap,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Empty, PageSkeleton } from "@/pages/voxen/ui"
@@ -336,6 +336,7 @@ function MemberRows({
               <button type="button" className="vx-icon-btn at-send-btn" title="Enviar para Atletas" aria-label={`Enviar ${m.fullName} para o setor Atletas`} onClick={onSend}><Medal /></button>
             )}
             {isMember && <a className="vx-icon-btn" href={memberAreaUrl(m.id, "", demo)} target="_blank" rel="noopener noreferrer" title="Ver como membro" aria-label={`Ver a área de ${m.fullName}`}><Eye /></a>}
+            {isMember && <Link className="vx-icon-btn" to={`/voxen/membros/${m.id}?aba=contexto`} target="_blank" title="Contexto do CRM (só a equipe)" aria-label={`Ver o contexto do CRM de ${m.fullName}`}><Database /></Link>}
             <Link className="vx-icon-btn" to={`/voxen/membros/${m.id}`} target="_blank" title="Abrir na VOXEN" aria-label={`Abrir ${m.fullName} na VOXEN`}><ExternalLink /></Link>
             <button type="button" className="vx-icon-btn ac-danger" title="Excluir" aria-label={`Excluir ${m.fullName}`} onClick={onAskDelete}><Trash2 /></button>
           </div>
