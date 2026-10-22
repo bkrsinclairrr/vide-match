@@ -1237,3 +1237,37 @@
 .pp-confirm > div { display: flex; gap: 8px; }
 .pp-danger-solid, .pp-danger-solid:hover { border-color: rgba(248, 113, 113, 0.55); background: rgba(248, 113, 113, 0.2); color: #fecaca; }
 .vx-stage-btn:disabled { cursor: default; }
+
+/* ─── Valores estimados, dados do jogador e janelas de edição ───────────── */
+
+/* Valor que a VOXEN estimou (o atleta ainda não informou): itálico com traço pontilhado. */
+.vx-est { color: var(--vx-muted); font-style: italic; text-decoration: underline dotted rgba(251, 191, 36, 0.5); text-underline-offset: 3px; cursor: help; }
+.vx-est .vx-pos { opacity: 0.7; }
+
+/* Quatro pontinhos: quanto do perfil veio da própria pessoa. */
+.vx-dots { display: inline-flex; gap: 3px; vertical-align: middle; }
+.vx-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.12); }
+.vx-dots i.is-on { background: #34d399; box-shadow: 0 0 6px -1px rgba(52, 211, 153, 0.7); }
+
+/* "Possível duplicado" ao lado do nome. */
+.vx-tag--dup { gap: 3px; padding: 0 6px; color: #fcd34d; background: rgba(251, 191, 36, 0.12); font-size: 10.5px; }
+.vx-tag--dup.is-strong { color: #fca5a5; background: rgba(248, 113, 113, 0.14); }
+
+.pe-est { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 16px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.06); color: var(--vx-gold-3); font-size: 12.5px; line-height: 1.5; }
+.pe-est svg { width: 15px; height: 15px; flex-shrink: 0; }
+.pe-est span { flex: 1; min-width: 220px; }
+.pe-note { display: flex; align-items: flex-start; gap: 8px; grid-column: 1 / -1; margin: 0; color: var(--vx-dim); font-size: 12px; }
+.pe-note svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; }
+
+/* Janela de edição e de exclusão de um jogador (aberta por cima da lista). */
+.vx-portal.pd-dialog { max-height: 90vh; overflow: hidden; border: 1px solid var(--vx-border-2); background: #0d0d0f; color: var(--vx-text); }
+.pd-body { max-height: 90vh; padding: 20px; overflow-y: auto; overscroll-behavior: contain; }
+.pd-body .vx-card { margin-bottom: 0; border: 0; background: none; padding: 0; box-shadow: none; }
+.pd-confirm { display: grid; gap: 12px; padding: 22px; }
+.pd-confirm h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
+.pd-confirm p { margin: 0; color: var(--vx-muted); font-size: 13px; line-height: 1.6; }
+.pd-confirm strong, .pd-confirm b { color: #fff; }
+.pd-confirm > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+@media (prefers-reduced-motion: reduce) { .vx-dots i { transition: none; } }
+.vx-row-actions { display: flex; gap: 6px; justify-content: flex-end; }

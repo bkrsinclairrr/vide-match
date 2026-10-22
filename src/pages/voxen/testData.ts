@@ -80,7 +80,8 @@ export function buildDemoData(): VoxenData {
 
     const key = `demo:${i}`
     const stats = buildStats(key)
-    const withProfile = rand() > 0.12
+    // Um terço não informou o perfil: é onde os valores estimados da VOXEN aparecem.
+    const withProfile = rand() > 0.33
     const profile: Profile = withProfile
       ? {
           age: Math.max(11, cat - (rand() > 0.5 ? 1 : 0)),
@@ -107,6 +108,9 @@ export function buildDemoData(): VoxenData {
     players.push({
       key,
       source: "funil",
+      aliases: [],
+      memberId: null,
+      estimated: [],
       name,
       email: `${handle}@gmail.com`,
       phone: digits,
@@ -150,6 +154,38 @@ export function buildDemoData(): VoxenData {
     updatedAt: new Date(now - 20 * 60000).toISOString(),
   }
 
+  // Casos para testar a junção e os duplicados (nomes inventados).
+  const base = players[1]
+  const person = (over: Partial<Player> & Pick<Player, "key" | "name">): Player => ({
+    ...base, source: "funil", aliases: [], memberId: null, estimated: [], userId: null, meta: { ...EMPTY_DEMO_META }, ...over,
+  })
+  // Lead + conta da mesma pessoa, já juntados (como o Juan Dérick Kretzer): um registro só, com a conta como apelido.
+  players.push(person({
+    key: "lead:demo-juan", aliases: ["atleta:900"], userId: "demo-user-juan", name: "Juan Dérick Kretzer", email: "juan.kretzer@exemplo.com",
+    phone: "47900000001", createdAt: new Date(now - 3 * 86400000).toISOString(),
+    profile: { age: 17, height: 190, weight: 84, foot: "canhoto", nationality: "Brasil", position: "Zagueiro", category: "Sub 17", state: "Santa Catarina", city: "Joinville - SC" },
+    hasProfile: true,
+  }))
+  // Dois cadastros com o mesmo nome e o mesmo telefone (provável duplicado) e um homônimo com telefone diferente.
+  players.push(person({
+    key: "lead:demo-camilo-a", name: "Camilo Karam Escobar", email: "camilo.a@exemplo.com", phone: "61900000002",
+    createdAt: new Date(now - 5 * 86400000).toISOString(), profile: { age: 16, position: "Volante", category: "Sub 17", city: "Gama - DF" }, hasProfile: true,
+  }))
+  players.push(person({
+    key: "lead:demo-camilo-b", name: "Camilo Karam Escobar", email: "camilo.b@exemplo.com", phone: "61900000002",
+    createdAt: new Date(now - 4 * 86400000).toISOString(), profile: {}, hasProfile: false,
+  }))
+  players.push(person({
+    key: "lead:demo-joao-a", name: "João Pedro Almeida", email: "joaopedro.a@exemplo.com", phone: "61900000003",
+    createdAt: new Date(now - 6 * 86400000).toISOString(), profile: { age: 15, position: "Goleiro", category: "Sub 15", city: "Taguatinga - DF" }, hasProfile: true,
+  }))
+  players.push(person({
+    key: "lead:demo-joao-b", name: "João Pedro Almeida", email: "joaopedro.b@exemplo.com", phone: "11900000004",
+    createdAt: new Date(now - 7 * 86400000).toISOString(), profile: { age: 18, position: "Zagueiro", category: "Sub 19", city: "Campinas - SP" }, hasProfile: true,
+  }))
+
   players.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  return { players, sharedMeta: false, profileCapture: true, loadedAt: new Date() }
+  return { players, sharedMeta: false, profileCapture: true, merge: { mergedAccounts: 1, withMember: 0, filledFields: 0 }, loadedAt: new Date() }
 }
+
+const EMPTY_DEMO_META = { stage: "novo" as StageKey, notes: "", scout: null, updatedAt: null }

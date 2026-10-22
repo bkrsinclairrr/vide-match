@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Avatar, CardHead, Empty, StageTag } from "@/pages/voxen/ui"
 import { useVoxen } from "@/pages/voxen/store"
 import { timeAgo } from "@/pages/voxen/data"
+import { hasAccount } from "@/pages/voxen/people"
 import { CountUp, Donut, Sparkline } from "@/pages/voxen/charts"
 import { LEVEL_LABEL } from "@/pages/voxen/access"
 import { getAccountsApi, type AccountRow } from "@/pages/voxen/pages/accounts/api"
@@ -55,7 +56,7 @@ export default function Dashboard() {
     })
     const week = players.filter((p) => now - t(p.createdAt) < 7 * DAY).length
     const leads = players.filter((p) => p.source === "funil")
-    const accountsOfAthletes = players.filter((p) => p.source === "conta")
+    const accountsOfAthletes = players.filter(hasAccount)
     const coldLeads = leads.filter((p) => p.meta.stage === "novo" && now - t(p.createdAt) > 3 * DAY)
     const noProfile = players.filter((p) => !p.hasProfile)
     return { daily14, week, leads: leads.length, athletes: accountsOfAthletes.length, coldLeads: coldLeads.length, noProfile: noProfile.length }

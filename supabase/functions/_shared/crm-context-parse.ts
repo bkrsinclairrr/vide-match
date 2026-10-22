@@ -286,11 +286,26 @@ export function parseState(raw: string): string | null {
 }
 
 const NO_CLUB = /^(nao|nenhum|nenhuma|sem clube|sem time|nao tenho|nao jogo|nao estou|ainda nao|n|-|x|\.|nada)\b/
+/** "Sim" e parentes, sozinhos: a pessoa respondeu que está num clube, mas não disse qual (não é nome de time). */
+const YES_ONLY = /^(sim|s|claro|isso|yes|tenho|jogo|estou|sim tenho|sim jogo|sim estou)[\s.,!]*$/
+/** "Sim, Palmeiras" / "Sim - no Sport": o que vem depois do "sim" é o clube. */
+const YES_PREFIX = /^sim\b[\s,.:;!-]+/i
+/** "no Sport", "joga no Joinville": tira a preposição que sobra na frente do nome. */
+const CLUB_LEAD = /^(joga no|joga na|jogo no|jogo na|estou no|estou na|no|na|nos|nas|em|pelo|pela|do|da|de)\s+/i
+const CLUB_UNKNOWN = /(nao (sei|lembro|me lembro)|esqueci|sem nome)/
 
-/** Clube atual: texto como veio; "não tenho", "nenhum"... é "sem clube" (nada a preencher). */
+/**
+ * Clube atual: texto como veio; "não tenho", "nenhum"... é "sem clube" (nada a preencher), e "sim" sozinho
+ * quer dizer que está num clube sem dizer qual (também nada a preencher: "Sim" nunca é nome de time).
+ */
 export function parseClub(raw: string): { team: string | null; review: boolean } {
-  const t = raw.trim().replace(/\s+/g, " ")
-  if (!t || NO_CLUB.test(norm(t))) return { team: null, review: false }
+  let t = raw.trim().replace(/\s+/g, " ")
+  if (!t || NO_CLUB.test(norm(t)) || YES_ONLY.test(norm(t))) return { team: null, review: false }
+  if (YES_PREFIX.test(t)) {
+    t = t.replace(YES_PREFIX, "").replace(CLUB_LEAD, "").trim()
+    const n = norm(t)
+    if (!t || NO_CLUB.test(n) || YES_ONLY.test(n) || CLUB_UNKNOWN.test(n)) return { team: null, review: false }
+  }
   if (t.length > 80 || /[?!]/.test(t)) return { team: null, review: true }
   return { team: t, review: false }
 }

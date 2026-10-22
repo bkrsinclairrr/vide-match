@@ -1,4 +1,5 @@
 import { placeOf, type Player } from "@/pages/voxen/data"
+import { realProfileOf } from "@/pages/voxen/people"
 import type { MemberInput } from "@/pages/membros/api"
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
@@ -19,19 +20,21 @@ export function memberDraftFrom(p: Player, email: string | null): MemberDraft {
   const mail = (email ?? p.email ?? "").trim().toLowerCase()
   if (!mail) return { skip: "sem-email" }
   if (!EMAIL.test(mail) || mail.length > 254) return { skip: "email-invalido" }
+  // Só o que a pessoa informou: o valor estimado pela VOXEN nunca vira cadastro de membro.
+  const r = realProfileOf(p)
   return {
     input: {
       kind: "membro",
       fullName,
       email: mail,
-      birthDate: null,
-      position: p.profile.position?.slice(0, 40) ?? null,
-      category: p.profile.category?.slice(0, 20) ?? null,
-      foot: p.profile.foot ? capitalize(p.profile.foot).slice(0, 20) : null,
-      heightCm: between(p.profile.height, 100, 230),
-      weightKg: between(p.profile.weight, 25, 160),
-      city: placeOf(p)?.slice(0, 80) ?? null,
-      team: null,
+      birthDate: r.birthDate ?? null,
+      position: r.position?.slice(0, 40) ?? null,
+      category: r.category?.slice(0, 20) ?? null,
+      foot: r.foot ? capitalize(r.foot).slice(0, 20) : null,
+      heightCm: between(r.height, 100, 230),
+      weightKg: between(r.weight, 25, 160),
+      city: placeOf({ profile: r })?.slice(0, 80) ?? null,
+      team: r.team?.slice(0, 80) ?? null,
       photoUrl: null,
       bio: null,
       leadId: p.key.startsWith("lead:") ? p.key.slice(5) : null,

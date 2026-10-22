@@ -1,14 +1,30 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useToast } from "@/hooks/use-toast"
 import {
-  buildPercentiles, deletePlayer, loadVoxenData, saveMeta, updatePlayer,
-  type Percentiles, type Player, type PlayerEdit, type PlayerMeta, type VoxenData,
+  buildPercentiles, deletePlayer, editFromPlayer, loadVoxenData, saveMeta, updatePlayer,
+  type Percentiles, type Player, type PlayerEdit, type PlayerMeta, type ProfileEdit, type VoxenData,
 } from "./data"
+import { withEstimates } from "./estimate"
+import { ageFromBirth, hasAnyProfile, keysOf } from "./people"
 import { canAdminAs, canScoutAs, type StaffRole } from "./access"
+
+const ESTIMATED_PREF = "voxen:estimados"
+
+/** Os valores estimados começam ligados; a escolha de quem desliga fica guardada neste navegador. */
+const readEstimatedPref = () => {
+  try {
+    return localStorage.getItem(ESTIMATED_PREF) !== "off"
+  } catch {
+    return true
+  }
+}
+
+type EditResult = { partial: boolean; warnings: string[]; changed: number }
 
 type VoxenStore = {
   data: VoxenData | null
   players: Player[]
+  /** Acha o jogador pelo endereço dele ou pelo de qualquer registro que foi juntado a ele (os links antigos continuam abrindo). */
   byKey: Map<string, Player>
   percentile: Percentiles
   loading: boolean
@@ -20,11 +36,18 @@ type VoxenStore = {
   canScout: boolean
   /** Exclui cadastros, membros e partidas e mexe em contas: só o administrador. */
   canAdmin: boolean
+  /** Mostra os valores estimados (idade, time... que o jogador ainda não informou), marcados como "est.". */
+  showEstimated: boolean
+  setShowEstimated: (on: boolean) => void
+  /** Quantos jogadores têm algum valor estimado (com a chave ligada ou não). */
+  estimatedCount: number
   /** Recarrega a base; `true` se deu certo. */
   reload: () => Promise<boolean>
   updateMeta: (key: string, patch: Partial<PlayerMeta>) => Promise<void>
   /** Edita o cadastro do atleta (toda a equipe). `partial`: o perfil do lead não pôde ser gravado. */
-  editPlayer: (key: string, edit: PlayerEdit) => Promise<{ partial: boolean }>
+  editPlayer: (key: string, edit: PlayerEdit) => Promise<EditResult>
+  /** Muda o mesmo campo em vários jogadores e recarrega só no fim. `failed`: chaves que o banco recusou. */
+  editPlayers: (keys: string[], patch: Partial<ProfileEdit>) => Promise<{ done: number; failed: string[]; reason: string | null }>
   /** Exclui o registro (só administrador). */
   removePlayer: (key: string) => Promise<void>
   /** Exclui vários de uma vez e recarrega só no fim. `failed`: chaves que o banco recusou (com o motivo da primeira falha). */
@@ -44,8 +67,18 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
   const [data, setData] = useState<VoxenData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showEstimated, setShowEstimatedState] = useState(readEstimatedPref)
   const saveTimers = useRef(new Map<string, number>())
   const dataRef = useRef<VoxenData | null>(null)
+
+  const setShowEstimated = useCallback((on: boolean) => {
+    setShowEstimatedState(on)
+    try {
+      localStorage.setItem(ESTIMATED_PREF, on ? "on" : "off")
+    } catch {
+      /* navegador sem armazenamento: vale só nesta visita */
+    }
+  }, [])
 
   const reload = useCallback(async () => {
     setLoading(true)
@@ -76,21 +109,23 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
   const updateMeta = useCallback(async (key: string, patch: Partial<PlayerMeta>) => {
     if (!canScoutAs(role)) return
     const current = dataRef.current
-    const player = current?.players.find((p) => p.key === key)
+    const player = current?.players.find((p) => p.key === key || p.aliases.includes(key))
     if (!current || !player) return
+    // A etapa e as notas ficam sempre no endereço principal da pessoa.
+    const own = player.key
     const next: PlayerMeta = { ...player.meta, ...patch, updatedAt: new Date().toISOString() }
-    const updated = { ...current, players: current.players.map((p) => (p.key === key ? { ...p, meta: next } : p)) }
+    const updated = { ...current, players: current.players.map((p) => (p.key === own ? { ...p, meta: next } : p)) }
     dataRef.current = updated
     setData(updated)
     if (demo) return
 
     const shared = current.sharedMeta
     const timers = saveTimers.current
-    window.clearTimeout(timers.get(key))
-    timers.set(key, window.setTimeout(async () => {
-      timers.delete(key)
+    window.clearTimeout(timers.get(own))
+    timers.set(own, window.setTimeout(async () => {
+      timers.delete(own)
       try {
-        await saveMeta(key, next, shared)
+        await saveMeta(own, next, shared)
       } catch (err) {
         toast({
           title: "Não foi possível salvar",
@@ -101,62 +136,132 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
     }, "notes" in patch ? 700 : 0))
   }, [demo, role, toast])
 
-  const editPlayer = useCallback(async (key: string, edit: PlayerEdit) => {
+  /** O jogador real (sem valores estimados), pelo endereço dele ou pelo de um registro juntado a ele. */
+  const findReal = (key: string) => dataRef.current?.players.find((p) => p.key === key || p.aliases.includes(key))
+
+  /**
+   * Depois de gravar, a tela já mostra o novo valor (atualização na memória); a base é lida de novo em segundo plano
+   * quando a pessoa para de mexer, para confirmar tudo com o banco. Assim editar vários cadastros em seguida não trava.
+   */
+  const reloadTimer = useRef<number | null>(null)
+  const scheduleReload = useCallback(() => {
+    if (reloadTimer.current !== null) window.clearTimeout(reloadTimer.current)
+    reloadTimer.current = window.setTimeout(() => { reloadTimer.current = null; void reload() }, 1500)
+  }, [reload])
+  useEffect(() => () => { if (reloadTimer.current !== null) window.clearTimeout(reloadTimer.current) }, [])
+
+  /** Aplica uma edição só na memória (modo de teste local): o que foi limpo volta a ser estimado. */
+  const applyEditInMemory = (player: Player, edit: PlayerEdit): Player => {
+    const f = edit.profile
+    const profile = {
+      ...player.profile,
+      age: (f.birthDate ? ageFromBirth(f.birthDate) : undefined) ?? f.age ?? undefined, height: f.height ?? undefined, weight: f.weight ?? undefined, foot: f.foot ?? undefined,
+      nationality: f.nationality ?? undefined, position: f.position ?? undefined, category: f.category ?? undefined,
+      state: f.state ?? undefined, city: f.city ?? undefined, team: f.team ?? undefined, birthDate: f.birthDate ?? undefined,
+    }
+    return {
+      ...player,
+      name: edit.name.trim() || player.name,
+      email: edit.email !== undefined ? edit.email.trim().toLowerCase() || null : player.email,
+      phone: edit.phone !== undefined ? edit.phone.replace(/\D/g, "") || null : player.phone,
+      profile,
+      hasProfile: hasAnyProfile(profile),
+    }
+  }
+
+  const editPlayer = useCallback(async (key: string, edit: PlayerEdit): Promise<EditResult> => {
     const current = dataRef.current
-    const player = current?.players.find((p) => p.key === key)
+    const player = findReal(key)
     if (!canScoutAs(role) || !current || !player) throw new Error("Você não tem permissão para editar.")
     if (demo) {
-      const f = edit.profile
-      const next: Player = {
-        ...player,
-        name: edit.name.trim() || player.name,
-        email: edit.email !== undefined ? edit.email.trim().toLowerCase() || null : player.email,
-        phone: edit.phone !== undefined ? edit.phone.replace(/\D/g, "") || null : player.phone,
-        profile: {
-          ...player.profile,
-          age: f.age ?? undefined, height: f.height ?? undefined, weight: f.weight ?? undefined, foot: f.foot ?? undefined,
-          nationality: f.nationality ?? undefined, position: f.position ?? undefined, category: f.category ?? undefined,
-          state: f.state ?? undefined, city: f.city ?? undefined,
-        },
-      }
-      const updated = { ...current, players: current.players.map((p) => (p.key === key ? next : p)) }
+      const next = applyEditInMemory(player, edit)
+      const updated = { ...current, players: current.players.map((p) => (p.key === player.key ? next : p)) }
       dataRef.current = updated
       setData(updated)
-      return { partial: false }
+      return { partial: false, warnings: [], changed: 1 }
     }
     const result = await updatePlayer(player, edit)
-    await reload()
+    if (result.changed) {
+      const latest = dataRef.current
+      if (latest) {
+        const updated = { ...latest, players: latest.players.map((p) => (p.key === player.key ? applyEditInMemory(p, edit) : p)) }
+        dataRef.current = updated
+        setData(updated)
+      }
+      scheduleReload()
+    }
     return result
+  }, [demo, role, reload, scheduleReload])
+
+  const editPlayers = useCallback(async (keys: string[], patch: Partial<ProfileEdit>) => {
+    const current = dataRef.current
+    if (!canScoutAs(role) || !current) throw new Error("Você não tem permissão para editar.")
+    const wanted = new Set(keys)
+    const targets = current.players.filter((p) => keysOf(p).some((k) => wanted.has(k)))
+    const build = (p: Player): PlayerEdit => {
+      const base = editFromPlayer(p)
+      return { ...base, profile: { ...base.profile, ...patch } }
+    }
+    if (demo) {
+      const ids = new Set(targets.map((p) => p.key))
+      const updated = { ...current, players: current.players.map((p) => (ids.has(p.key) ? applyEditInMemory(p, build(p)) : p)) }
+      dataRef.current = updated
+      setData(updated)
+      return { done: targets.length, failed: [] as string[], reason: null as string | null }
+    }
+    const failed: string[] = []
+    let reason: string | null = null
+    let done = 0
+    for (const p of targets) {
+      try {
+        await updatePlayer(p, build(p))
+        done++
+      } catch (err) {
+        failed.push(p.key)
+        reason ??= err instanceof Error ? err.message : String(err)
+      }
+    }
+    await reload()
+    return { done, failed, reason }
   }, [demo, role, reload])
 
   const removePlayer = useCallback(async (key: string) => {
     const current = dataRef.current
-    const player = current?.players.find((p) => p.key === key)
+    const player = findReal(key)
     if (!canAdminAs(role) || !current || !player) throw new Error("Só um administrador pode excluir.")
     if (demo) {
-      const updated = { ...current, players: current.players.filter((p) => p.key !== key) }
+      const updated = { ...current, players: current.players.filter((p) => p.key !== player.key) }
       dataRef.current = updated
       setData(updated)
       return
     }
     await deletePlayer(player)
-    await reload()
-  }, [demo, role, reload])
+    const latest = dataRef.current
+    if (latest) {
+      const updated = { ...latest, players: latest.players.filter((p) => p.key !== player.key) }
+      dataRef.current = updated
+      setData(updated)
+    }
+    scheduleReload()
+  }, [demo, role, scheduleReload])
 
   const removePlayers = useCallback(async (keys: string[]) => {
     const current = dataRef.current
     if (!canAdminAs(role) || !current) throw new Error("Só um administrador pode excluir.")
     const wanted = new Set(keys)
+    // Quem foi marcado pelo endereço principal ou pelo de um registro juntado conta uma vez só.
+    const targets = current.players.filter((p) => keysOf(p).some((k) => wanted.has(k)))
     if (demo) {
-      const updated = { ...current, players: current.players.filter((p) => !wanted.has(p.key)) }
+      const ids = new Set(targets.map((p) => p.key))
+      const updated = { ...current, players: current.players.filter((p) => !ids.has(p.key)) }
       dataRef.current = updated
       setData(updated)
-      return { removed: keys.length, failed: [] as string[], reason: null }
+      return { removed: targets.length, failed: [] as string[], reason: null }
     }
     const failed: string[] = []
     let reason: string | null = null
     let removed = 0
-    for (const player of current.players.filter((p) => wanted.has(p.key))) {
+    for (const player of targets) {
       try {
         await deletePlayer(player)
         removed++
@@ -170,11 +275,17 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
   }, [demo, role, reload])
 
   const value = useMemo<VoxenStore>(() => {
-    const players = data?.players ?? []
+    const real = data?.players ?? []
+    const players = showEstimated ? withEstimates(real) : real
+    const byKey = new Map<string, Player>()
+    for (const p of players) {
+      byKey.set(p.key, p)
+      for (const alias of p.aliases) byKey.set(alias, p)
+    }
     return {
       data,
       players,
-      byKey: new Map(players.map((p) => [p.key, p])),
+      byKey,
       percentile: buildPercentiles(players),
       loading,
       error,
@@ -182,13 +293,17 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
       role,
       canScout: canScoutAs(role),
       canAdmin: canAdminAs(role),
+      showEstimated,
+      setShowEstimated,
+      estimatedCount: showEstimated ? players.filter((p) => p.estimated.length).length : withEstimates(real).filter((p) => p.estimated.length).length,
       reload,
       updateMeta,
       editPlayer,
+      editPlayers,
       removePlayer,
       removePlayers,
     }
-  }, [data, loading, error, demo, role, reload, updateMeta, editPlayer, removePlayer, removePlayers])
+  }, [data, loading, error, demo, role, showEstimated, setShowEstimated, reload, updateMeta, editPlayer, editPlayers, removePlayer, removePlayers])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

@@ -3,6 +3,7 @@ import { STAGES, formatDateTime } from "@/pages/voxen/data"
 import type { AccountRow } from "@/pages/voxen/pages/accounts/api"
 import type { Member } from "@/pages/membros/model"
 import { LEVEL_LABEL } from "@/pages/voxen/access"
+import { hasAccount } from "@/pages/voxen/people"
 import { toCsv } from "@/lib/exportFile"
 
 /** Colunas dos arquivos exportados pelo painel (CSV para planilha). */
@@ -14,11 +15,13 @@ export const playersCsv = (rows: Player[]) =>
     { label: "Nome", value: (p) => p.name },
     { label: "E-mail", value: (p) => p.email },
     { label: "Telefone", value: (p) => p.phone },
-    { label: "Tipo", value: (p) => (p.source === "funil" ? "Funil" : "Conta") },
+    { label: "Tipo", value: (p) => (p.source === "funil" ? (hasAccount(p) ? "Funil + conta" : "Funil") : "Conta") },
     { label: "Etapa", value: stageLabel },
     { label: "Posição", value: (p) => p.profile.position },
     { label: "Categoria", value: (p) => p.profile.category },
     { label: "Idade", value: (p) => p.profile.age },
+    { label: "Nascimento", value: (p) => p.profile.birthDate },
+    { label: "Time atual", value: (p) => p.profile.team },
     { label: "Altura (cm)", value: (p) => p.profile.height },
     { label: "Peso (kg)", value: (p) => p.profile.weight },
     { label: "Melhor pé", value: (p) => p.profile.foot },
@@ -29,6 +32,7 @@ export const playersCsv = (rows: Player[]) =>
     { label: "Nota geral", value: (p) => p.overall },
     { label: "Notas da equipe", value: (p) => p.meta.notes },
     { label: "Entrada", value: (p) => formatDateTime(p.createdAt) },
+    { label: "Campos estimados", value: (p) => p.estimated.join(", ") },
   ])
 
 export const accountsCsv = (rows: AccountRow[]) =>
