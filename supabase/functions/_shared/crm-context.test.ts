@@ -255,3 +255,55 @@ test("campos corrigidos no CRM valem mais que o texto do formulário", () => {
   assert.equal(parsed.category, "Sub 17", "a categoria continua vindo do texto do formulário")
   assert.equal(parsed.city, "Salvador - BA")
 })
+
+/* Contrato v1.2: pré-cadastro (prospect_context) --------------------- */
+
+const prospect = (extra: Record<string, unknown> = {}) => {
+  const lead = "22222222-2222-4222-8222-222222222222"
+  return event({ kind: "prospect_context", source_lead_id: lead, link: { basis: "lead do CRM sem cadastro na VOXEN", form_lead_id: null, crm_lead_id: lead }, ...extra })
+}
+
+test("v1.2: prospect_context é aceito quando link.crm_lead_id é igual a source_lead_id", () => {
+  assert.equal(invalidReason(prospect(), PROJECT), null)
+  assert.equal(invalidReason(event({ kind: "outro" }), PROJECT) !== null, true, "tipo desconhecido continua recusado")
+  assert.match(invalidReason(prospect({ link: { basis: "x", crm_lead_id: "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d" } }), PROJECT) ?? "", /link\.crm_lead_id/)
+  assert.match(invalidReason(prospect({ link: { basis: "x" } }), PROJECT) ?? "", /link\.crm_lead_id/)
+  assert.equal(invalidReason(event({ link: { basis: "x" } }), PROJECT), null, "o athlete_context não exige o vínculo")
+})
+
+test("v1.2: o pré-cadastro passa pela mesma limpeza (nada de contato, dinheiro ou funil comercial)", () => {
+  const clean = sanitizeEvent(prospect({
+    phone: "71999990000",
+    structured: { athlete_name: "Fulano de Tal", phone: "71999990000" },
+    guardian: { name: "Maria Silva", phone: "71988887777" },
+    notes: [{ type: "whatsapp_summary", content: "Ligar para 71999990000", created_at: "2026-10-20T14:00:00Z" }],
+    utm_source: "facebook", campaign: "Anúncio X", lead_score: 80,
+  }))
+  const text = JSON.stringify(clean)
+  for (const banned of ["71999990000", "71988887777", "utm_", "Anúncio X", "lead_score"]) assert.equal(text.includes(banned), false, `vazou: ${banned}`)
+  assert.equal(clean.kind, "prospect_context")
+  assert.equal(clean.structured?.athlete_name, "Fulano de Tal")
+  assert.match(clean.notes?.[0].content ?? "", /\[contato removido\]/)
+})
+
+test("v1.2: respostas de até 4000 caracteres, com orçamento total para não passar do limite do banco", () => {
+  const long = sanitizeEvent(event({ answers: [{ question: "Pergunta nova?", answer: "a".repeat(5000) }] }))
+  assert.equal(long.answers[0].answer.length, 4000)
+  const many = sanitizeEvent(event({ answers: Array.from({ length: 30 }, (_, i) => ({ question: `Pergunta ${i}?`, answer: "b".repeat(4000) })) }))
+  assert.equal(many.answers.length, 12, "50 mil caracteres: cortam as últimas, não as primeiras")
+  assert.equal(many.answers[0].question, "Pergunta 0?")
+  const small = sanitizeEvent(event({ answers: [...Array.from({ length: 13 }, (_, i) => ({ question: `P${i}?`, answer: "c".repeat(4000) })), { question: "Curta?", answer: "ok" }] }))
+  assert.equal(small.answers.some((a) => a.question === "Curta?"), false, "depois que o orçamento acaba, nada mais entra")
+})
+
+test("v1.2: pergunta sobre dinheiro, documento ou contato continua barrada nas respostas", () => {
+  const clean = sanitizeEvent(event({
+    answers: [
+      { question: "Qual a renda da família?", answer: "R$ 3.000" },
+      { question: "Qual o seu CPF?", answer: "123" },
+      { question: "Qual o seu WhatsApp?", answer: "71 99999-0000" },
+      { question: "Em que cidade você mora?", answer: "Salvador" },
+    ],
+  }))
+  assert.deepEqual(clean.answers, [{ question: "Em que cidade você mora?", answer: "Salvador" }])
+})

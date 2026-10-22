@@ -24,6 +24,15 @@
 .sc-context .is-empty dd { color: var(--vx-dim); font-style: italic; }
 @media (max-width: 640px) { .sc-context { grid-template-columns: 1fr; } }
 .sc-wide { grid-column: 1 / -1; }
+.sc-prospect-warn { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(56, 189, 248, 0.28); background: rgba(56, 189, 248, 0.06); color: #bae6fd; font-size: 12.5px; line-height: 1.55; }
+.sc-prospect-warn svg { flex-shrink: 0; width: 15px; height: 15px; margin-top: 2px; }
+.sc-prospect-warn b { color: #e0f2fe; }
+.sc-review { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; }
+.sc-review li { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; }
+.sc-review b { color: var(--vx-muted); font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase; }
+.sc-review span { color: var(--vx-text); }
+.op-detail-in .bp-confirm { margin-bottom: 16px; }
+.op-detail-in .vx-card + .vx-card { margin-top: 16px; }
 .sc-crm { margin-top: 20px; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.22); background: rgba(56, 189, 248, 0.04); }
 .sc-crm-warn { display: flex; align-items: center; gap: 6px; margin: 0; color: #7dd3fc; font-size: 12px; font-weight: 650; }
 .sc-crm-warn svg { width: 13px; height: 13px; flex-shrink: 0; }

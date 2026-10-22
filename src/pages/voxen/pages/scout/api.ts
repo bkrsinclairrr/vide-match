@@ -158,8 +158,45 @@ export const FIELD_LABEL: Record<ConflictField, string> = {
   birth_date: "Nascimento", position: "Posição", category: "Categoria", team: "Time atual", city: "Cidade",
 }
 
+/**
+ * Pré-cadastro: lead do CRM (wsltda.com) que ainda não se cadastrou na VOXEN. NÃO é atleta nem membro:
+ * ninguém é contatado a partir daqui. Só a equipe vê. Quando a pessoa se cadastra, o texto daqui é apagado.
+ */
+export type Prospect = {
+  /** Id do lead no CRM (a chave do pré-cadastro). */
+  id: string
+  athleteName: string | null
+  guardianName: string | null
+  guardianFilledBy: string | null
+  filledBy: "atleta" | "responsavel" | null
+  birthDate: string | null
+  position: string | null
+  category: string | null
+  team: string | null
+  city: string | null
+  /** Textos do formulário que o intérprete não entendeu com segurança. */
+  review: { field: string; raw: string }[]
+  pastClubs: string | null
+  trials: string | null
+  opportunitiesReceived: string | null
+  goal: string | null
+  blocker: string | null
+  evaluatedClubs: string | null
+  strengthsAndImprovements: string | null
+  commitmentScore: string | null
+  crmObservations: string | null
+  qualification: Qualification | null
+  notes: ContextNote[]
+  answers: Answer[]
+  revision: number
+  firstReceivedAt: string
+  updatedAt: string
+}
+
 export type CrmHealth = {
   recebidos: number
+  /** Pré-cadastros abertos (não ligados a um atleta e não descartados). */
+  preCadastros: number
   aplicados: number
   esperando: number
   quarentena: number
@@ -191,6 +228,10 @@ export interface ScoutApi {
   context(memberId: string): Promise<MemberContext | null>
   saveContext(memberId: string, patch: ContextPatch): Promise<MemberContext>
   conflicts(memberId?: string): Promise<Conflict[]>
+  /** Pré-cadastros do CRM abertos, do mais recente ao mais antigo. */
+  prospects(): Promise<Prospect[]>
+  /** Só o administrador: apaga o texto e impede que as próximas versões o recriem. */
+  discardProspect(id: string): Promise<void>
   resolveConflict(id: string, accept: boolean, value?: string): Promise<void>
   crmHealth(): Promise<CrmHealth | null>
 }
@@ -331,6 +372,43 @@ export const toContext = (r: Row): MemberContext => ({
   source: r.source === "crm" ? "crm" : "equipe",
   importedAt: str(r.imported_at),
   updatedAt: str(r.updated_at),
+})
+
+const reviewOf = (v: unknown): { field: string; raw: string }[] =>
+  Array.isArray(v)
+    ? v.map((x) => {
+        const r = x as Row | null
+        return r && typeof r.field === "string" && typeof r.raw === "string" ? { field: r.field, raw: r.raw } : null
+      }).filter((x): x is { field: string; raw: string } => x !== null)
+    : []
+
+export const toProspect = (r: Row): Prospect => ({
+  id: r.crm_lead_id as string,
+  athleteName: str(r.athlete_name),
+  guardianName: str(r.guardian_name),
+  guardianFilledBy: str(r.guardian_filled_by_raw),
+  filledBy: r.filled_by === "atleta" || r.filled_by === "responsavel" ? r.filled_by : null,
+  birthDate: str(r.birth_date)?.slice(0, 10) ?? null,
+  position: str(r.position),
+  category: str(r.category),
+  team: str(r.team),
+  city: str(r.city),
+  review: reviewOf(r.review),
+  pastClubs: str(r.past_clubs),
+  trials: str(r.trials),
+  opportunitiesReceived: str(r.opportunities_received),
+  goal: str(r.goal),
+  blocker: str(r.blocker),
+  evaluatedClubs: str(r.evaluated_clubs),
+  strengthsAndImprovements: str(r.strengths_and_improvements),
+  commitmentScore: str(r.commitment_score),
+  crmObservations: str(r.crm_observations),
+  qualification: qualificationOf(r.crm_qualification),
+  notes: notesOf(r.notes),
+  answers: answersOf(r.answers),
+  revision: Number(r.source_revision) || 1,
+  firstReceivedAt: (r.first_received_at as string) ?? "",
+  updatedAt: (r.updated_at as string) ?? "",
 })
 
 const contextRow = (p: ContextPatch) => {
@@ -520,6 +598,17 @@ const supabaseScout: ScoutApi = {
     return (data ?? []).map(toConflict)
   },
 
+  async prospects() {
+    const { data, error } = await db.from("zyron_prospects").select("*").is("linked_member_id", null).is("discarded_at", null).order("updated_at", { ascending: false }).limit(1000)
+    check(error)
+    return (data ?? []).map(toProspect)
+  },
+
+  async discardProspect(id) {
+    const { error } = await db.rpc("zyron_discard_prospect", { p_lead: id })
+    check(error)
+  },
+
   async resolveConflict(id, accept, value) {
     const { error } = await db.rpc("zyron_resolve_crm_conflict", { p_id: id, p_accept: accept, p_value: value ?? null })
     check(error)
@@ -531,6 +620,7 @@ const supabaseScout: ScoutApi = {
     const d = (data ?? {}) as Row
     return {
       recebidos: Number(d.recebidos) || 0,
+      preCadastros: Number(d.pre_cadastros) || 0,
       aplicados: Number(d.aplicados) || 0,
       esperando: Number(d.esperando) || 0,
       quarentena: Number(d.quarentena) || 0,

@@ -272,7 +272,9 @@ const noteDay = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(
  * lead e as notas de atendimento. É dado sensível, de menores em boa parte: só a equipe vê, e cada nova
  * revisão do CRM substitui o que estava aqui.
  */
-function CrmDetails({ context }: { context: MemberContext }) {
+export type CrmView = Pick<MemberContext, "guardianName" | "guardianFilledBy" | "commitmentScore" | "crmObservations" | "qualification" | "notes">
+
+export function CrmDetails({ context }: { context: CrmView }) {
   const q = context.qualification
   const has = context.guardianName || context.crmObservations || q || context.commitmentScore || context.notes.length > 0
   if (!has) return null
