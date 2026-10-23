@@ -35,8 +35,8 @@ export const NO_EDIT: ChartEdit = { stats: {}, overall: null, marker: null, heat
 export const MAX_HEAT = 8
 export const MAX_NOTE = 300
 
-/** Os gráficos mostram notas a partir de 64; o controle de nota vai daí até 100 (ou até a nota original, se ela for menor). */
-export const SCORE_FLOOR = 64
+/** O controle de nota vai de 20 até 100 (ou a partir da nota original, se ela for menor): os jogadores novos têm notas baixas. */
+export const SCORE_FLOOR = 20
 
 export const scoreRange = (original: number) => ({ min: Math.min(SCORE_FLOOR, Math.max(1, Math.round(original))), max: 100 })
 

@@ -11,7 +11,7 @@ import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { useVoxen } from "../store"
 import {
   LINES, SCOUT_ATTRS, STAGES, dimensionScores, formatDate, formatDateTime, formatPhone, initials, pctTone, placeOf,
-  positionOf, scoreTone, scoutAverage, scoutTone, timeAgo, whatsappLink, type Player, type Profile,
+  positionOf, scoreTone, scoreUnit, scoutAverage, scoutTone, timeAgo, whatsappLink, type Player, type Profile,
 } from "../data"
 import { Est } from "../estimated"
 import { keysOf } from "../people"
@@ -27,7 +27,7 @@ import { CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
 
 const PlayerEditor = lazy(() => import("./PlayerEditor"))
 
-const norm = (score: number) => (score - 64) / 34
+const norm = scoreUnit
 
 /** Lead que virou cliente: abre o cadastro de membro preenchido ou o membro já criado. */
 function MemberButton({ p }: { p: Player }) {
@@ -393,12 +393,12 @@ export default function PlayerProfile() {
             title="Nota geral"
             sub={p.chart && (Object.keys(p.chart.stats).length || p.chart.overall !== null)
               ? "Ajustada pela equipe"
-              : p.reportFromFunnel ? "Mesmo relatório exibido ao atleta no resultado" : "Relatório gerado pela plataforma (lead sem relatório salvo)"}
+              : p.reportFromFunnel ? "Relatório do atleta na escala de iniciante" : "Relatório gerado pela plataforma, na escala de iniciante"}
             actions={<ChartButton tab="indicadores" onEdit={setChartTab} />}
           />
           <ChartBadge p={p} part="geral" />
           <div className="flex flex-col items-center gap-5">
-            <Ring value={p.overall - 50} max={50} size={170} stroke={12} color={tone.color}>
+            <Ring value={p.overall} max={100} size={170} stroke={12} color={tone.color}>
               <span className="text-[44px] font-extrabold leading-none tracking-[-0.04em] tnum" style={{ color: tone.color }}><CountUp value={p.overall} /></span>
               <span className="mt-1 text-[10.5px] font-bold uppercase tracking-[0.16em] text-zinc-500">Geral</span>
             </Ring>
@@ -410,7 +410,7 @@ export default function PlayerProfile() {
               {dims.map((d, i) => (
                 <div key={d.key} className="grid grid-cols-[78px_minmax(0,1fr)_28px] items-center gap-3 text-[12.5px]">
                   <span className="text-zinc-400">{d.label}</span>
-                  <Meter value={((d.score - 64) / 34) * 100} color={scoreTone(d.score).color} delay={i * 70} />
+                  <Meter value={scoreUnit(d.score) * 100} color={scoreTone(d.score).color} delay={i * 70} />
                   <span className="text-right font-bold tnum" style={{ color: scoreTone(d.score).color }}>{d.score}</span>
                 </div>
               ))}
