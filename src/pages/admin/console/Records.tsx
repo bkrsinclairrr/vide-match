@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useSearchParams } from "react-router-dom"
-import { BadgeCheck, CheckCircle2, Download, ExternalLink, Medal, Pencil, Search, ShieldCheck, Trash2, UserRound, Users, X } from "lucide-react"
+import { BadgeCheck, CheckCircle2, Copy, Download, ExternalLink, Medal, Pencil, Search, ShieldCheck, Trash2, UserRound, Users, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { CATEGORIES, POSITIONS } from "@/data/football"
 import { Avatar, Empty, PosBadge } from "@/pages/voxen/ui"
 import { useVoxen } from "@/pages/voxen/store"
 import {
   STAGES, formatDate, formatPhone, placeOf, timeAgo, type Player, type StageKey,
 } from "@/pages/voxen/data"
+import { DataDots, Est, EstimatedSwitch } from "@/pages/voxen/estimated"
+import { completenessOf, findDuplicates, hasAccount, realProfileOf } from "@/pages/voxen/people"
 import PlayerEditor from "@/pages/voxen/pages/PlayerEditor"
+import { deleteSummary } from "@/pages/voxen/pages/PlayerDialogs"
 import { getAccountsApi } from "@/pages/voxen/pages/accounts/api"
 import { useAdminSource } from "@/pages/voxen/pages/members/shared"
 import { downloadFile, stamp } from "@/lib/exportFile"
@@ -16,6 +20,7 @@ import { SectorBadge, SectorCard } from "@/pages/voxen/pages/athletes/bits"
 import { draftFromPlayer, type Athlete } from "@/pages/voxen/pages/athletes/model"
 import { useSendToSector } from "@/pages/voxen/pages/athletes/useSendToSector"
 import { BulkBar, Check, DangerConfirm, Drawer, Pager } from "./parts"
+import { BulkEditForm, DrawerNav, InlinePick } from "./RecordsParts"
 import { playersCsv } from "./exports"
 import { looksReal } from "./names"
 import { SKIP_LABEL, memberDraftFrom } from "./toMember"
@@ -29,6 +34,7 @@ const SORTS = [
   ["antigos", "Mais antigos"],
   ["nome", "Nome (A–Z)"],
   ["nota", "Maior nota"],
+  ["dados", "Mais dados informados"],
 ] as const
 type Sort = (typeof SORTS)[number][0]
 
@@ -36,7 +42,7 @@ const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 /** Cadastros: todos os leads do funil e as contas de atletas, com edição, exclusão e ações em massa. */
 export default function Records() {
-  const { players, updateMeta, removePlayer, removePlayers, byKey, demo } = useVoxen()
+  const { players, updateMeta, editPlayer, editPlayers, removePlayer, removePlayers, byKey, demo } = useVoxen()
   const { toast } = useToast()
   const source = useAdminSource()
   const [params, setParams] = useSearchParams()
@@ -46,6 +52,11 @@ export default function Records() {
   const [category, setCategory] = useState(params.get("categoria") ?? "")
   const [incomplete, setIncomplete] = useState(params.get("filtro") === "sem-perfil")
   const [realNames, setRealNames] = useState(params.get("filtro") === "nome-completo")
+  const [dupOnly, setDupOnly] = useState(params.get("filtro") === "duplicados")
+  const [dataFilter, setDataFilter] = useState<"" | "completos" | "incompletos" | "nenhum">((["completos", "incompletos", "nenhum"] as const).find((k) => k === params.get("dados")) ?? "")
+  const [confirmEdit, setConfirmEdit] = useState(false)
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const dups = useMemo(() => findDuplicates(players), [players])
   const [confirmMembers, setConfirmMembers] = useState(false)
   const [importing, setImporting] = useState<{ done: number; total: number } | null>(null)
   const [importResult, setImportResult] = useState<ImportResult | null>(null)
@@ -72,19 +83,30 @@ export default function Records() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     const rows = players.filter((p) => {
-      if (kind !== "todos" && p.source !== kind) return false
+      // "Contas" são todos os que têm conta de atleta (inclusive quem veio do funil e já criou a conta).
+      if (kind === "funil" && p.source !== "funil") return false
+      if (kind === "conta" && !hasAccount(p)) return false
       if (stage && p.meta.stage !== stage) return false
       if (category && p.profile.category !== category) return false
       if (incomplete && p.hasProfile) return false
       if (realNames && !looksReal(p)) return false
+      if (dupOnly && !dups.byKey.has(p.key)) return false
+      if (dataFilter) {
+        const core = completenessOf(realProfileOf(p)).core
+        if (dataFilter === "completos" && core < 4) return false
+        if (dataFilter === "incompletos" && core >= 4) return false
+        if (dataFilter === "nenhum" && core > 0) return false
+      }
       if (!q) return true
-      return `${p.name} ${p.email ?? ""} ${p.phone ?? ""} ${p.profile.city ?? ""} ${p.profile.position ?? ""}`.toLowerCase().includes(q)
+      return `${p.name} ${p.email ?? ""} ${p.phone ?? ""} ${p.profile.city ?? ""} ${p.profile.position ?? ""} ${p.profile.team ?? ""}`.toLowerCase().includes(q)
     })
-    if (sort === "antigos") rows.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    if (dupOnly) rows.sort((a, b) => (dups.byKey.get(a.key)?.id ?? "").localeCompare(dups.byKey.get(b.key)?.id ?? "") || a.createdAt.localeCompare(b.createdAt))
+    else if (sort === "antigos") rows.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     else if (sort === "nome") rows.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"))
     else if (sort === "nota") rows.sort((a, b) => b.overall - a.overall)
+    else if (sort === "dados") rows.sort((a, b) => completenessOf(realProfileOf(b)).score - completenessOf(realProfileOf(a)).score || b.createdAt.localeCompare(a.createdAt))
     return rows
-  }, [players, query, kind, stage, category, incomplete, realNames, sort])
+  }, [players, query, kind, stage, category, incomplete, realNames, dupOnly, dups, dataFilter, sort])
 
   const realCount = useMemo(() => players.filter(looksReal).length, [players])
 
@@ -92,7 +114,7 @@ export default function Records() {
   const current = Math.min(page, pages)
   const rows = filtered.slice((current - 1) * PAGE, current * PAGE)
   const pickedRows = rows.filter((p) => selected.has(p.key))
-  const filterCount = [kind !== "todos", stage, category, incomplete, realNames].filter(Boolean).length
+  const filterCount = [kind !== "todos", stage, category, incomplete, realNames, dupOnly, dataFilter].filter(Boolean).length
 
   // Registros que deixaram de existir (excluídos) saem da seleção.
   useEffect(() => {
@@ -104,7 +126,7 @@ export default function Records() {
   }, [players])
 
   const reset = () => setPage(1)
-  const clearFilters = () => { setKind("todos"); setStage(""); setCategory(""); setIncomplete(false); setRealNames(false); setQuery(""); reset() }
+  const clearFilters = () => { setKind("todos"); setStage(""); setCategory(""); setIncomplete(false); setRealNames(false); setDupOnly(false); setDataFilter(""); setQuery(""); reset() }
 
   const toggle = (key: string) => setSelected((s) => {
     const next = new Set(s)
@@ -168,6 +190,39 @@ export default function Records() {
     for (const key of selected) void updateMeta(key, { stage: value })
     toast({ title: "Etapa atualizada", description: `${selected.size} cadastro${selected.size === 1 ? "" : "s"} em “${STAGES.find((s) => s.key === value)?.label}”.` })
   }
+
+  /** Muda um campo direto na linha (posição ou categoria): grava na hora, no funil, na conta e na ficha de membro. */
+  const patchField = async (p: Player, field: "position" | "category", value: string | null) => {
+    try {
+      const r = await editPlayers([p.key], { [field]: value })
+      if (r.failed.length) toast({ title: "Não foi possível salvar", description: r.reason ?? "O banco recusou a mudança.", variant: "destructive" })
+    } catch (e) {
+      toast({ title: "Não foi possível salvar", description: errMsg(e), variant: "destructive" })
+    }
+  }
+
+  /** Muda um campo dos selecionados (por padrão só onde está vazio). */
+  const applyBulk = async (field: string, value: string | number | null, onlyEmpty: boolean) => {
+    const targets = players.filter((p) => selected.has(p.key) && (!onlyEmpty || !(realProfileOf(p) as Record<string, unknown>)[field]))
+    if (!targets.length) return
+    setBulkBusy(true)
+    try {
+      const r = await editPlayers(targets.map((p) => p.key), { [field]: value })
+      toast({
+        title: r.failed.length ? `${r.done} mudaram, ${r.failed.length} não` : `${r.done} cadastro${r.done === 1 ? "" : "s"} atualizado${r.done === 1 ? "" : "s"}`,
+        description: r.failed.length ? r.reason ?? "O banco recusou alguns registros." : undefined,
+        variant: r.failed.length ? "destructive" : undefined,
+      })
+      if (!r.failed.length) { setSelected(new Set()); setConfirmEdit(false) }
+    } catch (e) {
+      toast({ title: "Não foi possível mudar", description: errMsg(e), variant: "destructive" })
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
+  const editIndex = editing ? filtered.findIndex((p) => p.key === editing.key) : -1
+  const goEdit = (delta: number) => { const t = filtered[editIndex + delta]; if (t) openEditor(t.key) }
 
   const exportRows = (list: Player[], name: string) => {
     downloadFile(`${name}-${stamp()}.csv`, playersCsv(list))
@@ -242,11 +297,25 @@ export default function Records() {
           <option value="">Todas as categorias</option>
           {categories.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        <button type="button" aria-pressed={incomplete} className={`vx-chip ${incomplete ? "is-on" : ""}`} onClick={() => { setIncomplete((v) => !v); reset() }}>Sem perfil completo</button>
+        <select className="vx-input vx-select vx-filter" value={dataFilter} onChange={(e) => { setDataFilter(e.target.value as typeof dataFilter); reset() }} aria-label="Dados informados pelo atleta">
+          <option value="">Todos os dados</option>
+          <option value="completos">Dados completos</option>
+          <option value="incompletos">Dados incompletos</option>
+          <option value="nenhum">Nenhum dado informado</option>
+        </select>
+        <button type="button" aria-pressed={incomplete} className={`vx-chip ${incomplete ? "is-on" : ""}`} onClick={() => { setIncomplete((v) => !v); reset() }}
+          title="Quem não informou nenhum dado de perfil (o valor estimado não conta)">Sem perfil real</button>
         <button type="button" aria-pressed={realNames} className={`vx-chip ${realNames ? "is-on" : ""}`} onClick={() => { setRealNames((v) => !v); reset() }}
           title="Mostra só quem tem nome e sobrenome de verdade e esconde nomes de teste, como “teste” ou “hdawdjj”">
           <CheckCircle2 className="h-3.5 w-3.5" /> Só nomes completos <span className="tnum opacity-60">{realCount}</span>
         </button>
+        {dups.groups.length > 0 && (
+          <button type="button" aria-pressed={dupOnly} className={`vx-chip ${dupOnly ? "is-on" : ""}`} onClick={() => { setDupOnly((v) => !v); reset() }}
+            title="Nomes que aparecem mais de uma vez. Lead e conta do mesmo e-mail já vêm juntos; estes são cadastros diferentes com o mesmo nome. Confira e exclua o que sobrar.">
+            <Copy className="h-3.5 w-3.5" /> Possíveis duplicados <span className="tnum opacity-60">{dups.groups.length}</span>
+          </button>
+        )}
+        <EstimatedSwitch />
         <select className="vx-input vx-select vx-filter" value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="Ordenar por">
           {SORTS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
         </select>
@@ -284,7 +353,10 @@ export default function Records() {
                   <th>Atleta</th>
                   <th>Tipo</th>
                   <th>Posição</th>
+                  <th>Categoria</th>
+                  <th>Idade</th>
                   <th>Cidade</th>
+                  <th title="Quanto do perfil (idade, posição, categoria, cidade) veio do próprio atleta">Dados</th>
                   <th>Etapa</th>
                   <th>Entrada</th>
                   <th aria-label="Ações" />
@@ -296,6 +368,8 @@ export default function Records() {
                   return (
                     <RowGroup key={p.key} player={p} picked={picked} confirming={confirmRow === p.key} busy={busy}
                       inSector={sector.forPlayer(p)} canSend={sector.canEdit && !sending} onSend={() => void sendToSector([p])}
+                      dup={dups.byKey.get(p.key)?.keys.length ?? 0} strongDup={Boolean(dups.byKey.get(p.key)?.strong)}
+                      onField={(field, value) => void patchField(p, field, value)}
                       onPick={() => toggle(p.key)} onEdit={() => openEditor(p.key)} onAskDelete={() => setConfirmRow(p.key)}
                       onCancelDelete={() => setConfirmRow(null)} onDelete={() => void deleteOne(p)} onStage={(v) => setStageOf(p, v)} />
                   )
@@ -313,7 +387,7 @@ export default function Records() {
 
       {selected.size > 0 && (
         <BulkBar
-          count={selected.size} noun="cadastro" onClear={() => { if (importing) return; setSelected(new Set()); setConfirmBulk(false); setConfirmMembers(false) }}
+          count={selected.size} noun="cadastro" onClear={() => { if (importing || bulkBusy) return; setSelected(new Set()); setConfirmBulk(false); setConfirmMembers(false); setConfirmEdit(false) }}
           confirm={confirmBulk ? (
             <DangerConfirm
               title={`Excluir ${selected.size} cadastro${selected.size === 1 ? "" : "s"}?`} typed={selected.size >= 5} busy={busy}
@@ -323,12 +397,15 @@ export default function Records() {
             </DangerConfirm>
           ) : confirmMembers ? (
             <MembersConfirm picked={players.filter((p) => selected.has(p.key))} progress={importing} onCancel={() => setConfirmMembers(false)} onConfirm={() => void importAsMembers()} />
+          ) : confirmEdit ? (
+            <BulkEditForm picked={players.filter((p) => selected.has(p.key))} busy={bulkBusy} onCancel={() => setConfirmEdit(false)} onApply={(f, v, only) => void applyBulk(f, v, only)} />
           ) : undefined}
         >
           <select className="vx-input vx-select cn-bulk-select" value="" onChange={(e) => e.target.value && setStageMany(e.target.value as StageKey)} aria-label="Mudar a etapa dos selecionados">
             <option value="">Mudar etapa…</option>
             {STAGES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
+          <button type="button" className="vx-btn" onClick={() => { setConfirmEdit(true); setConfirmBulk(false); setConfirmMembers(false) }}><Pencil /> Mudar campo</button>
           <button type="button" className="vx-btn" onClick={() => exportRows(players.filter((p) => selected.has(p.key)), "cadastros-selecionados")}><Download /> Exportar</button>
           {sector.canEdit && (
             <button type="button" className="vx-btn" disabled={sending}
@@ -336,8 +413,8 @@ export default function Records() {
               <Medal /> {sending ? "Enviando..." : "Enviar para Atletas"}
             </button>
           )}
-          <button type="button" className="vx-btn vx-btn--gold" onClick={() => { setConfirmMembers(true); setConfirmBulk(false) }}><BadgeCheck /> Tornar membros</button>
-          <button type="button" className="vx-btn cn-btn-danger" onClick={() => { setConfirmBulk(true); setConfirmMembers(false) }}><Trash2 /> Excluir</button>
+          <button type="button" className="vx-btn vx-btn--gold" onClick={() => { setConfirmMembers(true); setConfirmBulk(false); setConfirmEdit(false) }}><BadgeCheck /> Tornar membros</button>
+          <button type="button" className="vx-btn cn-btn-danger" onClick={() => { setConfirmBulk(true); setConfirmMembers(false); setConfirmEdit(false) }}><Trash2 /> Excluir</button>
         </BulkBar>
       )}
 
@@ -345,10 +422,16 @@ export default function Records() {
         open={Boolean(editing)}
         onClose={() => openEditor(null)}
         title={editing?.name ?? "Cadastro"}
-        subtitle={editing ? `${editing.source === "funil" ? "Lead do funil" : "Conta de atleta"} · entrou ${timeAgo(editing.createdAt)}` : undefined}
+        subtitle={editing ? (
+          <>
+            {kindLabel(editing)} · entrou {timeAgo(editing.createdAt)}
+            {editIndex >= 0 && filtered.length > 1 && <DrawerNav index={editIndex} total={filtered.length} onPrev={() => goEdit(-1)} onNext={() => goEdit(1)} />}
+          </>
+        ) : undefined}
       >
         {editing && (
           <EditorBody key={editing.key} player={editing} onClose={() => openEditor(null)} onDelete={() => deleteOne(editing)} busy={busy}
+            onNext={editIndex >= 0 && editIndex < filtered.length - 1 ? () => goEdit(1) : undefined}
             sector={sector} sending={sending} onSend={() => void sendToSector([editing])} />
         )}
       </Drawer>
@@ -418,8 +501,11 @@ function ImportCard({ result, onClose }: { result: ImportResult; onClose: () => 
   )
 }
 
+/** "Lead do funil", "Conta de atleta" ou os dois (a conta foi juntada ao lead da mesma pessoa). */
+const kindLabel = (p: Player) => (p.source === "funil" ? (hasAccount(p) ? "Lead do funil + conta de atleta" : "Lead do funil") : "Conta de atleta")
+
 function RowGroup({
-  player: p, picked, confirming, busy, inSector, canSend, onSend, onPick, onEdit, onAskDelete, onCancelDelete, onDelete, onStage,
+  player: p, picked, confirming, busy, inSector, canSend, dup, strongDup, onSend, onField, onPick, onEdit, onAskDelete, onCancelDelete, onDelete, onStage,
 }: {
   player: Player
   picked: boolean
@@ -427,7 +513,11 @@ function RowGroup({
   busy: boolean
   inSector: Athlete | null
   canSend: boolean
+  /** Quantos cadastros têm este mesmo nome (0 = não é duplicado). */
+  dup: number
+  strongDup: boolean
   onSend: () => void
+  onField: (field: "position" | "category", value: string | null) => void
   onPick: () => void
   onEdit: () => void
   onAskDelete: () => void
@@ -447,20 +537,27 @@ function RowGroup({
               <div className="flex min-w-0 items-center gap-2">
                 <button type="button" className="block min-w-0 truncate text-left text-[13.5px] font-semibold text-white hover:text-amber-300" onClick={(e) => { e.stopPropagation(); onEdit() }}>{p.name}</button>
                 <SectorBadge a={inSector} />
+                {dup > 0 && (
+                  <span className={`vx-tag vx-tag--dup ${strongDup ? "is-strong" : ""}`} title={`Possível duplicado: ${dup} cadastros com este nome${strongDup ? " e o mesmo telefone" : ""}`}>
+                    <Copy className="h-3 w-3" /> {dup}
+                  </span>
+                )}
               </div>
               <div className="truncate text-[11.5px] text-zinc-500">{p.email ?? (p.phone ? formatPhone(p.phone) : "Sem contato")}</div>
             </div>
           </div>
         </td>
         <td>
-          {p.source === "funil"
-            ? <span className="vx-tag" style={{ color: "#fbbf24", background: "rgba(251,191,36,.12)" }}>Funil</span>
-            : <span className="vx-tag" style={{ color: "#7dd3fc", background: "rgba(56,189,248,.12)" }}><UserRound className="h-3 w-3" /> Conta</span>}
+          <div className="flex flex-wrap items-center gap-1">
+            {p.source === "funil" && <span className="vx-tag" style={{ color: "#fbbf24", background: "rgba(251,191,36,.12)" }}>Funil</span>}
+            {hasAccount(p) && <span className="vx-tag" style={{ color: "#7dd3fc", background: "rgba(56,189,248,.12)" }}><UserRound className="h-3 w-3" /> Conta</span>}
+          </div>
         </td>
-        <td>
-          <div className="flex items-center gap-2"><PosBadge player={p} /><span className="text-zinc-300">{p.profile.category ?? <span className="text-zinc-600">—</span>}</span></div>
-        </td>
-        <td className="max-w-[160px] truncate text-zinc-400">{placeOf(p) ?? <span className="text-zinc-600">—</span>}</td>
+        <td><div className="flex items-center gap-1.5"><PosBadge player={p} /><InlinePick p={p} field="position" label="Posição" options={POSITIONS} onPick={(v) => onField("position", v)} /></div></td>
+        <td><InlinePick p={p} field="category" label="Categoria" options={CATEGORIES} onPick={(v) => onField("category", v)} /></td>
+        <td className="tnum text-zinc-300">{p.profile.age ? <Est p={p} k="age">{p.profile.age}</Est> : <span className="text-zinc-600">—</span>}</td>
+        <td className="max-w-[160px] truncate text-zinc-400">{placeOf(p) ? <Est p={p} k="city">{placeOf(p)}</Est> : <span className="text-zinc-600">—</span>}</td>
+        <td><DataDots p={p} /></td>
         <td onClick={(e) => e.stopPropagation()}>
           <label className="cn-stage" style={{ "--c": stage.color } as React.CSSProperties}>
             <span className="vx-stage-dot" style={{ background: stage.color }} />
@@ -483,10 +580,10 @@ function RowGroup({
       </tr>
       {confirming && (
         <tr className="ac-confirm-row">
-          <td colSpan={8}>
+          <td colSpan={11}>
             <DangerConfirm title={`Excluir ${p.name}?`} busy={busy} onCancel={onCancelDelete} onConfirm={onDelete}>
-              O cadastro e as anotações da equipe são apagados e <strong>não dá para desfazer</strong>.
-              {p.userId && " A conta de login desta pessoa não é removida: use Contas e acessos para isso."}
+              Apaga {deleteSummary(p).erased} e <strong>não dá para desfazer</strong>.
+              {deleteSummary(p).kept && ` Continuam: ${deleteSummary(p).kept} (use Contas e acessos ou a tela do membro para isso).`}
             </DangerConfirm>
           </td>
         </tr>
@@ -496,10 +593,12 @@ function RowGroup({
 }
 
 /** Conteúdo da gaveta: editar o cadastro, acompanhar (etapa e notas), ver informações e excluir. */
-function EditorBody({ player: p, onClose, onDelete, busy, sector, sending, onSend }: {
+function EditorBody({ player: p, onClose, onDelete, onNext, busy, sector, sending, onSend }: {
   player: Player
   onClose: () => void
   onDelete: () => void
+  /** Passa para o próximo cadastro da lista (some no último). */
+  onNext?: () => void
   busy: boolean
   sector: AthletesHook
   sending: boolean
@@ -508,10 +607,11 @@ function EditorBody({ player: p, onClose, onDelete, busy, sector, sending, onSen
   const { updateMeta } = useVoxen()
   const [asking, setAsking] = useState(false)
   const [notes, setNotes] = useState(p.meta.notes)
+  const erase = deleteSummary(p)
 
   return (
     <div className="cn-editor">
-      <PlayerEditor p={p} onClose={onClose} />
+      <PlayerEditor p={p} onClose={onClose} onNext={onNext} />
 
       <section className="vx-card">
         <h3 className="vx-card-title">Acompanhamento</h3>
@@ -537,7 +637,7 @@ function EditorBody({ player: p, onClose, onDelete, busy, sector, sending, onSen
       <section className="vx-card">
         <h3 className="vx-card-title">Informações</h3>
         <dl className="vx-dl mt-4">
-          <div><dt>Tipo</dt><dd>{p.source === "funil" ? "Lead do funil" : "Conta de atleta"}</dd></div>
+          <div><dt>Tipo</dt><dd>{kindLabel(p)}</dd></div>
           <div><dt>Origem</dt><dd>{p.origin}</dd></div>
           <div><dt>Entrada</dt><dd>{formatDate(p.createdAt)}</dd></div>
           <div><dt>Nota geral</dt><dd>{p.overall}</dd></div>
@@ -555,12 +655,12 @@ function EditorBody({ player: p, onClose, onDelete, busy, sector, sending, onSen
         {asking ? (
           <div className="mt-4">
             <DangerConfirm title={`Excluir ${p.name}?`} busy={busy} onCancel={() => setAsking(false)} onConfirm={onDelete}>
-              O cadastro e as anotações da equipe são apagados e <strong>não dá para desfazer</strong>.
+              Apaga {erase.erased} e <strong>não dá para desfazer</strong>.
             </DangerConfirm>
           </div>
         ) : (
           <div className="cn-risk-row">
-            <p>Excluir o cadastro apaga o registro e as anotações. A conta de login, se existir, continua.</p>
+            <p>Excluir apaga {erase.erased}.{erase.kept ? ` Continuam: ${erase.kept}.` : ""}</p>
             <button type="button" className="vx-btn cn-btn-danger" onClick={() => setAsking(true)}><Trash2 /> Excluir cadastro</button>
           </div>
         )}

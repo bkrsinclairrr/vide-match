@@ -11,8 +11,11 @@ import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { useVoxen } from "../store"
 import {
   LINES, SCOUT_ATTRS, STAGES, dimensionScores, formatDate, formatDateTime, formatPhone, pctTone, placeOf,
-  positionOf, scoreTone, scoutAverage, scoutTone, timeAgo, whatsappLink, type Player,
+  positionOf, scoreTone, scoutAverage, scoutTone, timeAgo, whatsappLink, type Player, type Profile,
 } from "../data"
+import { Est } from "../estimated"
+import { keysOf } from "../people"
+import { deleteSummary } from "./PlayerDialogs"
 import { Meter, Pitch, RadarChart, Ring, CountUp } from "../charts"
 import { Avatar, CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
 
@@ -79,12 +82,15 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
     }
   }
 
-  const chips = [
-    p.profile.category,
-    p.profile.age ? `${p.profile.age} anos` : null,
-    placeOf(p),
-    p.profile.foot ? `Pé ${p.profile.foot.toLowerCase()}` : null,
-  ].filter(Boolean) as string[]
+  const chips = ([
+    [p.profile.category, "category"],
+    [p.profile.age ? `${p.profile.age} anos` : null, "age"],
+    [placeOf(p), "city"],
+    [p.profile.team ? `Time: ${p.profile.team}` : null, "team"],
+    [p.profile.foot ? `Pé ${p.profile.foot.toLowerCase()}` : null, "foot"],
+  ] as [string | null, keyof Profile][]).filter(([label]) => Boolean(label)) as [string, keyof Profile][]
+  const accountKey = keysOf(p).find((k) => k.startsWith("atleta:"))
+  const erase = deleteSummary(p)
 
   return (
     <section className="vx-card mb-[18px] overflow-hidden">
@@ -99,20 +105,21 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
           </div>
           <p className="mt-1 text-[13.5px] text-zinc-400">{p.profile.position ?? "Posição não informada"}</p>
           <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {chips.map((c) => <span key={c} className="vx-chip h-7 cursor-default">{c}</span>)}
+            {chips.map(([label, k]) => <span key={label} className="vx-chip h-7 cursor-default"><Est p={p} k={k}>{label}</Est></span>)}
             <span className="vx-chip h-7 cursor-default">Origem: {p.origin}</span>
+            {accountKey && <span className="vx-chip h-7 cursor-default" title="Esta pessoa tem o cadastro do funil e a conta de atleta juntos num registro só">Com conta de atleta</span>}
           </div>
         </div>
         <div className="vx-no-print flex w-full flex-wrap items-center gap-2 2xl:ml-auto 2xl:w-auto">
           {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="vx-btn vx-btn--wpp"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>}
           {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
           <MemberButton p={p} />
-          {p.source === "conta" && (
-            <Link to={`${CLIENT_BASE}?como=${encodeURIComponent(p.key)}`} className="vx-btn" title="Abre a área do cliente exatamente como o atleta a vê" target="_blank" rel="noopener noreferrer">
+          {accountKey && (
+            <Link to={`${CLIENT_BASE}?como=${encodeURIComponent(accountKey)}`} className="vx-btn" title="Abre a área do cliente exatamente como o atleta a vê" target="_blank" rel="noopener noreferrer">
               <Eye /> Ver como atleta
             </Link>
           )}
-          {p.source === "conta" && p.userId && canAdmin && (
+          {accountKey && p.userId && canAdmin && (
             <Link to={`/voxen/contas?conta=${encodeURIComponent(p.userId)}`} className="vx-btn" title="Mudar o acesso, desativar ou excluir a conta de login">
               <KeyRound /> Gerenciar acesso
             </Link>
@@ -132,9 +139,8 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
       {confirmDelete && (
         <div className="pp-confirm" role="alertdialog" aria-label="Confirmar exclusão">
           <p>
-            Excluir o cadastro de <strong>{p.name}</strong>? {p.source === "conta"
-              ? "O perfil do atleta e as notas da equipe são apagados. A conta de login continua (exclua em Contas e acessos, se quiser)."
-              : "O contato, o perfil e as notas da equipe são apagados."} <strong>Não dá para desfazer.</strong>
+            Excluir o cadastro de <strong>{p.name}</strong>? Apaga {erase.erased}.
+            {erase.kept ? ` Continuam: ${erase.kept} (exclua em Contas e acessos ou na tela do membro, se quiser).` : ""} <strong>Não dá para desfazer.</strong>
           </p>
           <div>
             <button type="button" className="vx-btn" onClick={() => setConfirmDelete(false)} disabled={deleting}>Cancelar</button>
@@ -306,7 +312,7 @@ function NotesCard({ p }: { p: Player }) {
 
 export default function PlayerProfile() {
   const { key = "" } = useParams()
-  const { byKey, percentile } = useVoxen()
+  const { byKey, percentile, canScout } = useVoxen()
   const [editing, setEditing] = useState(false)
   const p = byKey.get(key)
 
@@ -420,33 +426,35 @@ export default function PlayerProfile() {
 
       <div className="vx-grid xl:grid-cols-2">
         <section className="vx-card">
-          <CardHead title="Dados do atleta" sub="Informados pelo próprio atleta no funil" />
+          <CardHead title="Dados do atleta" sub="Informados pelo próprio atleta; o que está em itálico é estimado pela VOXEN" />
           <dl className="vx-dl">
-            {[
-              ["Nome", p.name],
-              ["E-mail", p.email ?? "—"],
-              ["WhatsApp", formatPhone(p.phone)],
-              ["Idade", p.profile.age ? `${p.profile.age} anos` : "—"],
-              ["Categoria", p.profile.category ?? "—"],
-              ["Posição", p.profile.position ?? "—"],
-              ["Melhor pé", p.profile.foot ?? "—"],
-              ["Altura", p.profile.height ? `${p.profile.height} cm` : "—"],
-              ["Peso", p.profile.weight ? `${p.profile.weight} kg` : "—"],
-              ["Nacionalidade", p.profile.nationality ?? "—"],
-              ["Dupla cidadania", p.profile.dualCitizenship ?? "—"],
-              ["Cidade", placeOf(p) ?? "—"],
-              ["Origem", p.origin],
-              ["Campanha", p.utm.campaign ?? "—"],
-              ["Mídia", p.utm.medium ?? "—"],
-              ["Entrada", formatDate(p.createdAt)],
-            ].map(([dt, dd]) => (
-              <div key={dt}><dt>{dt}</dt><dd title={dd}>{dd}</dd></div>
+            {([
+              ["Nome", p.name, null],
+              ["E-mail", p.email ?? "—", null],
+              ["WhatsApp", formatPhone(p.phone), null],
+              ["Idade", p.profile.age ? `${p.profile.age} anos` : "—", "age"],
+              ["Nascimento", p.profile.birthDate ? formatDate(`${p.profile.birthDate}T12:00:00`) : "—", "birthDate"],
+              ["Categoria", p.profile.category ?? "—", "category"],
+              ["Posição", p.profile.position ?? "—", "position"],
+              ["Time atual", p.profile.team ?? "—", "team"],
+              ["Melhor pé", p.profile.foot ?? "—", "foot"],
+              ["Altura", p.profile.height ? `${p.profile.height} cm` : "—", "height"],
+              ["Peso", p.profile.weight ? `${p.profile.weight} kg` : "—", "weight"],
+              ["Nacionalidade", p.profile.nationality ?? "—", "nationality"],
+              ["Dupla cidadania", p.profile.dualCitizenship ?? "—", null],
+              ["Cidade", placeOf(p) ?? "—", "city"],
+              ["Origem", p.origin, null],
+              ["Campanha", p.utm.campaign ?? "—", null],
+              ["Mídia", p.utm.medium ?? "—", null],
+              ["Entrada", formatDate(p.createdAt), null],
+            ] as [string, string, keyof Profile | null][]).map(([dt, dd, k]) => (
+              <div key={dt}><dt>{dt}</dt><dd title={dd}>{k && dd !== "—" ? <Est p={p} k={k}>{dd}</Est> : dd}</dd></div>
             ))}
           </dl>
           {!p.hasProfile && (
             <p className="mt-4 text-[12.5px] leading-relaxed text-zinc-500">
-              Este lead chegou só com nome e contato. Posição, categoria e cidade passam a ser gravados para os próximos
-              atletas que concluírem o formulário do funil.
+              Este cadastro chegou só com nome e contato: posição, categoria, idade e cidade que aparecem aqui são estimados.
+              {canScout ? " Use Editar para gravar os dados de verdade." : ""}
             </p>
           )}
         </section>

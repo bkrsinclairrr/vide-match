@@ -7,27 +7,29 @@ import { useToast } from "@/hooks/use-toast"
 import { Empty, PageSkeleton } from "@/pages/voxen/ui"
 import { useVoxen } from "@/pages/voxen/store"
 import { placeOf, type Player } from "@/pages/voxen/data"
+import { realProfileOf } from "@/pages/voxen/people"
 import { MemberAvatar } from "@/pages/membros/components/bits"
 import { formatShortDate, positionCodeOf, type MemberKind } from "@/pages/membros/model"
 import type { MemberInput } from "@/pages/membros/api"
 import { SyncCard } from "@/pages/admin/console/SyncCard"
 import { MemberForm, SetupNotice, useAdminSource, useSourceData } from "./shared"
 
-/** Cadastro de membro preenchido com o que o atleta informou no funil. */
+/** Cadastro de membro preenchido com o que o atleta informou no funil (só dado de verdade: nada estimado). */
 function prefillFrom(p: Player): MemberInput {
-  const foot = p.profile.foot ? p.profile.foot.charAt(0).toUpperCase() + p.profile.foot.slice(1).toLowerCase() : null
+  const r = realProfileOf(p)
+  const foot = r.foot ? r.foot.charAt(0).toUpperCase() + r.foot.slice(1).toLowerCase() : null
   return {
     kind: "membro",
     fullName: p.name,
     email: p.email ?? "",
-    birthDate: null,
-    position: p.profile.position ?? null,
-    category: p.profile.category ?? null,
+    birthDate: r.birthDate ?? null,
+    position: r.position ?? null,
+    category: r.category ?? null,
     foot,
-    heightCm: p.profile.height ?? null,
-    weightKg: p.profile.weight ?? null,
-    city: placeOf(p) || null,
-    team: null,
+    heightCm: r.height ?? null,
+    weightKg: r.weight ?? null,
+    city: placeOf({ profile: r }) || null,
+    team: r.team ?? null,
     photoUrl: null,
     bio: null,
     leadId: p.key.startsWith("lead:") ? p.key.slice(5) : null,

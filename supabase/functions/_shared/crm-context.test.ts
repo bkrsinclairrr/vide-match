@@ -231,6 +231,25 @@ test("estado, clube e quem preencheu", () => {
   assert.equal(parseFilledBy("?"), null)
 })
 
+test("clube: \"sim\" sozinho nunca vira nome de time (49 membros ficaram com time = Sim)", () => {
+  for (const raw of ["Sim", "sim", "SIM.", "Sim!", "S", "Claro", "Tenho", "Sim, tenho"]) {
+    assert.deepEqual(parseClub(raw), { team: null, review: false }, raw)
+  }
+  assert.deepEqual(parseClub("Sim, Palmeiras"), { team: "Palmeiras", review: false })
+  assert.deepEqual(parseClub("Sim - no Sport Recife"), { team: "Sport Recife", review: false })
+  assert.deepEqual(parseClub("Sim, joga no Joinville"), { team: "Joinville", review: false })
+  assert.deepEqual(parseClub("Sim, mas não lembro o nome"), { team: null, review: false })
+  assert.deepEqual(parseClub("Sim, não"), { team: null, review: false })
+  // Nomes que só começam parecido continuam sendo nomes.
+  assert.deepEqual(parseClub("Simão Dias FC"), { team: "Simão Dias FC", review: false })
+  assert.deepEqual(parseClub("S. Paulo"), { team: "S. Paulo", review: false })
+  assert.deepEqual(parseClub("São Paulo"), { team: "São Paulo", review: false })
+  // E o evento inteiro: a resposta "Sim" não preenche o time.
+  const parsed = parseEvent(sanitizeEvent(event({ profile: { current_club_raw: "Sim" } })), TODAY)
+  assert.equal(parsed.team, undefined)
+  assert.deepEqual(parsed.review.filter((r) => r.field === "team"), [])
+})
+
 test("evento completo: preenche o que entende e manda o resto para revisão", () => {
   const parsed = parseEvent(sanitizeEvent(event()), TODAY)
   assert.equal(parsed.birth_date, "2009-03-14")

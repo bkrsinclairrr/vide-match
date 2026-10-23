@@ -1,15 +1,21 @@
 import { useMemo, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router-dom"
-import { ArrowDown, ArrowUp, Check, Download, GitCompareArrows, Search, SlidersHorizontal, Users, X } from "lucide-react"
+import { ArrowDown, ArrowUp, Check, Copy, Download, GitCompareArrows, Pencil, Search, SlidersHorizontal, Trash2, Users, X } from "lucide-react"
 import { STAT_KEYS } from "@/lib/funnel"
 import { useVoxen } from "../store"
 import {
   POSITIONS, STAGES, STAT_ABBR, formatDate, formatPhone, placeOf, positionCode, scoutAverage, scoutTone, type Player,
 } from "../data"
 import { Avatar, Empty, PosBadge, ScoreChip, StageTag, comparePath, playerPath } from "../ui"
+import { DataDots, EST_HINT, Est, EstimatedSwitch } from "../estimated"
+import { completenessOf, findDuplicates, hasAccount, realProfileOf } from "../people"
+import { PlayerDeleteDialog, PlayerEditDialog } from "./PlayerDialogs"
 
-type SortKey = "name" | "pos" | "category" | "age" | "overall" | "created" | "scout" | (typeof STAT_KEYS)[number]["key"]
+type SortKey = "name" | "pos" | "category" | "age" | "overall" | "created" | "scout" | "data" | (typeof STAT_KEYS)[number]["key"]
 const PAGE = 50
+
+/** Quantos dos quatro dados essenciais (idade, posição, categoria, cidade) a pessoa de fato informou. */
+const coreOf = (p: Player) => completenessOf(realProfileOf(p)).core
 
 function categoryNum(p: Player) {
   const n = Number.parseInt((p.profile.category ?? "").replace(/\D/g, ""), 10)
@@ -25,39 +31,45 @@ function sortValue(p: Player, key: SortKey): number | string {
     case "overall": return p.overall
     case "created": return p.createdAt
     case "scout": return scoutAverage(p.meta.scout) ?? -1
+    case "data": return completenessOf(realProfileOf(p)).score
     default: return p.stats.find((s) => s.key === key)?.score ?? 0
   }
 }
 
 function toCsv(rows: Player[]) {
-  const head = ["Nome", "E-mail", "Telefone", "Posição", "Categoria", "Idade", "Altura", "Peso", "Pé", "Cidade", "Etapa", "Origem", "Campanha", "Nota geral", ...STAT_KEYS.map((s) => s.label), "Média do scout", "Entrada"]
+  const head = ["Nome", "E-mail", "Telefone", "Posição", "Categoria", "Idade", "Altura", "Peso", "Pé", "Cidade", "Time", "Etapa", "Origem", "Campanha", "Nota geral", ...STAT_KEYS.map((s) => s.label), "Média do scout", "Entrada", "Campos estimados"]
   const esc = (v: unknown) => {
     const s = v === undefined || v === null ? "" : String(v)
     return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
   const lines = rows.map((p) => [
     p.name, p.email, formatPhone(p.phone), p.profile.position, p.profile.category, p.profile.age, p.profile.height,
-    p.profile.weight, p.profile.foot, placeOf(p), STAGES.find((s) => s.key === p.meta.stage)?.label, p.origin,
+    p.profile.weight, p.profile.foot, placeOf(p), p.profile.team, STAGES.find((s) => s.key === p.meta.stage)?.label, p.origin,
     p.utm.campaign, p.overall, ...p.stats.map((s) => s.score), scoutAverage(p.meta.scout)?.toFixed(1),
-    formatDate(p.createdAt),
+    formatDate(p.createdAt), p.estimated.join(", "),
   ].map(esc).join(";"))
   return "﻿" + [head.join(";"), ...lines].join("\n")
 }
 
 export default function PlayersPage() {
-  const { players } = useVoxen()
+  const { players, canScout, canAdmin } = useVoxen()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState("")
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: "created", dir: -1 })
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<string[]>([])
+  const [editing, setEditing] = useState<Player | null>(null)
+  const [deleting, setDeleting] = useState<Player | null>(null)
+  const dups = useMemo(() => findDuplicates(players), [players])
 
   const category = params.get("categoria") ?? ""
   const position = params.get("posicao") ?? ""
   const stage = params.get("etapa") ?? ""
   const origin = params.get("origem") ?? ""
   const onlyProfile = params.get("perfil") === "1"
+  const dupOnly = params.get("duplicados") === "1"
+  const dataFilter = params.get("dados") ?? ""
 
   const setFilter = (key: string, value: string) => {
     const next = new URLSearchParams(params)
@@ -82,26 +94,39 @@ export default function PlayersPage() {
       if (stage && p.meta.stage !== stage) return false
       if (origin && p.origin !== origin) return false
       if (onlyProfile && !p.hasProfile) return false
+      if (dupOnly && !dups.byKey.has(p.key)) return false
+      if (dataFilter) {
+        const core = coreOf(p)
+        if (dataFilter === "completos" && core < 4) return false
+        if (dataFilter === "incompletos" && core >= 4) return false
+        if (dataFilter === "nenhum" && core > 0) return false
+      }
       if (!q) return true
-      const hay = `${p.name} ${p.email ?? ""} ${p.profile.city ?? ""}`.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+      const hay = `${p.name} ${p.email ?? ""} ${p.profile.city ?? ""} ${p.profile.team ?? ""}`.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
       return hay.includes(q) || (digits.length >= 4 && (p.phone ?? "").includes(digits))
     })
-  }, [players, query, category, position, stage, origin, onlyProfile])
+  }, [players, query, category, position, stage, origin, onlyProfile, dupOnly, dups, dataFilter])
 
   const sorted = useMemo(() => {
     const arr = [...filtered]
+    // Só os possíveis duplicados: os do mesmo grupo ficam um embaixo do outro.
+    if (dupOnly) {
+      arr.sort((a, b) => (dups.byKey.get(a.key)?.id ?? "").localeCompare(dups.byKey.get(b.key)?.id ?? "") || a.createdAt.localeCompare(b.createdAt))
+      return arr
+    }
     arr.sort((a, b) => {
       const va = sortValue(a, sort.key)
       const vb = sortValue(b, sort.key)
       return (va < vb ? -1 : va > vb ? 1 : 0) * sort.dir
     })
     return arr
-  }, [filtered, sort])
+  }, [filtered, sort, dupOnly, dups])
 
   const pages = Math.max(1, Math.ceil(sorted.length / PAGE))
   const current = Math.min(page, pages)
   const rows = sorted.slice((current - 1) * PAGE, current * PAGE)
-  const activeFilters = [category, position, stage, origin, onlyProfile ? "1" : ""].filter(Boolean).length
+  const activeFilters = [category, position, stage, origin, onlyProfile ? "1" : "", dupOnly ? "1" : "", dataFilter].filter(Boolean).length
+  const canManage = canScout
 
   const toggleSort = (key: SortKey) =>
     setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: key === "name" || key === "pos" ? 1 : -1 }))
@@ -163,9 +188,22 @@ export default function PlayersPage() {
             <option value="">Todas as origens</option>
             {options.origins.map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
-          <button type="button" className={`vx-chip ${onlyProfile ? "is-on" : ""}`} onClick={() => setFilter("perfil", onlyProfile ? "" : "1")}>
-            <SlidersHorizontal className="h-3.5 w-3.5" /> Só perfil completo
+          <select className="vx-input vx-select vx-filter" value={dataFilter} onChange={(e) => setFilter("dados", e.target.value)} aria-label="Dados informados pelo atleta">
+            <option value="">Todos os dados</option>
+            <option value="completos">Dados completos</option>
+            <option value="incompletos">Dados incompletos</option>
+            <option value="nenhum">Nenhum dado informado</option>
+          </select>
+          <button type="button" className={`vx-chip ${onlyProfile ? "is-on" : ""}`} onClick={() => setFilter("perfil", onlyProfile ? "" : "1")} title="Só quem informou algum dado de perfil (o estimado não conta)">
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Só com perfil real
           </button>
+          {dups.groups.length > 0 && (
+            <button type="button" className={`vx-chip ${dupOnly ? "is-on" : ""}`} onClick={() => setFilter("duplicados", dupOnly ? "" : "1")}
+              title="Nomes que aparecem mais de uma vez na base. Lead e conta do mesmo e-mail já vêm juntos; estes são cadastros diferentes com o mesmo nome.">
+              <Copy className="h-3.5 w-3.5" /> Possíveis duplicados <span className="tnum text-zinc-500">({dups.groups.length})</span>
+            </button>
+          )}
+          <EstimatedSwitch />
           {activeFilters > 0 && (
             <button type="button" className="vx-chip" onClick={() => { setParams(new URLSearchParams(), { replace: true }); setPage(1) }}>
               <X className="h-3.5 w-3.5" /> Limpar ({activeFilters})
@@ -201,12 +239,14 @@ export default function PlayersPage() {
                   <Th k="category">Categoria</Th>
                   <Th k="age">Idade</Th>
                   <th>Cidade</th>
+                  <Th k="data" title="Quanto do perfil (idade, posição, categoria, cidade) veio do próprio atleta">Dados</Th>
                   <Th k="overall">Geral</Th>
                   {STAT_KEYS.map((s) => <Th key={s.key} k={s.key} title={s.label} className="text-center">{STAT_ABBR[s.key]}</Th>)}
                   <Th k="scout" title="Média da avaliação do scout (1 a 5)">Scout</Th>
                   <th>Etapa</th>
                   <th>Origem</th>
                   <Th k="created">Entrada</Th>
+                  {canManage && <th aria-label="Ações" />}
                 </tr>
               </thead>
               <tbody>
@@ -233,15 +273,23 @@ export default function PlayersPage() {
                           </button>
                           <Avatar name={p.name} size={32} />
                           <div className="min-w-0 max-w-[200px]">
-                            <Link to={playerPath(p)} onClick={(e) => e.stopPropagation()} className="block truncate text-[13.5px] font-semibold text-white hover:text-amber-300">{p.name}</Link>
-                            <div className="truncate text-[11.5px] text-zinc-500">{p.email ?? (p.source === "conta" ? "Conta Zyron" : "—")}</div>
+                            <div className="flex min-w-0 items-center gap-1.5">
+                              <Link to={playerPath(p)} onClick={(e) => e.stopPropagation()} className="block min-w-0 truncate text-[13.5px] font-semibold text-white hover:text-amber-300">{p.name}</Link>
+                              {dups.byKey.has(p.key) && (
+                                <span className={`vx-tag vx-tag--dup ${dups.byKey.get(p.key)?.strong ? "is-strong" : ""}`} title={`Possível duplicado: ${dups.byKey.get(p.key)?.reason} (${dups.byKey.get(p.key)?.keys.length} cadastros)`}>
+                                  <Copy className="h-3 w-3" /> {dups.byKey.get(p.key)?.keys.length}
+                                </span>
+                              )}
+                            </div>
+                            <div className="truncate text-[11.5px] text-zinc-500">{p.email ?? (hasAccount(p) ? "Conta Zyron" : "—")}{p.source === "funil" && hasAccount(p) ? " · com conta" : ""}</div>
                           </div>
                         </div>
                       </td>
-                      <td><PosBadge player={p} /></td>
-                      <td className="text-zinc-300">{p.profile.category ?? <span className="text-zinc-600">—</span>}</td>
-                      <td className="tnum text-zinc-300">{p.profile.age ?? <span className="text-zinc-600">—</span>}</td>
-                      <td className="max-w-[160px] truncate text-zinc-400">{placeOf(p) ?? <span className="text-zinc-600">—</span>}</td>
+                      <td><span className={p.estimated.includes("position") ? "vx-est" : ""} title={p.estimated.includes("position") ? EST_HINT : undefined}><PosBadge player={p} /></span></td>
+                      <td className="text-zinc-300">{p.profile.category ? <Est p={p} k="category">{p.profile.category}</Est> : <span className="text-zinc-600">—</span>}</td>
+                      <td className="tnum text-zinc-300">{p.profile.age ? <Est p={p} k="age">{p.profile.age}</Est> : <span className="text-zinc-600">—</span>}</td>
+                      <td className="max-w-[160px] truncate text-zinc-400">{placeOf(p) ? <Est p={p} k="city">{placeOf(p)}</Est> : <span className="text-zinc-600">—</span>}</td>
+                      <td><DataDots p={p} /></td>
                       <td><ScoreChip score={p.overall} /></td>
                       {p.stats.map((s) => <td key={s.key} className="text-center"><ScoreChip score={s.score} size="sm" /></td>)}
                       <td>
@@ -257,6 +305,16 @@ export default function PlayersPage() {
                       <td><StageTag stage={p.meta.stage} /></td>
                       <td className="text-zinc-400">{p.origin}</td>
                       <td className="tnum text-zinc-400">{formatDate(p.createdAt)}</td>
+                      {canManage && (
+                        <td onClick={(e) => e.stopPropagation()}>
+                          <div className="vx-row-actions">
+                            <button type="button" className="vx-icon-btn" title="Editar o cadastro" aria-label={`Editar ${p.name}`} onClick={() => setEditing(p)}><Pencil /></button>
+                            {canAdmin && (
+                              <button type="button" className="vx-icon-btn pp-danger" title="Excluir o cadastro" aria-label={`Excluir ${p.name}`} onClick={() => setDeleting(p)}><Trash2 /></button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   )
                 })}
@@ -300,6 +358,9 @@ export default function PlayersPage() {
           </button>
         </div>
       )}
+
+      <PlayerEditDialog player={editing} onClose={() => setEditing(null)} />
+      <PlayerDeleteDialog player={deleting} onClose={() => setDeleting(null)} onDeleted={() => setSelected((s) => s.filter((k) => k !== deleting?.key))} />
     </>
   )
 }

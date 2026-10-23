@@ -225,10 +225,14 @@ export function useAthletes({ fresh = false }: { fresh?: boolean } = {}) {
     return { byLead, byAthlete, byMember, byEmail }
   }, [snap.list])
 
-  /** Ficha de um cadastro (lead ou conta), se ele já estiver no setor. */
+  /** Ficha de um cadastro (lead ou conta, ou os dois juntados), se ele já estiver no setor. */
   const forPlayer = useCallback((p: Player) => {
-    const hit = p.key.startsWith("lead:") ? index.byLead.get(p.key.slice(5)) : p.key.startsWith("atleta:") ? index.byAthlete.get(Number(p.key.slice(7))) : undefined
-    return hit ?? (p.email ? index.byEmail.get(lower(p.email)) : undefined) ?? null
+    let hit: Athlete | undefined
+    for (const key of [p.key, ...p.aliases]) {
+      hit = key.startsWith("lead:") ? index.byLead.get(key.slice(5)) : key.startsWith("atleta:") ? index.byAthlete.get(Number(key.slice(7))) : undefined
+      if (hit) break
+    }
+    return hit ?? (p.memberId ? index.byMember.get(p.memberId) : undefined) ?? (p.email ? index.byEmail.get(lower(p.email)) : undefined) ?? null
   }, [index])
 
   /** Ficha de um membro, se ele (ou o lead dele) já estiver no setor. */

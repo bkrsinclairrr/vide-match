@@ -1,5 +1,6 @@
 import { Flame, Snowflake, Sun, type LucideIcon } from "lucide-react"
 import { placeOf, type Player } from "@/pages/voxen/data"
+import { realProfileOf } from "@/pages/voxen/people"
 import type { Member } from "@/pages/membros/model"
 
 /*
@@ -139,28 +140,33 @@ const cleanPhone = (p: string | null | undefined) => {
   return d.length >= 8 && d.length <= 15 ? d : null
 }
 
-/** Ficha a partir de um cadastro (lead ou conta). `email`: o da conta, que só a lista de contas conhece. */
+/**
+ * Ficha a partir de um cadastro (lead ou conta, ou os dois juntados). `email`: o da conta, que só a lista de contas conhece.
+ * Só entra o que a pessoa informou: valor estimado pela VOXEN nunca vai para o setor Atletas (é lá que se encaminha para clube).
+ */
 export function draftFromPlayer(p: Player, email?: string | null): AthleteDraft {
-  const lead = p.key.startsWith("lead:")
+  const r = realProfileOf(p)
+  const leadKey = [p.key, ...p.aliases].find((k) => k.startsWith("lead:"))
+  const accountKey = [p.key, ...p.aliases].find((k) => k.startsWith("atleta:"))
   return {
-    origin: lead ? "funil" : "conta",
-    leadId: lead ? p.key.slice(5) : null,
-    athleteId: p.key.startsWith("atleta:") ? Number(p.key.slice(7)) : null,
-    memberId: null,
+    origin: leadKey ? "funil" : "conta",
+    leadId: leadKey ? leadKey.slice(5) : null,
+    athleteId: accountKey ? Number(accountKey.slice(7)) : null,
+    memberId: p.memberId,
     sourceCreatedAt: p.createdAt,
     fullName: clip(p.name, 120) ?? "Atleta",
     email: cleanEmail(email ?? p.email),
     phone: cleanPhone(p.phone),
-    birthDate: null,
-    age: within(p.profile.age, 4, 60),
-    nationality: clip(p.profile.nationality, 60),
-    position: clip(p.profile.position, 40),
-    category: clip(p.profile.category, 20),
-    foot: clip(capitalize(p.profile.foot), 20),
-    heightCm: within(p.profile.height, 100, 230),
-    weightKg: within(p.profile.weight, 25, 160),
-    city: clip(placeOf(p), 80),
-    team: null,
+    birthDate: r.birthDate ?? null,
+    age: within(r.age, 4, 60),
+    nationality: clip(r.nationality, 60),
+    position: clip(r.position, 40),
+    category: clip(r.category, 20),
+    foot: clip(capitalize(r.foot), 20),
+    heightCm: within(r.height, 100, 230),
+    weightKg: within(r.weight, 25, 160),
+    city: clip(placeOf({ profile: r }), 80),
+    team: clip(r.team, 80),
   }
 }
 
