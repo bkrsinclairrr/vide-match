@@ -4,12 +4,13 @@ import { ArrowDown, ArrowUp, Check, Copy, Download, GitCompareArrows, Pencil, Se
 import { STAT_KEYS } from "@/lib/funnel"
 import { useVoxen } from "../store"
 import {
-  POSITIONS, SCORE_CUTS, STAGES, STAT_ABBR, formatDate, formatPhone, placeOf, positionCode, scoutAverage, scoutTone, type Player,
+  POSITIONS, STAGES, STAT_ABBR, formatDate, formatPhone, placeOf, positionCode, scoutAverage, scoutTone, type Player,
 } from "../data"
 import { Avatar, Empty, PosBadge, ScoreChip, StageTag, comparePath, playerPath } from "../ui"
 import { DataDots, EST_HINT, Est, EstimatedSwitch } from "../estimated"
 import { completenessOf, findDuplicates, hasAccount, realProfileOf } from "../people"
 import { PROSPECT_EDIT_HINT, isProspect } from "../prospects"
+import { BANDS, bandByKey, bandOf } from "../scores"
 import { PlayerDeleteDialog, PlayerEditDialog } from "./PlayerDialogs"
 
 type SortKey = "name" | "pos" | "category" | "age" | "overall" | "created" | "scout" | "data" | (typeof STAT_KEYS)[number]["key"]
@@ -71,6 +72,7 @@ export default function PlayersPage() {
   const onlyProfile = params.get("perfil") === "1"
   const dupOnly = params.get("duplicados") === "1"
   const dataFilter = params.get("dados") ?? ""
+  const scoreBand = bandByKey(params.get("nota") ?? "")?.key ?? ""
 
   const setFilter = (key: string, value: string) => {
     const next = new URLSearchParams(params)
@@ -86,6 +88,13 @@ export default function PlayersPage() {
     origins: [...new Set(players.map((p) => p.origin))].sort(),
   }), [players])
 
+  /** Quantos jogadores há em cada faixa de nota. */
+  const bandCounts = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const p of players) out[bandOf(p.overall).key] = (out[bandOf(p.overall).key] ?? 0) + 1
+    return out
+  }, [players])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
     const digits = q.replace(/\D/g, "")
@@ -95,6 +104,7 @@ export default function PlayersPage() {
       if (stage && p.meta.stage !== stage) return false
       if (origin && p.origin !== origin) return false
       if (onlyProfile && !p.hasProfile) return false
+      if (scoreBand && bandOf(p.overall).key !== scoreBand) return false
       if (dupOnly && !dups.byKey.has(p.key)) return false
       if (dataFilter) {
         const core = coreOf(p)
@@ -106,7 +116,7 @@ export default function PlayersPage() {
       const hay = `${p.name} ${p.email ?? ""} ${p.profile.city ?? ""} ${p.profile.team ?? ""}`.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
       return hay.includes(q) || (digits.length >= 4 && (p.phone ?? "").includes(digits))
     })
-  }, [players, query, category, position, stage, origin, onlyProfile, dupOnly, dups, dataFilter])
+  }, [players, query, category, position, stage, origin, onlyProfile, dupOnly, dups, dataFilter, scoreBand])
 
   const sorted = useMemo(() => {
     const arr = [...filtered]
@@ -126,7 +136,7 @@ export default function PlayersPage() {
   const pages = Math.max(1, Math.ceil(sorted.length / PAGE))
   const current = Math.min(page, pages)
   const rows = sorted.slice((current - 1) * PAGE, current * PAGE)
-  const activeFilters = [category, position, stage, origin, onlyProfile ? "1" : "", dupOnly ? "1" : "", dataFilter].filter(Boolean).length
+  const activeFilters = [category, position, stage, origin, onlyProfile ? "1" : "", dupOnly ? "1" : "", dataFilter, scoreBand].filter(Boolean).length
   const canManage = canScout
 
   const toggleSort = (key: SortKey) =>
@@ -195,6 +205,10 @@ export default function PlayersPage() {
             <option value="incompletos">Dados incompletos</option>
             <option value="nenhum">Nenhum dado informado</option>
           </select>
+          <select className="vx-input vx-select vx-filter" value={scoreBand} onChange={(e) => setFilter("nota", e.target.value)} aria-label="Pontuação">
+            <option value="">Todas as pontuações</option>
+            {BANDS.map((b) => <option key={b.key} value={b.key}>{b.name} · {b.label} ({bandCounts[b.key] ?? 0})</option>)}
+          </select>
           <button type="button" className={`vx-chip ${onlyProfile ? "is-on" : ""}`} onClick={() => setFilter("perfil", onlyProfile ? "" : "1")} title="Atletas R (reais): só quem informou algum dado de perfil (o estimado não conta)">
             <SlidersHorizontal className="h-3.5 w-3.5" /> Atletas R
           </button>
@@ -223,7 +237,7 @@ export default function PlayersPage() {
             {sorted.length !== players.length && <> de <span className="tnum">{players.length}</span></>}
             <span className="ml-2 hidden text-zinc-500 sm:inline">· marque até 3 para comparar</span>
           </p>
-          <p className="text-[12px] text-zinc-500">Notas do relatório: <span style={{ color: "#34d399" }}>{SCORE_CUTS[0]}+</span> · <span style={{ color: "#a3e635" }}>{SCORE_CUTS[1]}+</span> · <span style={{ color: "#fbbf24" }}>{SCORE_CUTS[2]}+</span> · <span style={{ color: "#fb923c" }}>até {SCORE_CUTS[2] - 1}</span></p>
+          <p className="hidden text-[12px] text-zinc-500 md:block">Pontuação: {BANDS.map((b, i) => <span key={b.key}>{i > 0 && " · "}<span style={{ color: b.color }}>{b.name} {b.min === 0 ? `até ${b.max}` : `${b.min}+`}</span></span>)}</p>
         </div>
 
         {rows.length ? (
