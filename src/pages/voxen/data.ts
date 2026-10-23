@@ -1,7 +1,7 @@
 /**
  * Dados da VOXEN: junta os leads do funil (funnel_leads), os atletas com
- * conta (Atletas + profiles) e a mesa de trabalho dos admins
- * (voxen_player_meta) num formato único, `Player`.
+ * conta (Atletas + profiles), os pré-cadastros do CRM aprovados em Importados
+ * e a mesa de trabalho dos admins (voxen_player_meta) num formato único, `Player`.
  *
  * Tudo aqui tolera o banco sem a migração 20261009000000_voxen_platform:
  * sem as colunas `profile`/`report` o lead aparece só com contato e origem;
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { STAT_KEYS, buildStats, overallFrom, type StatResult } from "@/lib/funnel"
 import { hasAnyProfile, isJunkTeam, keysOf, mergePeople, realProfileOf, type MemberRow, type MergeReport, type PlayerLink } from "./people"
 import { fetchChartEdits } from "./pages/chartedit/api"
+import { attachLinkedProspects, isCrmKey, openProspects, prospectBase, type ProspectRow } from "./prospects"
 import { applyChartEdit, type ChartEdit } from "./pages/chartedit/model"
 
 // Tabelas e colunas novas ainda não estão nos tipos gerados.
@@ -123,7 +124,8 @@ export type PlayerMeta = {
 
 export type Player = {
   key: string
-  source: "funil" | "conta"
+  /** funil: lead do funil; conta: conta de atleta; crm: pré-cadastro do CRM aprovado em Importados (sem cadastro na plataforma). */
+  source: "funil" | "conta" | "crm"
   /** Outros registros da MESMA pessoa que foram juntados a este (ex.: a conta de um lead). Os links antigos continuam abrindo. */
   aliases: string[]
   /** Membro (zyron_members) da mesma pessoa, quando existe. */
@@ -133,6 +135,8 @@ export type Player = {
   /** Conta do Supabase Auth (só para quem tem conta): liga o atleta a "Contas e acessos". */
   userId?: string | null
   name: string
+  /** Quem respondeu o formulário do CRM pelo atleta (só nos pré-cadastros). */
+  guardianName?: string | null
   email: string | null
   phone: string | null
   createdAt: string
@@ -412,6 +416,13 @@ function fromAthlete(row: AthleteRow, names: Map<string, string>, meta: Map<stri
   }
 }
 
+/** Pré-cadastro do CRM aprovado em Importados. O relatório é o gerado pela plataforma (ele ainda não passou pelo funil). */
+function fromProspect(row: ProspectRow, meta: Map<string, PlayerMeta>): Player {
+  const base = prospectBase(row)
+  const stats = buildStats(base.key)
+  return { ...base, stats, overall: overallFrom(stats), reportFromFunnel: false, meta: meta.get(base.key) ?? EMPTY_META }
+}
+
 /* ------------------------------------------------------------------ */
 /* Carga                                                               */
 /* ------------------------------------------------------------------ */
@@ -483,6 +494,23 @@ async function fetchMembers(): Promise<MemberRow[]> {
   return out
 }
 
+/**
+ * Os pré-cadastros do CRM aprovados em Importados (e os que já viraram membro, para ligar as chaves). Só a equipe lê.
+ * Sem a função no banco (migração 20261027100000), nenhum: a lista sai como antes.
+ */
+async function fetchImportedPlayers(): Promise<ProspectRow[]> {
+  const { data, error } = await db.rpc("zyron_imported_players")
+  if (error || !Array.isArray(data)) return []
+  const s = (v: unknown) => (typeof v === "string" && v.trim() ? v : null)
+  return (data as Record<string, unknown>[])
+    .filter((r) => s(r.crm_lead_id))
+    .map((r) => ({
+      crmLeadId: String(r.crm_lead_id), name: s(r.name), guardianName: s(r.guardian_name), birthDate: s(r.birth_date)?.slice(0, 10) ?? null,
+      position: s(r.player_position), category: s(r.category), team: s(r.team), city: s(r.city), firstAt: s(r.first_at),
+      approvedAt: s(r.approved_at), linkedMemberId: s(r.linked_member_id),
+    }))
+}
+
 /** Contas de atleta que são a mesma pessoa de um lead (mesmo e-mail). O e-mail da conta só o banco enxerga. */
 async function fetchLinks(): Promise<PlayerLink[]> {
   const { data, error } = await db.rpc("zyron_player_links")
@@ -510,30 +538,34 @@ export async function loadVoxenData(): Promise<VoxenData> {
   }
 
   // Membros e vínculos são um reforço: se o banco ainda não os tem, a lista sai como antes, sem juntar nada.
-  const [leads, athletes, profiles, members, links, charts] = await Promise.all([
+  const [leads, athletes, profiles, members, links, charts, prospects] = await Promise.all([
     fetchAll<LeadRow>("funnel_leads"),
     fetchAll<AthleteRow>("Atletas").catch(() => [] as AthleteRow[]),
     fetchAll<{ id: string; full_name: string | null }>("profiles").catch(() => []),
     fetchMembers().catch(() => [] as MemberRow[]),
     fetchLinks().catch(() => [] as PlayerLink[]),
     fetchChartEdits(),
+    fetchImportedPlayers().catch(() => [] as ProspectRow[]),
   ])
 
   const names = new Map(profiles.filter((p) => p.full_name).map((p) => [p.id, p.full_name as string]))
   const built = [
     ...leads.map((row) => fromLead(row, metaMap)),
     ...athletes.map((row) => fromAthlete(row, names, metaMap)),
+    ...openProspects(prospects).map((row) => fromProspect(row, metaMap)),
   ]
-  // Uma pessoa, um registro: lead + conta + membro viram um jogador só (ver people.ts).
+  // Uma pessoa, um registro: lead + conta + membro viram um jogador só (ver people.ts). O pré-cadastro que já virou
+  // membro deixa a chave dele no jogador desse membro (ver prospects.ts).
   const merged = mergePeople(built, links, members)
   const report = merged.report
+  const joined = attachLinkedProspects(merged.players, prospects, metaMap)
   // O que a equipe mudou nos gráficos vale em todas as telas: entra por cima do relatório (o original fica guardado).
   const players = charts.size
-    ? merged.players.map((p) => {
+    ? joined.map((p) => {
         const edit = charts.get(p.key) ?? p.aliases.map((a) => charts.get(a)).find(Boolean)
         return edit ? applyChartEdit(p, edit) : p
       })
-    : merged.players
+    : joined
 
   return {
     players,
@@ -674,7 +706,9 @@ export async function updatePlayer(p: Player, edit: PlayerEdit): Promise<{ parti
         const { error } = await db.from("funnel_leads").update(contact).eq("id", id)
         if (error) throw new Error(friendly(error.message, error.code))
       } else if (primary) {
-        throw new Error("Este registro não pode ser editado.")
+        throw new Error(isCrmKey(key)
+          ? "Os dados deste pré-cadastro vêm do CRM (wsltda.com) e são atualizados por lá."
+          : "Este registro não pode ser editado.")
       }
     } catch (err) {
       if (primary) throw err
@@ -710,13 +744,20 @@ export async function updatePlayer(p: Player, edit: PlayerEdit): Promise<{ parti
 export async function deletePlayer(p: Player): Promise<void> {
   for (const key of keysOf(p)) {
     const table = key.startsWith("atleta:") ? "Atletas" : key.startsWith("lead:") ? "funnel_leads" : null
-    if (!table) {
+    if (isCrmKey(key)) {
+      // Pré-cadastro: excluir é descartar (só o administrador). O que já virou membro só perde as anotações da chave antiga.
+      if (key === p.key) {
+        const { error } = await db.rpc("zyron_discard_prospect", { p_lead: key.slice(4) })
+        if (error) throw new Error(friendly(error.message, error.code))
+      }
+    } else if (!table) {
       if (key === p.key) throw new Error("Este registro não pode ser excluído.")
       continue
+    } else {
+      const id = table === "Atletas" ? Number(key.slice(7)) : key.slice(5)
+      const { error } = await db.from(table).delete().eq("id", id)
+      if (error) throw new Error(friendly(error.message, error.code))
     }
-    const id = table === "Atletas" ? Number(key.slice(7)) : key.slice(5)
-    const { error } = await db.from(table).delete().eq("id", id)
-    if (error) throw new Error(friendly(error.message, error.code))
     // As notas e os vídeos ficam em outras tabelas; se elas não existirem ou falharem, o registro já foi excluído.
     await db.from("voxen_player_meta").delete().eq("player_key", key)
     await db.from("voxen_player_materials").delete().eq("player_key", key)

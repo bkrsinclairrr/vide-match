@@ -339,6 +339,14 @@ test("o jogador que é a própria pessoa (mesmo membro, mesmo lead ou apelido) n
   assert.equal(twins.get(outraConta.key)?.length, 1, "outro membro com o mesmo nome continua sendo aviso")
 })
 
+test("o pré-cadastro aprovado, que já está em Jogadores, não conta como parecido de si mesmo", () => {
+  const pre = row({ kind: "pre", ref: "0b7f1c2e-aaaa", name: "Davi Lucas Moura" })
+  const own = nameTwins([pre], [jogador("crm:0b7f1c2e-aaaa", "Davi Lucas Moura")])
+  assert.equal(own.has(pre.key), false)
+  const other = nameTwins([pre], [jogador("crm:0b7f1c2e-aaaa", "Davi Lucas Moura"), jogador("lead:z", "Davi Lucas Moura")])
+  assert.deepEqual(other.get(pre.key)?.map((t) => t.target), ["lead:z"], "um lead com o mesmo nome continua sendo aviso")
+})
+
 test("dois importados com o mesmo nome avisam um ao outro, e nenhum avisa a si mesmo", () => {
   const a = row({ kind: "pre", name: "Davi Lucca Martins" })
   const b = row({ kind: "conta", memberId: "m-1", name: "Davi Lucca Martins" })

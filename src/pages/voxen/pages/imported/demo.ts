@@ -4,6 +4,7 @@
  * getImportedApi), então não vai para o site publicado. Os nomes são inventados.
  */
 import type { ImportDetail, ImportedApi, ReviewItem } from "./api"
+import type { ProspectRow } from "../../prospects"
 import { needsReview, rowKey, type ImportItem, type ImportKind, type ImportRow, type ImportSection } from "./model"
 
 const HOUR = 3600000
@@ -158,6 +159,13 @@ const find = (items: ImportItem[]) => {
   const want = new Set(items.map((i) => rowKey(i.kind, i.ref)))
   return rows.filter((r) => want.has(r.key))
 }
+
+/** Os pré-cadastros aprovados agora (a lista de Jogadores da demonstração os mostra, como o banco faz). */
+export const demoApprovedProspects = (): ProspectRow[] =>
+  rows.filter((r) => r.kind === "pre" && r.approvedAt).map((r) => ({
+    crmLeadId: r.ref, name: r.name, guardianName: r.guardianName, birthDate: r.birthDate, position: r.position, category: r.category,
+    team: r.team, city: r.city, firstAt: r.firstAt, approvedAt: r.approvedAt, linkedMemberId: null,
+  }))
 
 export const demoImported: ImportedApi = {
   demo: true,

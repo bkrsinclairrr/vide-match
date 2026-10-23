@@ -214,7 +214,7 @@ export default function Dashboard() {
                 <Avatar name={p.name} size={36} />
                 <div className="min-w-0 flex-1">
                   <div className="vx-feed-name">{p.name}</div>
-                  <div className="vx-feed-meta">{p.source === "funil" ? "Funil" : "Conta"} · {timeAgo(p.createdAt)}</div>
+                  <div className="vx-feed-meta">{p.source === "funil" ? "Funil" : p.source === "crm" ? "CRM" : "Conta"} · {timeAgo(p.createdAt)}</div>
                 </div>
                 <StageTag stage={p.meta.stage} />
                 <Link to={`/admin/cadastros?editar=${encodeURIComponent(p.key)}`} className="vx-icon-btn" aria-label={`Editar ${p.name}`} title="Editar"><Pencil /></Link>

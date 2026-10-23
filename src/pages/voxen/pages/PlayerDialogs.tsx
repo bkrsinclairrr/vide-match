@@ -20,6 +20,9 @@ export function PlayerEditDialog({ player, onClose }: { player: Player | null; o
 
 /** O que a exclusão apaga e o que continua, em palavras simples (uma pessoa pode ter funil, conta e ficha de membro). */
 export function deleteSummary(p: Pick<Player, "key" | "aliases" | "userId" | "source" | "memberId">): { erased: string; kept: string } {
+  if (p.source === "crm") {
+    return { erased: "o pré-cadastro do CRM (o contexto que veio de lá) e as notas e a etapa da equipe; as próximas versões do CRM não o trazem de volta", kept: "" }
+  }
   const lead = p.source === "funil"
   const account = p.source === "conta" || p.aliases.some((a) => a.startsWith("atleta:"))
   const erased = [lead ? "o cadastro do funil (contato e perfil)" : "", account ? "o perfil de atleta" : "", "as notas e a etapa da equipe"].filter(Boolean)

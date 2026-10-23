@@ -9,6 +9,7 @@ import {
 import { Avatar, Empty, PosBadge, ScoreChip, StageTag, comparePath, playerPath } from "../ui"
 import { DataDots, EST_HINT, Est, EstimatedSwitch } from "../estimated"
 import { completenessOf, findDuplicates, hasAccount, realProfileOf } from "../people"
+import { PROSPECT_EDIT_HINT, isProspect } from "../prospects"
 import { PlayerDeleteDialog, PlayerEditDialog } from "./PlayerDialogs"
 
 type SortKey = "name" | "pos" | "category" | "age" | "overall" | "created" | "scout" | "data" | (typeof STAT_KEYS)[number]["key"]
@@ -281,7 +282,7 @@ export default function PlayersPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="truncate text-[11.5px] text-zinc-500">{p.email ?? (hasAccount(p) ? "Conta Zyron" : "—")}{p.source === "funil" && hasAccount(p) ? " · com conta" : ""}</div>
+                            <div className="truncate text-[11.5px] text-zinc-500">{p.email ?? (hasAccount(p) ? "Conta Zyron" : isProspect(p) ? "Pré-cadastro do CRM · aprovado em Importados" : "—")}{p.source === "funil" && hasAccount(p) ? " · com conta" : ""}</div>
                           </div>
                         </div>
                       </td>
@@ -308,9 +309,10 @@ export default function PlayersPage() {
                       {canManage && (
                         <td onClick={(e) => e.stopPropagation()}>
                           <div className="vx-row-actions">
-                            <button type="button" className="vx-icon-btn" title="Editar o cadastro" aria-label={`Editar ${p.name}`} onClick={() => setEditing(p)}><Pencil /></button>
+                            <button type="button" className="vx-icon-btn" title={isProspect(p) ? PROSPECT_EDIT_HINT : "Editar o cadastro"} aria-label={`Editar ${p.name}`}
+                              disabled={isProspect(p)} onClick={() => setEditing(p)}><Pencil /></button>
                             {canAdmin && (
-                              <button type="button" className="vx-icon-btn pp-danger" title="Excluir o cadastro" aria-label={`Excluir ${p.name}`} onClick={() => setDeleting(p)}><Trash2 /></button>
+                              <button type="button" className="vx-icon-btn pp-danger" title={isProspect(p) ? "Descartar o pré-cadastro" : "Excluir o cadastro"} aria-label={`Excluir ${p.name}`} onClick={() => setDeleting(p)}><Trash2 /></button>
                             )}
                           </div>
                         </td>

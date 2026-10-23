@@ -5,6 +5,7 @@ import {
   type MemberRow, type PlayerLink,
 } from "./people.ts"
 import type { Player } from "./data.ts"
+import { CRM_ORIGIN, attachLinkedProspects, crmLeadIdOf, isProspect, openProspects, prospectBase, prospectName, type ProspectRow } from "./prospects.ts"
 import { AGE_MAX, AGE_MIN, PLACES, categoryFromAge, estimateProfile, ageFromCategory, ufOf, unit, withEstimates } from "./estimate.ts"
 
 const TODAY = new Date(2026, 9, 22) // 22/10/2026
@@ -365,4 +366,73 @@ test("sorteio estável: distribuição uniforme e sem repetir para chaves pareci
   }
   for (const n of buckets) assert.ok(n > 1700 && n < 2300, `faixa com ${n}`)
   assert.ok(seen.size > 19900, "quase nenhum valor repetido")
+})
+
+/* ------------------------------------------------------------------ */
+/* Pré-cadastros do CRM em Jogadores                                   */
+/* ------------------------------------------------------------------ */
+
+const prospect = (over: Partial<ProspectRow> = {}): ProspectRow => ({
+  crmLeadId: "0b7f1c2e-1111-4222-8333-444455556666", name: "  Davi   Lucas Moura ", guardianName: "Ana Moura", birthDate: "2010-05-20",
+  position: "Volante", category: "Sub 17", team: "Gama", city: "Brasília - DF", firstAt: "2026-10-22T21:03:00.000Z",
+  approvedAt: "2026-10-22T23:00:00.000Z", linkedMemberId: null, ...over,
+})
+
+test("pré-cadastro aprovado vira jogador: chave do CRM, sem contato, com os dados que o CRM mandou", () => {
+  const p = prospectBase(prospect(), TODAY)
+  assert.equal(p.key, "crm:0b7f1c2e-1111-4222-8333-444455556666")
+  assert.equal(p.source, "crm")
+  assert.equal(p.name, "Davi Lucas Moura")
+  assert.equal(p.email, null)
+  assert.equal(p.phone, null)
+  assert.equal(p.guardianName, "Ana Moura")
+  assert.equal(p.origin, CRM_ORIGIN)
+  assert.equal(p.createdAt, "2026-10-22T21:03:00.000Z")
+  assert.deepEqual(p.profile, { birthDate: "2010-05-20", age: 16, position: "Volante", category: "Sub 17", team: "Gama", city: "Brasília - DF" })
+  assert.equal(p.hasProfile, true)
+  assert.equal(isProspect(p), true)
+  assert.equal(crmLeadIdOf(p), "0b7f1c2e-1111-4222-8333-444455556666")
+  assert.equal(crmLeadIdOf({ key: "lead:x" }), null)
+})
+
+test("pré-cadastro sem nome do atleta mostra de quem é; time 'Sim' e campos vazios não entram", () => {
+  assert.equal(prospectName({ name: null, guardianName: " Maria  Souza " }), "Atleta sem nome (responsável: Maria Souza)")
+  assert.equal(prospectName({ name: "  ", guardianName: null }), "Atleta sem nome")
+  const p = prospectBase(prospect({ name: null, team: "Sim", birthDate: null, position: null, category: null, city: null, firstAt: null }), TODAY)
+  assert.deepEqual(p.profile, {})
+  assert.equal(p.hasProfile, false)
+  assert.equal(p.createdAt, "2026-10-22T23:00:00.000Z", "sem a data de chegada, vale a da aprovação")
+})
+
+test("só os aprovados e ainda pré-cadastro viram jogador", () => {
+  const rows = [prospect({ crmLeadId: "aaaaaaaa-1" }), prospect({ crmLeadId: "bbbbbbbb-2", approvedAt: null }), prospect({ crmLeadId: "cccccccc-3", linkedMemberId: "m9" })]
+  assert.deepEqual(openProspects(rows).map((r) => r.crmLeadId), ["aaaaaaaa-1"])
+})
+
+test("quem já virou membro: a chave do CRM vira apelido do jogador e a etapa anotada antes não se perde", () => {
+  const withMember = player({ key: "lead:l1", name: "Davi Lucas Moura", memberId: "m9" })
+  const other = player({ key: "lead:l2", name: "Outro", memberId: "m2" })
+  const metas = new Map([["crm:cccccccc-3", { stage: "avaliacao" as const, notes: "Visto no CRM", scout: null, updatedAt: "2026-10-21T10:00:00.000Z" }]])
+  const out = attachLinkedProspects([withMember, other], [prospect({ crmLeadId: "cccccccc-3", linkedMemberId: "m9" })], metas)
+  assert.deepEqual(out[0].aliases, ["crm:cccccccc-3"])
+  assert.equal(out[0].meta.stage, "avaliacao")
+  assert.equal(out[0].meta.notes, "Visto no CRM")
+  assert.equal(out[1], other, "quem não tem ligação fica igual")
+  // O jogador que já tem anotações dele mantém as dele.
+  const busy = player({ key: "lead:l1", name: "Davi", memberId: "m9", meta: { stage: "contato", notes: "dele", scout: null, updatedAt: "2026-10-22T10:00:00.000Z" } })
+  const kept = attachLinkedProspects([busy], [prospect({ crmLeadId: "cccccccc-3", linkedMemberId: "m9" })], metas)
+  assert.equal(kept[0].meta.notes, "dele")
+  // Repetir não duplica o apelido.
+  const twice = attachLinkedProspects(out, [prospect({ crmLeadId: "cccccccc-3", linkedMemberId: "m9" })], metas)
+  assert.deepEqual(twice[0].aliases, ["crm:cccccccc-3"])
+  assert.equal(attachLinkedProspects([withMember], [], metas)[0], withMember)
+})
+
+test("pré-cadastro não se junta a ninguém por conta própria (sem e-mail, sem login): homônimo só é sinalizado", () => {
+  const lead = player({ key: "lead:l1", name: "Davi Lucas Moura", email: "davi@exemplo.com" })
+  const crm = { ...prospectBase(prospect(), TODAY), stats: [], overall: 80, reportFromFunnel: false, meta: emptyMeta() } as Player
+  const { players } = mergePeople([lead, crm], [], [member({ id: "m1", email: "davi@exemplo.com" })], TODAY)
+  assert.equal(players.length, 2)
+  assert.equal(players.find((p) => p.key === crm.key)?.memberId, null)
+  assert.equal(findDuplicates(players).groups.length, 1, "mesmo nome: aparece como possível duplicado")
 })

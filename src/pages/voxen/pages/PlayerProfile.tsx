@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
-  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, Eye, GitCompareArrows, KeyRound, Mail, NotebookPen, Pencil, PencilLine, Printer, Radar, Save,
+  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, DownloadCloud, Eye, GitCompareArrows, KeyRound, Mail, NotebookPen, Pencil, PencilLine, Printer, Radar, Save,
   Trash2, UserRoundSearch, X,
 } from "lucide-react"
 import { getSource } from "@/pages/membros/api"
@@ -15,6 +15,7 @@ import {
 } from "../data"
 import { Est } from "../estimated"
 import { keysOf } from "../people"
+import { PROSPECT_EDIT_HINT, crmLeadIdOf, isProspect } from "../prospects"
 import { deleteSummary } from "./PlayerDialogs"
 import { ChartEditor, type ChartTab } from "./chartedit/ChartEditor"
 import { originalOf, pitchOf, summaryOf } from "./chartedit/model"
@@ -112,13 +113,16 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
           <div className="mt-2.5 flex flex-wrap gap-1.5">
             {chips.map(([label, k]) => <span key={label} className="vx-chip h-7 cursor-default"><Est p={p} k={k}>{label}</Est></span>)}
             <span className="vx-chip h-7 cursor-default">Origem: {p.origin}</span>
+            {isProspect(p) && <span className="vx-chip h-7 cursor-default" title="Aprovado em Importados. Ainda não se cadastrou na plataforma: ninguém foi contatado e nenhum cadastro foi criado.">Pré-cadastro do CRM</span>}
             {accountKey && <span className="vx-chip h-7 cursor-default" title="Esta pessoa tem o cadastro do funil e a conta de atleta juntos num registro só">Com conta de atleta</span>}
           </div>
         </div>
         <div className="vx-no-print flex w-full flex-wrap items-center gap-2 2xl:ml-auto 2xl:w-auto">
           {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="vx-btn vx-btn--wpp"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>}
           {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
-          <MemberButton p={p} />
+          {isProspect(p)
+            ? <Link to={`/voxen/importados?item=${encodeURIComponent(`pre:${crmLeadIdOf(p)}`)}`} className="vx-btn" title="O que veio da wsltda.com: respostas do formulário, responsável e notas"><DownloadCloud /> Contexto do CRM</Link>
+            : <MemberButton p={p} />}
           {accountKey && (
             <Link to={`${CLIENT_BASE}?como=${encodeURIComponent(accountKey)}`} className="vx-btn" title="Abre a área do cliente exatamente como o atleta a vê" target="_blank" rel="noopener noreferrer">
               <Eye /> Ver como atleta
@@ -130,7 +134,9 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
             </Link>
           )}
           {canScout && (
-            <button type="button" className={`vx-btn ${editing ? "is-on" : ""}`} onClick={onEdit}><Pencil /> {editing ? "Fechar edição" : "Editar"}</button>
+            <button type="button" className={`vx-btn ${editing ? "is-on" : ""}`} onClick={onEdit} disabled={isProspect(p)} title={isProspect(p) ? PROSPECT_EDIT_HINT : undefined}>
+              <Pencil /> {editing ? "Fechar edição" : "Editar"}
+            </button>
           )}
           {canAdmin && (
             <button type="button" className="vx-icon-btn pp-danger" title="Excluir este cadastro" aria-label="Excluir este cadastro" onClick={() => setConfirmDelete(true)}><Trash2 /></button>
@@ -493,10 +499,11 @@ export default function PlayerProfile() {
 
       <div className="vx-grid xl:grid-cols-2">
         <section className="vx-card">
-          <CardHead title="Dados do atleta" sub="Informados pelo próprio atleta; o que está em itálico é estimado pela VOXEN" />
+          <CardHead title="Dados do atleta" sub={isProspect(p) ? "Vieram do CRM (wsltda.com); o que está em itálico é estimado pela VOXEN" : "Informados pelo próprio atleta; o que está em itálico é estimado pela VOXEN"} />
           <dl className="vx-dl">
             {([
               ["Nome", p.name, null],
+              ...(p.guardianName ? [["Responsável", p.guardianName, null]] as [string, string, null][] : []),
               ["E-mail", p.email ?? "—", null],
               ["WhatsApp", formatPhone(p.phone), null],
               ["Idade", p.profile.age ? `${p.profile.age} anos` : "—", "age"],
@@ -518,7 +525,12 @@ export default function PlayerProfile() {
               <div key={dt}><dt>{dt}</dt><dd title={dd}>{k && dd !== "—" ? <Est p={p} k={k}>{dd}</Est> : dd}</dd></div>
             ))}
           </dl>
-          {!p.hasProfile && (
+          {isProspect(p) ? (
+            <p className="mt-4 text-[12.5px] leading-relaxed text-zinc-500">
+              Pré-cadastro do CRM: a pessoa ainda não se cadastrou na plataforma, então não há e-mail nem telefone aqui e ninguém
+              foi contatado. Os dados vêm da wsltda.com e se atualizam sozinhos quando o CRM manda uma versão nova.
+            </p>
+          ) : !p.hasProfile && (
             <p className="mt-4 text-[12.5px] leading-relaxed text-zinc-500">
               Este cadastro chegou só com nome e contato: posição, categoria, idade e cidade que aparecem aqui são estimados.
               {canScout ? " Use Editar para gravar os dados de verdade." : ""}

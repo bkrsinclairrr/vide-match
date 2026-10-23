@@ -69,7 +69,7 @@ export function AddAthlete({ sector, members, onOpen }: { sector: AthletesHook; 
         key: p.key,
         name: p.name,
         sub: [p.profile.position, p.profile.category, placeOf(p)].filter(Boolean).join(" · ") || p.email || "",
-        tags: [p.source === "funil" ? "Funil" : "Conta"],
+        tags: [p.source === "funil" ? "Funil" : p.source === "crm" ? "CRM" : "Conta"],
         createdAt: p.createdAt,
         inSector: sector.forPlayer(p),
         draft: async () => {

@@ -47,7 +47,7 @@ export default function Records() {
   const source = useAdminSource()
   const [params, setParams] = useSearchParams()
   const [query, setQuery] = useState(params.get("busca") ?? "")
-  const [kind, setKind] = useState<"todos" | "funil" | "conta">((["funil", "conta"] as const).find((k) => k === params.get("tipo")) ?? "todos")
+  const [kind, setKind] = useState<"todos" | "funil" | "conta" | "crm">((["funil", "conta", "crm"] as const).find((k) => k === params.get("tipo")) ?? "todos")
   const [stage, setStage] = useState<"" | StageKey>((STAGES.find((s) => s.key === params.get("etapa"))?.key as StageKey | undefined) ?? "")
   const [category, setCategory] = useState(params.get("categoria") ?? "")
   const [incomplete, setIncomplete] = useState(params.get("filtro") === "sem-perfil")
@@ -86,6 +86,7 @@ export default function Records() {
       // "Contas" são todos os que têm conta de atleta (inclusive quem veio do funil e já criou a conta).
       if (kind === "funil" && p.source !== "funil") return false
       if (kind === "conta" && !hasAccount(p)) return false
+      if (kind === "crm" && p.source !== "crm") return false
       if (stage && p.meta.stage !== stage) return false
       if (category && p.profile.category !== category) return false
       if (incomplete && p.hasProfile) return false
@@ -285,7 +286,7 @@ export default function Records() {
           <input className="vx-input vx-input--icon" placeholder="Buscar por nome, e-mail, telefone, cidade ou posição" value={query} onChange={(e) => { setQuery(e.target.value); reset() }} aria-label="Buscar cadastros" />
         </div>
         <div className="vx-tabs" role="group" aria-label="Tipo de cadastro">
-          {([["todos", "Todos"], ["funil", "Funil"], ["conta", "Contas"]] as const).map(([k, label]) => (
+          {([["todos", "Todos"], ["funil", "Funil"], ["conta", "Contas"], ["crm", "Pré-cadastros"]] as const).map(([k, label]) => (
             <button key={k} type="button" aria-pressed={kind === k} className={`vx-tab ${kind === k ? "is-on" : ""}`} onClick={() => { setKind(k); reset() }}>{label}</button>
           ))}
         </div>
@@ -502,7 +503,7 @@ function ImportCard({ result, onClose }: { result: ImportResult; onClose: () => 
 }
 
 /** "Lead do funil", "Conta de atleta" ou os dois (a conta foi juntada ao lead da mesma pessoa). */
-const kindLabel = (p: Player) => (p.source === "funil" ? (hasAccount(p) ? "Lead do funil + conta de atleta" : "Lead do funil") : "Conta de atleta")
+const kindLabel = (p: Player) => (p.source === "crm" ? "Pré-cadastro do CRM (aprovado em Importados)" : p.source === "funil" ? (hasAccount(p) ? "Lead do funil + conta de atleta" : "Lead do funil") : "Conta de atleta")
 
 function RowGroup({
   player: p, picked, confirming, busy, inSector, canSend, dup, strongDup, onSend, onField, onPick, onEdit, onAskDelete, onCancelDelete, onDelete, onStage,
@@ -550,6 +551,7 @@ function RowGroup({
         <td>
           <div className="flex flex-wrap items-center gap-1">
             {p.source === "funil" && <span className="vx-tag" style={{ color: "#fbbf24", background: "rgba(251,191,36,.12)" }}>Funil</span>}
+            {p.source === "crm" && <span className="vx-tag" style={{ color: "#c4b5fd", background: "rgba(167,139,250,.14)" }}>CRM</span>}
             {hasAccount(p) && <span className="vx-tag" style={{ color: "#7dd3fc", background: "rgba(56,189,248,.12)" }}><UserRound className="h-3 w-3" /> Conta</span>}
           </div>
         </td>

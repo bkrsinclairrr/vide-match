@@ -135,7 +135,7 @@ const supabaseMedia: MediaApi = {
   demo: false,
 
   async materials(keys) {
-    const list = [...new Set(keys)].filter((k) => /^(lead|atleta):/.test(k))
+    const list = [...new Set(keys)].filter((k) => /^(lead|atleta|crm):/.test(k))
     if (!list.length) return []
     const { data, error } = await db.from("voxen_player_materials").select("*").in("player_key", list)
       .order("position", { ascending: true }).order("created_at", { ascending: true })
