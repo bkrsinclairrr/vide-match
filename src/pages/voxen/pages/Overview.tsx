@@ -64,9 +64,11 @@ export default function Overview() {
   const stats = useMemo(() => {
     const now = Date.now()
     const t = (p: Player) => new Date(p.createdAt).getTime()
-    const last7 = list.filter((p) => now - t(p) < 7 * DAY).length
-    const prev7 = list.filter((p) => now - t(p) >= 7 * DAY && now - t(p) < 14 * DAY).length
-    const today = list.filter((p) => new Date(p.createdAt).toDateString() === new Date().toDateString()).length
+    // As entradas por dia são do funil e das contas: o pré-cadastro do CRM chegou em lote, pela ponte, e entortaria o gráfico.
+    const arrivals = list.filter((p) => p.source !== "crm")
+    const last7 = arrivals.filter((p) => now - t(p) < 7 * DAY).length
+    const prev7 = arrivals.filter((p) => now - t(p) >= 7 * DAY && now - t(p) < 14 * DAY).length
+    const today = arrivals.filter((p) => new Date(p.createdAt).toDateString() === new Date().toDateString()).length
     const withProfile = list.filter((p) => p.hasProfile).length
     const worked = list.filter((p) => p.meta.stage !== "novo").length
     const evaluating = list.filter((p) => p.meta.stage === "avaliacao" || p.meta.stage === "aprovado").length
@@ -76,7 +78,7 @@ export default function Overview() {
       d.setHours(0, 0, 0, 0)
       return { start: d.getTime(), label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).replace(".", ""), value: 0 }
     })
-    for (const p of list) {
+    for (const p of arrivals) {
       const day = new Date(t(p))
       day.setHours(0, 0, 0, 0)
       const slot = days.find((d) => d.start === day.getTime())
@@ -100,7 +102,7 @@ export default function Overview() {
     for (const p of list) if (p.profile.position && POSITIONS[p.profile.position]) byPos.set(p.profile.position, (byPos.get(p.profile.position) ?? 0) + 1)
 
     const heat = Array.from({ length: 7 }, () => Array<number>(24).fill(0))
-    for (const p of list) {
+    for (const p of arrivals) {
       const d = new Date(p.createdAt)
       heat[d.getDay()][d.getHours()]++
     }
@@ -114,7 +116,7 @@ export default function Overview() {
     const dayEnd = (back: number) => midnight.getTime() + DAY - back * DAY
     const daily14 = Array.from({ length: 14 }, (_, i) => {
       const end = dayEnd(13 - i)
-      return list.filter((p) => t(p) >= end - DAY && t(p) < end).length
+      return arrivals.filter((p) => t(p) >= end - DAY && t(p) < end).length
     })
     const total30 = Array.from({ length: 30 }, (_, i) => {
       const end = dayEnd(29 - i)

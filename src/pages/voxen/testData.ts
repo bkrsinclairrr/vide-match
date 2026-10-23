@@ -5,6 +5,8 @@
  */
 import { STAT_KEYS, buildStats, overallFrom } from "@/lib/funnel"
 import { SCOUT_ATTRS, originOf, type Player, type Profile, type StageKey, type VoxenData } from "./data"
+import { demoApprovedProspects } from "./pages/imported/demo"
+import { prospectBase } from "./prospects"
 
 function mulberry32(seed: number) {
   let a = seed
@@ -185,6 +187,13 @@ export function buildDemoData(): VoxenData {
     key: "lead:demo-joao-b", name: "João Pedro Almeida", email: "joaopedro.b@exemplo.com", phone: "11900000004",
     createdAt: new Date(now - 7 * 86400000).toISOString(), profile: { age: 18, position: "Zagueiro", category: "Sub 19", city: "Campinas - SP" }, hasProfile: true,
   }))
+
+  // Pré-cadastros do CRM aprovados em Importados (os da demonstração de Importados): aparecem aqui como no site.
+  for (const row of demoApprovedProspects()) {
+    const p = prospectBase(row)
+    const stats = buildStats(p.key)
+    players.push({ ...p, stats, overall: overallFrom(stats), reportFromFunnel: false, meta: { ...EMPTY_DEMO_META } })
+  }
 
   players.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   return { players, sharedMeta: false, profileCapture: true, merge: { mergedAccounts: 1, withMember: 0, filledFields: 0 }, loadedAt: new Date() }

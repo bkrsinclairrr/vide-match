@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { BadgeCheck, Handshake } from "lucide-react"
 import { useVoxen } from "../../store"
 import { realProfileOf } from "../../people"
+import { isProspect } from "../../prospects"
 import type { Player } from "../../data"
 import { CardHead, Empty } from "../../ui"
 import { ScoutSetupNotice } from "../scout/parts"
@@ -38,7 +39,12 @@ export function PlayerOpportunities({ p }: { p: Player }) {
   return (
     <section id="oportunidades" className="vx-card op-section mb-[18px]" aria-label="Oportunidades">
       {head}
-      {!p.memberId ? (
+      {!p.memberId && isProspect(p) ? (
+        <Empty icon={<Handshake className="h-6 w-6" />} title={`${first} ainda é pré-cadastro do CRM`}>
+          As oportunidades ficam na ficha de membro, que nasce quando a pessoa se cadastra na plataforma. Até lá, use as
+          notas da equipe para registrar os clubes em vista.
+        </Empty>
+      ) : !p.memberId ? (
         <Empty icon={<Handshake className="h-6 w-6" />} title={`${first} ainda não tem ficha de membro`}>
           As oportunidades ficam na ficha de membro. Cadastre {first} como membro para abrir a primeira.
           {canScout && (

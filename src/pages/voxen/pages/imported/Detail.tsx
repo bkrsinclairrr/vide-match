@@ -215,6 +215,14 @@ export function ImportedDetail({ row, api, sections, canScout, canAdmin, busy, t
         {st === "aprovado" && (
           <p className="im-approval is-ok"><BadgeCheck aria-hidden="true" /> Aprovado {row.approvedByName ? <>por <b>{row.approvedByName}</b> </> : null}em {fmtDay(row.approvedAt)}, conferindo a versão {row.approvedRevision} do CRM.</p>
         )}
+        {row.kind === "pre" && row.approvedAt && (
+          <p className="im-approval is-ok">
+            <ExternalLink aria-hidden="true" /> Está em Jogadores, só para a equipe. <Link to={`/voxen/jogadores/${encodeURIComponent(`crm:${row.ref}`)}`}>Abrir a ficha</Link>
+          </p>
+        )}
+        {row.kind === "pre" && !row.approvedAt && (
+          <p className="im-approval">Quando for aprovado, este pré-cadastro aparece em Jogadores (só para a equipe).</p>
+        )}
         {st === "mudou" && (
           <p className="im-approval is-changed">
             <AlertTriangle aria-hidden="true" /> A versão {row.approvedRevision} foi aprovada {row.approvedByName ? <>por <b>{row.approvedByName}</b> </> : null}em {fmtDay(row.approvedAt)}, mas o CRM mandou a versão {row.revision} depois. Confira o que mudou e aprove de novo.

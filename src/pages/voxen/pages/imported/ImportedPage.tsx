@@ -39,15 +39,17 @@ type Exporting = { done: number; total: number }
  * Importados (/voxen/importados e /admin/importados): tudo o que a ponte da wsltda.com trouxe (pré-cadastros,
  * atletas com conta e quem espera virar membro), separado só aqui. A equipe diz de onde especificamente cada
  * um veio (subseções editáveis) e confere o contexto, um a um ou em levas: marcar vários, marcar todos do
- * filtro, mover de subseção e aprovar. Aprovar é só "conferido": não cria atleta nem contata ninguém. Se o CRM
- * mandar uma versão nova depois da aprovação, o item volta a pedir conferência.
+ * filtro, mover de subseção e aprovar. Aprovar é "conferido": não cria cadastro nem contata ninguém. O atleta com
+ * conta e quem aguarda cadastro já estavam em Jogadores; o pré-cadastro do CRM passa a aparecer lá quando é aprovado
+ * (e sai quando a aprovação é tirada). Se o CRM mandar uma versão nova depois da aprovação, o item volta a pedir
+ * conferência, mas continua em Jogadores.
  *
  * Quem já tem os dados básicos preenchidos vem primeiro. O CRM pode mandar de novo quem já foi importado: a pessoa
  * continua sendo uma só (marcada "Reenviado"), nunca vira uma segunda linha. O contexto aparece só para quem de fato
  * tem contexto, e pode ser baixado em um arquivo .md.
  */
 export default function ImportedPage() {
-  const { demo, canScout, canAdmin, players } = useVoxen()
+  const { demo, canScout, canAdmin, players, reload: reloadPlayers } = useVoxen()
   const { toast } = useToast()
   const api = useImportedApi(demo)
   const [params, setParams] = useSearchParams()
@@ -193,10 +195,15 @@ export default function ImportedPage() {
       : { ...r, approvedAt: null, approvedByName: null, approvedRevision: null }))
     try {
       const n = await api.approve(toItems(targets), approve)
+      const pre = targets.filter((r) => r.kind === "pre").length
       toast({
         title: approve ? plural(n || targets.length, "importado aprovado", "importados aprovados") : `Aprovação retirada de ${plural(n || targets.length, "importado", "importados")}`,
-        description: approve ? "Conferido pela equipe. Ninguém foi contatado e nenhum atleta foi criado." : undefined,
+        description: approve
+          ? `${pre ? `${plural(pre, "pré-cadastro entrou", "pré-cadastros entraram")} em Jogadores. ` : ""}Ninguém foi contatado e nenhum cadastro foi criado.`
+          : pre ? `${plural(pre, "pré-cadastro saiu", "pré-cadastros saíram")} de Jogadores.` : undefined,
       })
+      // O pré-cadastro aprovado aparece em Jogadores: a lista da equipe é lida de novo, em segundo plano.
+      if (pre) void reloadPlayers()
       dropFromSelection(scope)
       setMode("idle")
       rowsQ.reload()
@@ -567,7 +574,7 @@ function BulkBar({ rows, sections, mode, busy, exporting, onMode, onClear, onMov
       <div className="im-bulk is-plan" role="region" aria-label="Confirmar a aprovação">
         <div className="im-plan">
           <b>Aprovar {plural(total, "importado", "importados")}?</b>
-          <p>Aprovar é só dizer que a equipe conferiu. Ninguém é contatado e nenhum atleta é criado.</p>
+          <p>Aprovar é dizer que a equipe conferiu. Os pré-cadastros aprovados passam a aparecer em Jogadores (só para a equipe). Ninguém é contatado e nenhum cadastro é criado.</p>
           <ul>
             {plan.complete.length > 0 && <li className="is-ok"><CheckCircle2 aria-hidden="true" /> {plan.complete.length} {plan.complete.length === 1 ? "tem" : "têm"} contexto e subseção.</li>}
             {plan.noSection.length > 0 && <li className="is-warn"><AlertTriangle aria-hidden="true" /> {plan.noSection.length} {plan.noSection.length === 1 ? "tem" : "têm"} contexto, mas ainda sem subseção (de onde {plan.noSection.length === 1 ? "veio" : "vieram"}?).</li>}

@@ -15,7 +15,7 @@ export const playersCsv = (rows: Player[]) =>
     { label: "Nome", value: (p) => p.name },
     { label: "E-mail", value: (p) => p.email },
     { label: "Telefone", value: (p) => p.phone },
-    { label: "Tipo", value: (p) => (p.source === "funil" ? (hasAccount(p) ? "Funil + conta" : "Funil") : "Conta") },
+    { label: "Tipo", value: (p) => (p.source === "crm" ? "Pré-cadastro do CRM" : p.source === "funil" ? (hasAccount(p) ? "Funil + conta" : "Funil") : "Conta") },
     { label: "Etapa", value: stageLabel },
     { label: "Posição", value: (p) => p.profile.position },
     { label: "Categoria", value: (p) => p.profile.category },

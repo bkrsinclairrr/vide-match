@@ -500,10 +500,11 @@ export function nameTwins(rows: ImportRow[], players: PlayerRef[]): Map<string, 
     const n = normName(r.name)
     const s = byName.get(n)
     if (!s || words(n) < 2) continue
-    const leadKey = r.kind === "espera" ? `lead:${r.ref}` : null
+    // A própria pessoa em Jogadores: o lead de quem aguarda cadastro, ou o pré-cadastro aprovado (chave 'crm:').
+    const ownKey = r.kind === "espera" ? `lead:${r.ref}` : r.kind === "pre" ? `crm:${r.ref}` : null
     const twins: Twin[] = []
     for (const p of s.players) {
-      const same = (r.kind === "conta" && p.memberId === r.memberId) || (leadKey !== null && (p.key === leadKey || p.aliases.includes(leadKey)))
+      const same = (r.kind === "conta" && p.memberId === r.memberId) || (ownKey !== null && (p.key === ownKey || p.aliases.includes(ownKey)))
       if (!same) twins.push({ kind: "jogador", name: p.name, target: p.key, detail: "já está em Jogadores" })
     }
     for (const o of s.rows) {
