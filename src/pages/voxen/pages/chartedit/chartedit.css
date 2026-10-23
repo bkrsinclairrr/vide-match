@@ -1,0 +1,101 @@
+/* Editar os gráficos da ficha do jogador: a janela, os controles e as marcas "editado" dos cartões. */
+
+.vx-portal.ce-dialog { display: flex; flex-direction: column; max-height: min(92vh, 860px); overflow: hidden; border: 1px solid var(--vx-border-2); background: #0d0d0f; color: var(--vx-text); }
+.ce-head { padding: 20px 56px 14px 24px; border-bottom: 1px solid var(--vx-border); }
+.ce-head h2 { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+.ce-head p { margin: 6px 0 12px; color: var(--vx-dim); font-size: 12.5px; line-height: 1.55; }
+.ce-body { display: grid; flex: 1; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-content: start; gap: 22px; padding: 18px 24px; overflow-y: auto; overscroll-behavior: contain; }
+
+/* As 10 notas */
+.ce-stats { display: grid; align-content: start; gap: 4px; min-width: 0; }
+.ce-stat { display: grid; grid-template-columns: 116px minmax(0, 1fr) 58px 30px; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; border: 1px solid transparent; transition: border-color 0.2s, background 0.2s; }
+.ce-stat.is-changed { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.06); }
+.ce-stat-name { min-width: 0; }
+.ce-stat-name b { display: block; font-size: 13px; }
+.ce-stat-name small { display: block; overflow: hidden; color: var(--vx-dim); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.ce-stat.is-changed .ce-stat-name small { color: var(--vx-gold-3); font-weight: 650; }
+.ce-range-wrap { position: relative; }
+.ce-range { width: 100%; height: 8px; border-radius: 99px; appearance: none; -webkit-appearance: none; background: linear-gradient(90deg, var(--c) var(--v), rgba(255, 255, 255, 0.09) var(--v)); cursor: pointer; }
+.ce-range::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; border: 3px solid #0b0b0d; background: var(--c); box-shadow: 0 0 0 1px var(--c), 0 4px 14px -4px var(--c); transition: transform 0.2s var(--vx-ease); }
+.ce-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; border: 3px solid #0b0b0d; background: var(--c); }
+.ce-range:active::-webkit-slider-thumb { transform: scale(1.18); }
+.ce-range:focus-visible { outline: 2px solid var(--vx-gold); outline-offset: 4px; }
+.ce-tick { position: absolute; top: 50%; width: 2px; height: 14px; border-radius: 1px; background: rgba(255, 255, 255, 0.55); transform: translate(-50%, -50%); pointer-events: none; }
+.ce-num.vx-input { height: 34px; padding: 0 4px; text-align: center; font-size: 15px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.ce-undo { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; color: var(--vx-dim); transition: color 0.2s, background 0.2s; }
+.ce-undo svg { width: 15px; height: 15px; }
+.ce-undo:disabled { opacity: 0.25; cursor: default; }
+.ce-undo:not(:disabled):hover { background: rgba(251, 191, 36, 0.14); color: var(--vx-gold); }
+
+/* A prévia */
+.ce-preview { position: sticky; top: 0; display: grid; align-content: start; gap: 14px; padding: 14px; border-radius: 16px; border: 1px solid var(--vx-border); background: rgba(255, 255, 255, 0.02); }
+.ce-ring { display: flex; align-items: center; gap: 16px; }
+.ce-ring-n { font-size: 36px; font-weight: 850; letter-spacing: -0.04em; line-height: 1; }
+.ce-ring-l { margin-top: 3px; color: var(--vx-dim); font-size: 10px; font-weight: 750; letter-spacing: 0.14em; text-transform: uppercase; }
+.ce-overall { display: grid; flex: 1; gap: 8px; min-width: 0; }
+.ce-overall small, .ce-tool small { color: var(--vx-dim); font-size: 12px; line-height: 1.5; }
+.ce-fixed { display: grid; gap: 6px; }
+.ce-eyebrow { display: inline-flex; align-items: center; gap: 6px; color: var(--vx-dim); font-size: 10.5px; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+.ce-eyebrow svg { width: 13px; height: 13px; }
+.ce-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 12px; border: 1px solid var(--vx-border); background: rgba(0, 0, 0, 0.25); }
+.ce-seg button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; border-radius: 9px; color: var(--vx-muted); font-size: 12.5px; font-weight: 650; transition: background 0.2s, color 0.2s; }
+.ce-seg button svg { width: 14px; height: 14px; }
+.ce-seg button:hover { color: var(--vx-text); }
+.ce-seg button.is-on { background: rgba(251, 191, 36, 0.16); color: var(--vx-gold-3); box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.4); }
+.ce-radar { width: 100%; max-width: 320px; margin: 0 auto; }
+
+/* O campo */
+.ce-field { display: grid; align-content: start; justify-items: center; gap: 10px; min-width: 0; }
+.ce-pitch { position: relative; width: min(100%, 300px); border-radius: 12px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.ce-pitch.is-marker { cursor: grab; }
+.ce-pitch.is-marker:active { cursor: grabbing; }
+.ce-pitch.is-heat { cursor: crosshair; }
+.ce-pitch svg { pointer-events: none; }
+.ce-pitch:focus-visible { outline: 2px solid var(--vx-gold); outline-offset: 4px; }
+.ce-field-note { max-width: 300px; margin: 0; color: var(--vx-dim); font-size: 12px; line-height: 1.5; text-align: center; }
+.ce-field-tools { display: grid; align-content: start; gap: 14px; min-width: 0; }
+.ce-tool { display: grid; gap: 8px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--vx-border); background: rgba(255, 255, 255, 0.02); }
+.ce-tool-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Rodapé */
+.ce-foot { display: grid; gap: 10px; padding: 12px 24px 14px; border-top: 1px solid var(--vx-border); }
+.ce-note { display: block; }
+.ce-note > span { display: block; margin: 0 0 6px 2px; color: var(--vx-muted); font-size: 12px; font-weight: 650; }
+.ce-note em { margin-left: 4px; color: var(--vx-dim); font-style: normal; font-weight: 500; }
+.ce-error { margin: 0; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.12); color: #fecaca; font-size: 12.5px; }
+.ce-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ce-spacer { flex: 1; }
+.ce-ask { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; color: #fca5a5; font-size: 12.5px; font-weight: 650; }
+.ce-danger { color: #fecaca !important; border-color: rgba(248, 113, 113, 0.45) !important; background: rgba(248, 113, 113, 0.14) !important; }
+.ce-reset { color: var(--vx-muted); }
+.ce-spin { width: 16px; height: 16px; animation: vx-spin 0.9s linear infinite; }
+
+/* As marcas nos cartões da ficha */
+.ce-badge { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 2px 9px; border-radius: 99px; border: 1px solid rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.1); color: var(--vx-gold-3); font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; cursor: help; }
+.ce-badge svg { width: 11px; height: 11px; flex-shrink: 0; }
+.ce-badge-row { display: flex; margin: -6px 0 14px; }
+.ce-edit { flex-shrink: 0; }
+.ce-dot { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--vx-gold); box-shadow: 0 0 8px var(--vx-gold); vertical-align: middle; cursor: help; }
+
+@media (max-width: 860px) {
+  .ce-body { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  /* No celular a prévia (nota geral) vem primeiro, para ver o efeito das notas sem rolar; o radar fica só na ficha. */
+  .ce-preview { position: static; order: -1; }
+  .ce-radar { display: none; }
+  .ce-head { padding-left: 16px; }
+  .ce-foot { padding: 12px 16px 14px; }
+  .ce-stat { grid-template-columns: minmax(0, 1fr) 54px 28px; grid-template-areas: "name name name" "range num undo"; row-gap: 6px; }
+  .ce-stat-name { grid-area: name; }
+  .ce-range-wrap { grid-area: range; }
+  .ce-num { grid-area: num; }
+  .ce-undo { grid-area: undo; }
+}
+@media (max-width: 520px) {
+  .ce-ring { flex-direction: column; align-items: stretch; text-align: center; }
+  .ce-ring .vx-ring { margin: 0 auto; }
+  .ce-actions .vx-btn { flex: 1; justify-content: center; }
+  .ce-ask { width: 100%; }
+}
+@media print {
+  .ce-edit { display: none !important; }
+}

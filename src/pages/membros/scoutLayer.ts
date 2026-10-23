@@ -48,7 +48,7 @@ export type ClubRef = {
   catalogId: string | null
 }
 
-export type OpportunityStatus = "aberta" | "enviada" | "encerrada" | "recusada"
+export type OpportunityStatus = "aberta" | "enviada" | "negociacao" | "aceita" | "encerrada" | "recusada"
 
 export type RealOpportunity = {
   id: string
@@ -102,7 +102,7 @@ export type ScoutLayer = {
   /** Quem escolheu por último (o atleta ou a equipe) e quando. */
   photoChoiceBy: "atleta" | "equipe" | null
   photoChoiceAt: string | null
-  /** Só as publicadas e em andamento (aberta ou enviada). */
+  /** Só as publicadas e em andamento (aberta, enviada ou em negociação). */
   opportunities: RealOpportunity[]
   submissions: Submission[]
   /** A migração existe: dá para enviar vídeo pela área. */
@@ -140,7 +140,7 @@ export const toClub = (r: Row | null | undefined): ClubRef | null => {
   }
 }
 
-const STATUSES: OpportunityStatus[] = ["aberta", "enviada", "encerrada", "recusada"]
+const STATUSES: OpportunityStatus[] = ["aberta", "enviada", "negociacao", "aceita", "encerrada", "recusada"]
 
 export const toOpportunity = (r: Row): RealOpportunity | null => {
   const club = toClub(r.club as Row)
@@ -231,7 +231,7 @@ async function readAsStaff(memberId: string | null, userId: string | null): Prom
   const [controls, opps, subs] = await Promise.all([
     memberId ? db.from("zyron_player_controls").select("*").eq("member_id", memberId).maybeSingle() : Promise.resolve(null),
     memberId
-      ? db.from("zyron_opportunities").select("*, club:zyron_clubs(*)").eq("member_id", memberId).eq("published", true).in("status", ["aberta", "enviada"])
+      ? db.from("zyron_opportunities").select("*, club:zyron_clubs(*)").eq("member_id", memberId).eq("published", true).in("status", ["aberta", "enviada", "negociacao"])
       : Promise.resolve(null),
     userId ? db.from("zyron_match_submissions").select("*").eq("user_id", userId).order("created_at", { ascending: false }) : Promise.resolve(null),
   ])

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react"
-import { Check, ImagePlus, Loader2, Plus, Search, X } from "lucide-react"
+import { Check, ImagePlus, Loader2, Plus, Search, Sparkles, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import type { Club as CatalogClub } from "@/data/clubs"
+import { affinity } from "@/pages/membros/game"
 import { ClubCrest } from "@/pages/membros/components/ClubCrest"
 import { errMsg, type Club, type ScoutApi } from "../scout/api"
 import { crestBlob, extOf, openImage } from "../scout/image"
@@ -194,6 +195,156 @@ export function NewClubForm({ api, initialName = "", club, onCancel, onSaved }: 
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Escolher um ou vários clubes (dentro da janela da oportunidade)     */
+/* ------------------------------------------------------------------ */
+
+type Region = "todos" | "brasil" | "exterior"
+
+const REGIONS: [Region, string][] = [["todos", "Todos"], ["brasil", "Brasil"], ["exterior", "Exterior"]]
+
+const inRegion = (country: string | null | undefined, region: Region) =>
+  region === "todos" || (region === "brasil") === (country === "Brasil")
+
+/**
+ * Os clubes de uma oportunidade, sempre à vista (sem janelinha por cima): os escolhidos em cima, a busca e as listas
+ * embaixo. Sem digitar nada, mostra os clubes que procuram a posição da vaga; digitando, busca nos clubes da equipe e
+ * no catálogo inteiro da Zyron. Um clube do catálogo vira clube da equipe na hora em que é escolhido.
+ * `single`: trocar o clube de uma oportunidade que já existe (escolher outro substitui).
+ */
+export function ClubChooser({ api, clubs, chosen, position, single = false, onAdd, onRemove, onClubsChanged }: {
+  api: ScoutApi
+  clubs: Club[]
+  chosen: Club[]
+  /** A posição da vaga (ou do jogador): com ela, o catálogo sugere quem procura essa função. */
+  position: string | null
+  single?: boolean
+  onAdd: (club: Club) => void
+  onRemove: (id: string) => void
+  onClubsChanged: (club: Club) => void
+}) {
+  const { toast } = useToast()
+  const [query, setQuery] = useState("")
+  const [region, setRegion] = useState<Region>("todos")
+  const [catalog, setCatalog] = useState<CatalogClub[]>([])
+  const [busy, setBusy] = useState<string | null>(null)
+  const [creating, setCreating] = useState(false)
+
+  useEffect(() => { void loadCatalog().then(setCatalog) }, [])
+
+  const chosenIds = useMemo(() => new Set(chosen.map((c) => c.id)), [chosen])
+  const teamByCatalog = useMemo(() => new Map(clubs.filter((c) => c.catalogId).map((c) => [c.catalogId as string, c])), [clubs])
+
+  const hits = useMemo<Hit[]>(() => {
+    const q = norm(query.trim())
+    const own = clubs.filter((c) => c.active && inRegion(c.country, region) && (!q || norm(`${c.name} ${c.country ?? ""} ${c.league ?? ""}`).includes(q)))
+    const used = new Set(clubs.map((c) => c.catalogId).filter(Boolean))
+    const cat = q.length >= 2
+      ? catalog.filter((c) => !used.has(c.id) && inRegion(c.country, region) && norm(`${c.name} ${c.country} ${c.league}`).includes(q)).slice(0, 14)
+      : []
+    return [...own.slice(0, q ? 14 : 6).map((club) => ({ kind: "club" as const, club })), ...cat.map((club) => ({ kind: "catalog" as const, club }))]
+  }, [query, clubs, catalog, region])
+
+  // Sem busca: os clubes do catálogo que procuram exatamente a função (os que a equipe já usa entram como clube da equipe).
+  const suggested = useMemo<Hit[]>(() => {
+    if (query.trim() || !position || !catalog.length) return []
+    return catalog
+      .filter((c) => inRegion(c.country, region) && affinity(position, c.preferredStyle) === 2)
+      .sort((a, b) => b.openPositions - a.openPositions || a.name.localeCompare(b.name))
+      .slice(0, 6)
+      .map((c): Hit => {
+        const team = teamByCatalog.get(c.id)
+        return team ? { kind: "club", club: team } : { kind: "catalog", club: c }
+      })
+  }, [query, position, catalog, region, teamByCatalog])
+
+  const styleOf = (hit: Hit) => {
+    const c = hit.kind === "catalog" ? hit.club : catalog.find((x) => x.id === hit.club.catalogId)
+    return c ? c.preferredStyle : null
+  }
+
+  const pick = async (hit: Hit) => {
+    if (hit.kind === "club") {
+      if (chosenIds.has(hit.club.id)) onRemove(hit.club.id)
+      else onAdd(hit.club)
+      return
+    }
+    setBusy(hit.club.id)
+    try {
+      const club = await api.clubFromCatalog(hit.club)
+      onClubsChanged(club)
+      onAdd(club)
+    } catch (e) {
+      toast({ title: "Não foi possível usar este clube", description: errMsg(e), variant: "destructive" })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const row = (h: Hit) => {
+    const on = chosenIds.has(h.club.id)
+    const style = styleOf(h)
+    return (
+      <li key={`${h.kind}-${h.club.id}`}>
+        <button type="button" className={on ? "is-on" : ""} onClick={() => void pick(h)} disabled={busy !== null} aria-pressed={on}>
+          {h.kind === "club"
+            ? <ClubCrest club={h.club} size={30} />
+            : <ClubCrest club={{ name: h.club.name, crestUrl: null, emblem: h.club.logo, color: null }} size={30} />}
+          <span className="min-w-0 flex-1">
+            <b className="block truncate">{h.club.name}</b>
+            <small className="block truncate">{[h.club.country, h.club.league].filter(Boolean).join(" · ")}{style ? ` · procura ${style.toLowerCase()}` : ""}</small>
+          </span>
+          {busy === h.club.id ? <Loader2 className="op-spin" /> : on ? <span className="op-chooser-state"><Check /> Escolhido</span> : <span className="op-chooser-add"><Plus /> {single ? "Usar" : "Adicionar"}</span>}
+        </button>
+      </li>
+    )
+  }
+
+  const rest = hits.filter((h) => !suggested.some((s) => s.club.id === h.club.id))
+
+  return (
+    <div className="op-chooser">
+      <div className="op-chosen" aria-live="polite">
+        {chosen.length ? chosen.map((c) => (
+          <span key={c.id} className="op-chosen-chip">
+            <ClubCrest club={c} size={24} />
+            <b>{c.name}</b>
+            {!single && <button type="button" onClick={() => onRemove(c.id)} aria-label={`Tirar ${c.name}`}><X /></button>}
+          </span>
+        )) : <span className="op-chosen-empty">{single ? "Escolha o clube" : "Nenhum clube escolhido ainda. Escolha um ou vários: cada clube vira uma oportunidade."}</span>}
+      </div>
+
+      <div className="op-chooser-tools">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+          <input className="vx-input vx-input--icon" placeholder="Buscar clube, país ou liga" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar clube" />
+        </div>
+        <div className="op-regions" role="group" aria-label="Onde fica o clube">
+          {REGIONS.map(([k, label]) => <button key={k} type="button" className={`vx-chip ${region === k ? "is-on" : ""}`} aria-pressed={region === k} onClick={() => setRegion(k)}>{label}</button>)}
+        </div>
+      </div>
+
+      <ul className="op-chooser-list">
+        {suggested.length > 0 && (
+          <>
+            <li className="op-chooser-title"><Sparkles /> Procuram {position}</li>
+            {suggested.map(row)}
+            {rest.length > 0 && <li className="op-chooser-title">Clubes da equipe</li>}
+          </>
+        )}
+        {rest.map(row)}
+        {!rest.length && !suggested.length && (
+          <li className="op-picker-empty">{query.trim().length < 2 ? "Digite ao menos 2 letras para buscar no catálogo da Zyron." : "Nenhum clube encontrado. Crie o clube abaixo."}</li>
+        )}
+      </ul>
+
+      {creating
+        ? <NewClubForm api={api} initialName={query} onCancel={() => setCreating(false)} onSaved={(club) => { onClubsChanged(club); onAdd(club); setCreating(false) }} />
+        : <button type="button" className="vx-btn op-chooser-new" onClick={() => setCreating(true)}><Plus /> Criar um clube que não está na lista</button>}
     </div>
   )
 }

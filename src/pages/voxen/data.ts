@@ -11,6 +11,8 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { supabase } from "@/integrations/supabase/client"
 import { STAT_KEYS, buildStats, overallFrom, type StatResult } from "@/lib/funnel"
 import { hasAnyProfile, isJunkTeam, keysOf, mergePeople, realProfileOf, type MemberRow, type MergeReport, type PlayerLink } from "./people"
+import { fetchChartEdits } from "./pages/chartedit/api"
+import { applyChartEdit, type ChartEdit } from "./pages/chartedit/model"
 
 // Tabelas e colunas novas ainda não estão nos tipos gerados.
 const db = supabase as unknown as SupabaseClient
@@ -138,11 +140,16 @@ export type Player = {
   hasProfile: boolean
   origin: string
   utm: { source: string | null; medium: string | null; campaign: string | null; content: string | null; term: string | null }
+  /** As notas e a nota geral que valem no painel: o relatório com as mudanças da equipe por cima (se houver). */
   stats: StatResult[]
   overall: number
   /** O relatório veio do funil/conta (o mesmo da tela do atleta) ou foi gerado aqui. */
   reportFromFunnel: boolean
   meta: PlayerMeta
+  /** O que a equipe mudou nos gráficos deste jogador (indicadores, nota geral, campo e calor). Vale só no painel. */
+  chart?: ChartEdit | null
+  /** As notas do relatório antes da mudança da equipe (só existe quando há mudança). */
+  original?: { stats: StatResult[]; overall: number }
 }
 
 export const EMPTY_META: PlayerMeta = { stage: "novo", notes: "", scout: null, updatedAt: null }
@@ -503,12 +510,13 @@ export async function loadVoxenData(): Promise<VoxenData> {
   }
 
   // Membros e vínculos são um reforço: se o banco ainda não os tem, a lista sai como antes, sem juntar nada.
-  const [leads, athletes, profiles, members, links] = await Promise.all([
+  const [leads, athletes, profiles, members, links, charts] = await Promise.all([
     fetchAll<LeadRow>("funnel_leads"),
     fetchAll<AthleteRow>("Atletas").catch(() => [] as AthleteRow[]),
     fetchAll<{ id: string; full_name: string | null }>("profiles").catch(() => []),
     fetchMembers().catch(() => [] as MemberRow[]),
     fetchLinks().catch(() => [] as PlayerLink[]),
+    fetchChartEdits(),
   ])
 
   const names = new Map(profiles.filter((p) => p.full_name).map((p) => [p.id, p.full_name as string]))
@@ -517,7 +525,15 @@ export async function loadVoxenData(): Promise<VoxenData> {
     ...athletes.map((row) => fromAthlete(row, names, metaMap)),
   ]
   // Uma pessoa, um registro: lead + conta + membro viram um jogador só (ver people.ts).
-  const { players, report } = mergePeople(built, links, members)
+  const merged = mergePeople(built, links, members)
+  const report = merged.report
+  // O que a equipe mudou nos gráficos vale em todas as telas: entra por cima do relatório (o original fica guardado).
+  const players = charts.size
+    ? merged.players.map((p) => {
+        const edit = charts.get(p.key) ?? p.aliases.map((a) => charts.get(a)).find(Boolean)
+        return edit ? applyChartEdit(p, edit) : p
+      })
+    : merged.players
 
   return {
     players,
@@ -704,6 +720,7 @@ export async function deletePlayer(p: Player): Promise<void> {
     // As notas e os vídeos ficam em outras tabelas; se elas não existirem ou falharem, o registro já foi excluído.
     await db.from("voxen_player_meta").delete().eq("player_key", key)
     await db.from("voxen_player_materials").delete().eq("player_key", key)
+    await db.from("voxen_player_charts").delete().eq("player_key", key)
   }
 }
 

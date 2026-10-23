@@ -4,7 +4,8 @@
  *
  * A equipe lê tudo; quem mantém jogador (Scout, executivo, admin) escreve; excluir é do admin.
  * O banco é quem garante (RLS). No `npm run dev` com ?demo, dados locais (demo.ts, fora do build).
- * Migrações: 20261020100000_camada_do_scout, 20261020110000_midia_storage, 20261020120000_ficha_completa_e_crm.
+ * Migrações: 20261020100000_camada_do_scout, 20261020110000_midia_storage, 20261020120000_ficha_completa_e_crm
+ * e, para a proposta das oportunidades (valor, posição, urgência...), 20261026100000_oportunidades_com_proposta.
  */
 import { useCallback, useEffect, useState } from "react"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -14,6 +15,10 @@ import {
   isMissing, toClub, toLocks, toSubmission,
   type BodyStyle, type ClubRef, type Locks, type OpportunityStatus, type Submission,
 } from "@/pages/membros/scoutLayer"
+import {
+  BENEFITS, CURRENCIES, KINDS, NO_PROPOSAL, PERIODS, URGENCIES,
+  type AmountPeriod, type Benefit, type Currency, type OpportunityKind, type Proposal, type Urgency,
+} from "../opportunities/proposal"
 
 const db = supabase as unknown as SupabaseClient
 const BUCKET = "zyron-media"
@@ -40,12 +45,14 @@ export type Club = ClubRef & { active: boolean }
 
 export type ClubInput = { id?: string; name: string; country: string | null; league: string | null; crestUrl: string | null; emblem: string | null; color: string | null }
 
-export type Opportunity = {
+/** Oportunidade: o clube, o encaixe, o prazo de resposta e a proposta (valor, posição, urgência...). Só a equipe vê a proposta. */
+export type Opportunity = Proposal & {
   id: string
   memberId: string
   clubId: string
   club: Club | null
   compatibility: number
+  /** Prazo para responder ao clube (AAAA-MM-DD). */
   deadline: string | null
   status: OpportunityStatus
   published: boolean
@@ -56,7 +63,7 @@ export type Opportunity = {
   updatedAt: string
 }
 
-export type OpportunityInput = {
+export type OpportunityInput = Proposal & {
   id?: string
   memberId: string
   clubId: string
@@ -67,6 +74,12 @@ export type OpportunityInput = {
   athleteNote: string | null
   internalNote: string | null
 }
+
+/** Os campos da proposta de uma oportunidade (para copiar de uma para outra). */
+export const proposalOf = (o: Proposal): Proposal => ({
+  kind: o.kind, position: o.position, category: o.category, amount: o.amount, currency: o.currency, period: o.period,
+  signingBonus: o.signingBonus, contractMonths: o.contractMonths, startsOn: o.startsOn, benefits: o.benefits, urgency: o.urgency,
+})
 
 export type PhotoVersion = { url: string; smallUrl: string | null; style: BodyStyle }
 
@@ -228,7 +241,29 @@ const clubRow = (c: ClubInput) => ({
   color: c.color && /^#[0-9a-f]{6}$/i.test(c.color) ? c.color.toLowerCase() : null,
 })
 
+const money = (v: unknown) => {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+const oneOf = <T extends string>(list: readonly T[], v: unknown, fallback: T): T => (list.includes(v as T) ? (v as T) : fallback)
+
+/** A proposta como o banco devolve (banco sem a migração das propostas: tudo vazio, nada quebra). */
+export const toProposal = (r: Row): Proposal => ({
+  kind: KINDS.includes(r.kind as OpportunityKind) ? (r.kind as OpportunityKind) : NO_PROPOSAL.kind,
+  position: str(r.position),
+  category: str(r.category),
+  amount: money(r.amount),
+  currency: oneOf<Currency>(CURRENCIES, r.currency, "BRL"),
+  period: oneOf<AmountPeriod>(PERIODS, r.amount_period, "mes"),
+  signingBonus: money(r.signing_bonus),
+  contractMonths: Number.isInteger(Number(r.contract_months)) && Number(r.contract_months) > 0 ? Number(r.contract_months) : null,
+  startsOn: str(r.starts_on)?.slice(0, 10) ?? null,
+  benefits: Array.isArray(r.benefits) ? (BENEFITS.filter((b) => (r.benefits as unknown[]).includes(b)) as Benefit[]) : [],
+  urgency: oneOf<Urgency>(URGENCIES, r.urgency, "media"),
+})
+
 export const toOpp = (r: Row): Opportunity => ({
+  ...toProposal(r),
   id: r.id as string,
   memberId: r.member_id as string,
   clubId: r.club_id as string,
@@ -439,11 +474,27 @@ const supabaseScout: ScoutApi = {
       published: input.published,
       athlete_note: input.athleteNote?.trim().slice(0, 600) || null,
       internal_note: input.internalNote?.trim().slice(0, 2000) || null,
+      kind: input.kind,
+      position: input.position?.trim() || null,
+      category: input.category?.trim() || null,
+      amount: input.amount,
+      currency: input.currency,
+      amount_period: input.period,
+      signing_bonus: input.signingBonus,
+      contract_months: input.contractMonths,
+      starts_on: input.startsOn || null,
+      benefits: input.benefits,
+      urgency: input.urgency,
     }
     const res = input.id
       ? await db.from("zyron_opportunities").update(row).eq("id", input.id).select("*, club:zyron_clubs(*)").single()
       : await db.from("zyron_opportunities").insert(row).select("*, club:zyron_clubs(*)").single()
     if (res.error?.code === "23505") throw new Error("Este jogador já tem uma oportunidade aberta neste clube.")
+    // Coluna da proposta que o banco ainda não tem: a migração das propostas não foi aplicada.
+    if (res.error?.code === "PGRST204" || /could not find the .* column/i.test(res.error?.message ?? "")) {
+      throw new Error("As propostas das oportunidades ainda não foram ativadas no banco de dados. Peça para aplicar a migração 20261026100000.")
+    }
+    if (res.error?.code === "23514") throw new Error("O banco recusou algum valor da proposta. Confira o valor, a duração e as datas.")
     check(res.error)
     return toOpp(res.data)
   },
