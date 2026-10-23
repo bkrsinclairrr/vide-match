@@ -15,7 +15,10 @@ import { KINDS, MAX_BATCH, rowKey, type ImportItem, type ImportKind, type Import
 
 const db = supabase as unknown as SupabaseClient
 
-export const IMPORTED_MIGRATIONS = ["supabase/migrations/20261023100000_importados_subsecoes_e_aprovacao.sql"]
+export const IMPORTED_MIGRATIONS = [
+  "supabase/migrations/20261023100000_importados_subsecoes_e_aprovacao.sql",
+  "supabase/migrations/20261024110000_importados_completos_e_levas.sql",
+]
 
 /** O diagnóstico da lista de pendências (um texto que a ponte não entendeu, ou uma diferença com a ficha). */
 export type ReviewItem = {
@@ -65,6 +68,11 @@ export interface ImportedApi {
   readonly demo: boolean
   list(): Promise<ImportRow[]>
   detail(kind: ImportKind, ref: string): Promise<ImportDetail | null>
+  /**
+   * Vários importados por inteiro, para o arquivo de contexto. Busca aos poucos (60 por vez) e avisa o andamento;
+   * quem não for encontrado fica de fora.
+   */
+  details(items: ImportItem[], onProgress?: (done: number, total: number) => void): Promise<ImportDetail[]>
   sections(): Promise<ImportSection[]>
   saveSection(input: SectionInput): Promise<ImportSection>
   /** Só o administrador. As pessoas da subseção voltam para "sem subseção"; ninguém é apagado. */
@@ -83,16 +91,21 @@ type Row = Record<string, unknown>
 
 const kindOf = (v: unknown): ImportKind | null => (typeof v === "string" && (KINDS as string[]).includes(v) ? (v as ImportKind) : null)
 const num = (v: unknown, fallback = 0) => (typeof v === "number" && Number.isFinite(v) ? v : Number(v) || fallback)
+const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x !== "") : [])
 
+/** A lista do banco. As colunas novas (idade, time, recibos...) podem faltar enquanto a migração das levas não foi aplicada: a tela segue funcionando sem elas. */
 export function toRow(r: Row): ImportRow | null {
   const kind = kindOf(r.kind)
   const ref = typeof r.ref === "string" ? r.ref : null
   if (!kind || !ref) return null
+  const age = num(r.age)
   return {
     key: rowKey(kind, ref), kind, ref,
     name: str(r.name), guardianName: str(r.guardian_name), position: str(r.player_position), category: str(r.category), city: str(r.city),
+    team: str(r.team), birthDate: str(r.birth_date)?.slice(0, 10) ?? null, age: age >= 4 && age <= 60 ? age : null,
     answersCount: num(r.answers_count), notesCount: num(r.notes_count), hasContext: r.has_context === true, reviewCount: num(r.review_count),
-    revision: num(r.revision, 1), firstAt: str(r.first_at), updatedAt: str(r.updated_at), memberId: str(r.member_id),
+    revision: num(r.revision, 1), firstAt: str(r.first_at), updatedAt: str(r.updated_at), receipts: strings(r.receipts), wasProspect: r.was_prospect === true,
+    memberId: str(r.member_id),
     sectionId: str(r.section_id), approvedAt: str(r.approved_at), approvedByName: str(r.approved_by_name),
     approvedRevision: r.approved_revision === null || r.approved_revision === undefined ? null : num(r.approved_revision, 1),
   }
@@ -139,6 +152,9 @@ function sectionError(error: { code?: string; message?: string }): never {
   throw new Error(error.message || "Não foi possível salvar a subseção.")
 }
 
+/** O banco devolve no máximo 60 importados por inteiro de cada vez. */
+const DETAILS_BATCH = 60
+
 const chunks = <T,>(list: T[], size: number): T[][] => {
   const out: T[][] = []
   for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size))
@@ -158,6 +174,23 @@ const supabaseImported: ImportedApi = {
     const { data, error } = await db.rpc("zyron_imported_detail", { p_kind: kind, p_ref: ref })
     check(error)
     return data && typeof data === "object" ? toDetail(data as Row) : null
+  },
+
+  async details(items, onProgress) {
+    const out: ImportDetail[] = []
+    let done = 0
+    onProgress?.(0, items.length)
+    for (const part of chunks(items, DETAILS_BATCH)) {
+      const { data, error } = await db.rpc("zyron_imported_details", { p_items: part })
+      check(error)
+      for (const r of (Array.isArray(data) ? data : []) as Row[]) {
+        const d = toDetail(r)
+        if (d) out.push(d)
+      }
+      done += part.length
+      onProgress?.(done, items.length)
+    }
+    return out
   },
 
   async sections() {

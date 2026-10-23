@@ -1,7 +1,27 @@
 import type { CSSProperties } from "react"
 import { Check, Database, Minus } from "lucide-react"
+import { missingLabel } from "../../people"
 import { IMPORTED_MIGRATIONS, isSetupMissing } from "./api"
-import { KIND_LABEL, KIND_SHORT, statusOf, type ImportKind, type ImportRow, type ImportSection } from "./model"
+import { KIND_LABEL, KIND_SHORT, arrivalOn, basicsOf, statusOf, type ImportKind, type ImportRow, type ImportSection } from "./model"
+
+/** Quatro pontinhos: quanto dos dados básicos (idade, posição, categoria, cidade) este importado já tem. */
+export function BasicsDots({ row }: { row: ImportRow }) {
+  const c = basicsOf(row)
+  return (
+    <span className="im-dots" title={c.complete ? "Dados básicos completos (idade, posição, categoria e cidade)" : `Dados básicos: ${c.core} de 4 — ${missingLabel(c)}`} aria-label={`${c.core} de 4 dados básicos`}>
+      {[0, 1, 2, 3].map((i) => <i key={i} className={i < c.core ? "is-on" : ""} />)}
+    </span>
+  )
+}
+
+/** "Novo" ou "Reenviado" na leva do dia (a mais recente, em geral): primeira vez ou o CRM mandou de novo alguém que já estava aqui. */
+export function ArrivalTag({ row, day }: { row: ImportRow; day: string }) {
+  const a = arrivalOn(row, day)
+  if (!a) return null
+  return a === "novo"
+    ? <span className="im-arrival is-new" title="Chegou pela primeira vez nesta leva">Novo</span>
+    : <span className="im-arrival is-again" title="Já havia sido importado antes e o CRM mandou de novo: é o mesmo registro, atualizado">Reenviado</span>
+}
 
 /** Caixa de marcar. `onChange` recebe se o Shift estava apertado (marcar do último ao clicado). */
 export function Tick({ on, partial = false, label, onChange, disabled = false }: {
