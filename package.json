@@ -11,7 +11,8 @@
     "test:ponte": "node --test supabase/functions/_shared/crm-context.test.ts",
     "test:importados": "node --test src/pages/voxen/pages/imported/model.test.ts src/pages/voxen/pages/imported/summary.test.ts src/pages/voxen/pages/imported/markdown.test.ts",
     "preview": "vite preview",
-    "test:pessoas": "node --test src/pages/voxen/people.test.ts"
+    "test:pessoas": "node --test src/pages/voxen/people.test.ts",
+    "test:materiais": "node --test src/pages/voxen/pages/media/model.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

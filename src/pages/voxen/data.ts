@@ -701,8 +701,9 @@ export async function deletePlayer(p: Player): Promise<void> {
     const id = table === "Atletas" ? Number(key.slice(7)) : key.slice(5)
     const { error } = await db.from(table).delete().eq("id", id)
     if (error) throw new Error(friendly(error.message, error.code))
-    // As notas ficam em outra tabela; se ela não existir ou falhar, o registro já foi excluído.
+    // As notas e os vídeos ficam em outras tabelas; se elas não existirem ou falharem, o registro já foi excluído.
     await db.from("voxen_player_meta").delete().eq("player_key", key)
+    await db.from("voxen_player_materials").delete().eq("player_key", key)
   }
 }
 

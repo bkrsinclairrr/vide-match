@@ -88,10 +88,20 @@ export type Submission = {
   createdAt: string
 }
 
+/** Como a pessoa aparece: a foto redonda de perfil ou a de corpo inteiro. */
+export type PhotoMode = "perfil" | "corpo"
+
 export type ScoutLayer = {
   memberId: string | null
   locks: Locks
+  /** A foto de corpo inteiro que aparece no Início (só quando a escolha é "corpo"). */
   bodyPhoto: BodyPhoto | null
+  /** A foto de corpo inteiro que a equipe enviou, mesmo com a escolha em "perfil" (para a pessoa ver as duas opções). */
+  bodyPhotoOption: BodyPhoto | null
+  photoMode: PhotoMode
+  /** Quem escolheu por último (o atleta ou a equipe) e quando. */
+  photoChoiceBy: "atleta" | "equipe" | null
+  photoChoiceAt: string | null
   /** Só as publicadas e em andamento (aberta ou enviada). */
   opportunities: RealOpportunity[]
   submissions: Submission[]
@@ -99,7 +109,12 @@ export type ScoutLayer = {
   available: boolean
 }
 
-export const EMPTY_LAYER: ScoutLayer = { memberId: null, locks: {}, bodyPhoto: null, opportunities: [], submissions: [], available: false }
+export const EMPTY_LAYER: ScoutLayer = {
+  memberId: null, locks: {}, bodyPhoto: null, bodyPhotoOption: null, photoMode: "perfil", photoChoiceBy: null, photoChoiceAt: null,
+  opportunities: [], submissions: [], available: false,
+}
+
+const choiceBy = (v: unknown): ScoutLayer["photoChoiceBy"] => (v === "atleta" || v === "equipe" ? v : null)
 
 /* ------------------------------------------------------------------ */
 /* Leitura (o banco devolve snake_case, tanto na função quanto nas tabelas) */
@@ -194,10 +209,17 @@ async function readOwn(): Promise<ScoutLayer> {
   if (error || !data || typeof data !== "object") return EMPTY_LAYER
   const d = data as Row
   const photo = d.body_photo as Row | null
+  // Banco sem a migração da foto escolhida: a opção é a própria foto ligada.
+  const option = (d.body_photo_option as Row | null | undefined) ?? photo
+  const bodyPhoto = toBodyPhoto(photo, toClub(photo?.kit as Row))
   return {
     memberId: text(d.member_id),
     locks: toLocks(d.locks),
-    bodyPhoto: toBodyPhoto(photo, toClub(photo?.kit as Row)),
+    bodyPhoto,
+    bodyPhotoOption: toBodyPhoto(option, toClub(option?.kit as Row)),
+    photoMode: bodyPhoto ? "corpo" : "perfil",
+    photoChoiceBy: choiceBy(d.photo_choice_by),
+    photoChoiceAt: text(d.photo_choice_at),
     opportunities: list(d.opportunities, toOpportunity),
     submissions: list(d.submissions, toSubmission),
     available: true,
@@ -220,10 +242,16 @@ async function readAsStaff(memberId: string | null, userId: string | null): Prom
     const k = await db.from("zyron_clubs").select("*").eq("id", c.kit_club_id as string).maybeSingle()
     kit = toClub(k.data as Row)
   }
+  const option = toBodyPhoto(c, kit)
+  const bodyPhoto = c?.body_photo_on === true ? option : null
   return {
     memberId,
     locks: toLocks(c?.locks),
-    bodyPhoto: c?.body_photo_on === true ? toBodyPhoto(c, kit) : null,
+    bodyPhoto,
+    bodyPhotoOption: option,
+    photoMode: bodyPhoto ? "corpo" : "perfil",
+    photoChoiceBy: choiceBy(c?.photo_choice_by),
+    photoChoiceAt: text(c?.photo_choice_at),
     opportunities: list(opps?.data, toOpportunity).sort(byFit),
     submissions: list(subs?.data, toSubmission),
     available: true,
@@ -269,6 +297,24 @@ export async function submitMatchVideo(input: SubmitInput, preview: boolean): Pr
   const s = toSubmission(data as Row)
   if (!s) throw new Error("Não foi possível enviar o jogo.")
   return s
+}
+
+/* ------------------------------------------------------------------ */
+/* A escolha da foto                                                   */
+/* ------------------------------------------------------------------ */
+
+export type PhotoChoiceResult = { mode: PhotoMode; choiceBy: ScoutLayer["photoChoiceBy"]; choiceAt: string | null }
+
+/** A própria pessoa escolhe como aparece. O banco confere que corpo inteiro só vale com a foto enviada pela equipe. */
+export async function setMyPhotoMode(mode: PhotoMode, preview: boolean): Promise<PhotoChoiceResult> {
+  if (import.meta.env.DEV && preview) return (await import("./fixtures")).fixtureSetPhotoMode(mode)
+  const { data, error } = await db.rpc("zyron_set_my_photo_mode", { p_mode: mode })
+  if (error) {
+    if (isMissing(error)) throw new Error("A escolha da foto ainda não foi ativada. Fale com a equipe pelo WhatsApp.")
+    throw new Error(error.message || "Não foi possível trocar a foto.")
+  }
+  const d = (data ?? {}) as Row
+  return { mode: d.photo_mode === "corpo" ? "corpo" : "perfil", choiceBy: choiceBy(d.photo_choice_by), choiceAt: text(d.photo_choice_at) }
 }
 
 /* ------------------------------------------------------------------ */
