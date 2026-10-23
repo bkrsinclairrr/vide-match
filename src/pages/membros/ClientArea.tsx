@@ -18,7 +18,7 @@ import { PageSkeleton } from "@/pages/voxen/ui"
 import { SetupMissingError, getPreviewAccount, getSource, type DataSource } from "./api"
 import { loadAccountByAtletaId, loadAccountByUserId, loadOwnAccount, withMember, type AthleteAccount } from "./account"
 import { loadCareer } from "./career"
-import { loadScoutLayer, type ScoutLayer } from "./scoutLayer"
+import { loadScoutLayer, setMyPhotoMode, type PhotoMode, type ScoutLayer } from "./scoutLayer"
 import { categoryOf, gameOf, reportOf, type Career, type Game, type Gates, type Report } from "./game"
 import { summarizeProfile, type ProfileSummary } from "./metrics"
 import type { Bundle, Member } from "./model"
@@ -92,6 +92,8 @@ type AthleteCtx = {
   /** Abre o seletor de foto (desligado no "ver como" da equipe). */
   pickPhoto: (() => void) | null
   photoBusy: boolean
+  /** Escolhe como aparecer: foto de perfil ou corpo inteiro (desligado no "ver como" da equipe). Erro vem em português. */
+  choosePhoto: ((mode: PhotoMode) => Promise<void>) | null
   /** Missões cumpridas desde a última visita (nesta sessão): as telas usam para animar o que acabou de abrir. */
   fresh: ReadonlySet<string>
 }
@@ -289,6 +291,15 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
 
   const adminPreview = Boolean(asMember && isAdmin)
   const canPickPhoto = state.status === "ok" && !adminPreview && (state.source.preview || Boolean(user))
+  const previewData = state.status === "ok" && state.source.preview
+
+  /** A escolha vale na hora: o Início troca de foto sem buscar tudo de novo. */
+  const choosePhoto = useCallback(async (mode: PhotoMode) => {
+    const res = await setMyPhotoMode(mode, previewData)
+    setState((s) => (s.status === "ok"
+      ? { ...s, layer: { ...s.layer, photoMode: res.mode, bodyPhoto: res.mode === "corpo" ? s.layer.bodyPhotoOption : null, photoChoiceBy: res.choiceBy, photoChoiceAt: res.choiceAt } }
+      : s))
+  }, [previewData])
 
   const onPhoto = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -356,8 +367,9 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
     refresh,
     pickPhoto: canPickPhoto ? () => photoInput.current?.click() : null,
     photoBusy,
+    choosePhoto: canPickPhoto ? choosePhoto : null,
     fresh: news.fresh,
-  }, [value, adminPreview, refresh, canPickPhoto, photoBusy, news.fresh])
+  }, [value, adminPreview, refresh, canPickPhoto, photoBusy, choosePhoto, news.fresh])
 
   if (state.status === "loading") return <Splash />
   if (state.status === "erro" || !value || !athlete) {

@@ -131,7 +131,12 @@ export const demoScout: ScoutApi = {
 
   async saveControls(memberId, patch) {
     const base = controls.find((c) => c.memberId === memberId) ?? emptyControls(memberId)
-    const next: Controls = { ...base, ...patch, memberId, updatedAt: now() }
+    // Como o gatilho do banco: trocar entre perfil e corpo inteiro conta como escolha da equipe.
+    const chose = patch.bodyPhotoOn !== undefined && patch.bodyPhotoOn !== base.bodyPhotoOn
+    const next: Controls = {
+      ...base, ...patch, memberId, updatedAt: now(),
+      ...(chose ? { photoChoiceBy: "equipe" as const, photoChoiceAt: now() } : {}),
+    }
     controls = controls.some((c) => c.memberId === memberId) ? controls.map((c) => (c.memberId === memberId ? next : c)) : [...controls, next]
     return delay(next)
   },

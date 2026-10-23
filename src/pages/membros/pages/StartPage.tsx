@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowRight, Compass, MapPin, Signpost, Sparkles, Trophy } from "lucide-react"
+import { ArrowRight, Compass, MapPin, PersonStanding, Signpost, Sparkles, Trophy } from "lucide-react"
 import { CountUp, Ring } from "@/pages/voxen/charts"
 import { CardHead } from "@/pages/voxen/ui"
 import { useAthlete } from "../ClientArea"
@@ -123,6 +123,11 @@ export default function StartPage() {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <LevelChip game={game} />
               {chips.map((c) => <span key={c} className="vx-chip h-7 cursor-default">{c}</span>)}
+              {layer.bodyPhotoOption && (
+                <Link to={`${CLIENT_BASE}/perfil#foto`} className="vx-chip h-7" title="Escolha entre a foto de perfil e a de corpo inteiro">
+                  <PersonStanding className="h-3.5 w-3.5" /> {body ? "Trocar a foto" : "Aparecer de corpo inteiro"}
+                </Link>
+              )}
             </div>
           </div>
         </div>

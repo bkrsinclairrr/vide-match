@@ -16,8 +16,10 @@ import {
 import { Est } from "../estimated"
 import { keysOf } from "../people"
 import { deleteSummary } from "./PlayerDialogs"
+import { MaterialsSection } from "./media/MaterialsSection"
+import { PlayerLook } from "./media/PlayerLook"
 import { Meter, Pitch, RadarChart, Ring, CountUp } from "../charts"
-import { Avatar, CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
+import { CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
 
 const PlayerEditor = lazy(() => import("./PlayerEditor"))
 
@@ -97,7 +99,7 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
       <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(600px 220px at 10% 0%, rgba(251,191,36,0.12), transparent 70%)" }} />
       <div className="relative flex flex-wrap items-center gap-5">
         <Link to="/voxen/jogadores" className="vx-icon-btn vx-no-print vx-back-btn" aria-label="Voltar para jogadores"><ArrowLeft /></Link>
-        <Avatar name={p.name} size={76} />
+        <PlayerLook key={p.key} p={p} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="break-words text-[22px] font-bold leading-tight tracking-[-0.02em] sm:text-[26px]">{p.name}</h2>
@@ -341,6 +343,8 @@ export default function PlayerProfile() {
           <PlayerEditor key={p.key} p={p} onClose={() => setEditing(false)} />
         </Suspense>
       )}
+
+      <MaterialsSection key={`materiais-${p.key}`} p={p} />
 
       <div className="vx-grid mb-[18px] lg:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)_minmax(0,0.85fr)]">
         <section className="vx-card">

@@ -1,6 +1,8 @@
+import "../media/media.css"
+
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type PointerEvent } from "react"
 import {
-  AlertTriangle, Camera, Check, Crosshair, Frame, ImagePlus, Loader2, Monitor, RotateCcw, Scissors, Smartphone, Upload, X,
+  AlertTriangle, Camera, Check, CircleUserRound, Crosshair, Frame, ImagePlus, Loader2, Monitor, PersonStanding, RotateCcw, Scissors, Smartphone, Upload, X,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useVoxen } from "@/pages/voxen/store"
@@ -8,6 +10,7 @@ import { BodyStage } from "@/pages/membros/components/BodyStage"
 import type { BodyPhoto, BodyStyle } from "@/pages/membros/scoutLayer"
 import type { Member } from "@/pages/membros/model"
 import { ClubPicker, NewClubForm } from "../opportunities/ClubPicker"
+import { choiceNote } from "../media/model"
 import { errMsg, type Club, type Controls, type ScoutApi } from "./api"
 import {
   centered, clampCrop, containScale, coverScale, encode, extOf, hasTransparency, luminance, openImage, previewUrl, render,
@@ -77,8 +80,9 @@ function drawEditor(canvas: HTMLCanvasElement, src: Source, crop: Crop, alpha: b
 /**
  * Foto de corpo inteiro (aba da ficha do Scout). Escolher, conferir, recortar em 4:5, escolher o
  * estilo e o clube do uniforme, ver ao vivo como o atleta vai ver (computador e celular) e
- * ligar ou desligar. Sobe duas versões em WebP (1000 e 640 px de altura); a foto anterior só
- * sai do Storage quando uma terceira a substitui, e pode ser restaurada.
+ * escolher como ele aparece: foto de perfil (redonda) ou corpo inteiro. O atleta também escolhe
+ * na área dele; vale a última escolha. Sobe duas versões em WebP (1000 e 640 px de altura); a foto
+ * anterior só sai do Storage quando uma terceira a substitui, e pode ser restaurada.
  */
 export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onClubsChanged }: {
   api: ScoutApi
@@ -99,8 +103,8 @@ export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onCl
   const [stage, setStage] = useState<string | null>(null)
   const [drag, setDrag] = useState(false)
   const [editingClub, setEditingClub] = useState(false)
-  const [confirmOn, setConfirmOn] = useState(false)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const first = member.fullName.split(" ")[0]
   const pointer = useRef<{ x: number; y: number; crop: Crop } | null>(null)
 
   const kit = clubs.find((c) => c.id === controls.kitClubId) ?? null
@@ -215,7 +219,9 @@ export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onCl
       setPreview(null)
       toast({
         title: "Foto salva",
-        description: saved.bodyPhotoOn ? `${member.fullName} já vê a foto nova no Início.` : `Ligue a foto para ${member.fullName} ver no Início. (${Math.round(big.size / 1024)} KB)`,
+        description: saved.bodyPhotoOn
+          ? `${member.fullName} já aparece com a foto nova.`
+          : `Escolha "Corpo inteiro" abaixo para ${first} aparecer assim (ele também pode escolher na área dele).`,
       })
     } catch (e) {
       toast({ title: "Não foi possível salvar a foto", description: `${errMsg(e)} A foto atual continua como estava.`, variant: "destructive" })
@@ -366,22 +372,21 @@ export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onCl
 
           {controls.bodyPhotoUrl && !picked && (
             <div className="bp-state">
-              <label className={`op-publish ${controls.bodyPhotoOn ? "is-on" : ""}`}>
-                <input type="checkbox" className="sr-only" checked={controls.bodyPhotoOn} disabled={!canScout}
-                  onChange={(e) => (e.target.checked ? setConfirmOn(true) : void patch({ bodyPhotoOn: false }, "Foto desligada: o Início volta ao normal"))} />
-                <span className="op-switch" aria-hidden="true"><i /></span>
-                <span><b>{controls.bodyPhotoOn ? "Ligada" : "Desligada"}</b><small>{controls.bodyPhotoOn ? `${member.fullName.split(" ")[0]} vê esta foto no Início.` : "Só a equipe vê. Ligue quando estiver pronta."}</small></span>
-              </label>
-              {confirmOn && (
-                <div className="bp-confirm" role="alertdialog" aria-label="Ligar a foto">
-                  <p>Ligar a foto? <strong>{member.fullName}</strong> passa a ver esta foto no Início da área dele.</p>
-                  <div>
-                    <button type="button" className="vx-btn h-8" onClick={() => setConfirmOn(false)}>Cancelar</button>
-                    <button type="button" className="vx-btn vx-btn--gold h-8" onClick={() => { setConfirmOn(false); void patch({ bodyPhotoOn: true }, "Foto ligada: o atleta já vê no Início") }}>Ligar</button>
-                  </div>
+              <div className="bp-mode">
+                <span className="bp-mode-label">Como {first} aparece (no Início dele e na ficha)</span>
+                <div className="pl-look-switch" role="radiogroup" aria-label={`Como ${first} aparece`}>
+                  <button type="button" role="radio" aria-checked={!controls.bodyPhotoOn} className={controls.bodyPhotoOn ? "" : "is-on"} disabled={!canScout}
+                    onClick={() => { if (controls.bodyPhotoOn) void patch({ bodyPhotoOn: false }, `${first} aparece com a foto de perfil`) }}>
+                    <CircleUserRound /> Foto de perfil
+                  </button>
+                  <button type="button" role="radio" aria-checked={controls.bodyPhotoOn} className={controls.bodyPhotoOn ? "is-on" : ""} disabled={!canScout}
+                    onClick={() => { if (!controls.bodyPhotoOn) void patch({ bodyPhotoOn: true }, `${first} aparece de corpo inteiro`) }}>
+                    <PersonStanding /> Corpo inteiro
+                  </button>
                 </div>
-              )}
-              {controls.bodyPhotoPrev && canScout && <button type="button" className="vx-btn h-8" onClick={restore}><RotateCcw /> Restaurar a foto anterior</button>}
+                <small>{choiceNote(controls.photoChoiceBy, controls.photoChoiceAt) || `${first} também pode escolher na área dele. Vale a última escolha.`}</small>
+              </div>
+              {controls.bodyPhotoPrev && canScout && <button type="button" className="vx-btn h-8 justify-self-start" onClick={restore}><RotateCcw /> Restaurar a foto anterior</button>}
             </div>
           )}
         </section>

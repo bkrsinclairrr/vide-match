@@ -11,7 +11,7 @@ import type { DataSource, EventInput, MatchInput, MemberInput, ProfileListItem }
 import type { AthleteAccount } from "./account"
 import { NO_CAREER, type Career } from "./game"
 import { ACTION_KEYS, parseVideo, type ActionKey, type Bundle, type Match, type MatchEvent, type Member } from "./model"
-import { LOCK_KEYS, type ClubRef, type ScoutLayer, type Submission, type SubmitInput } from "./scoutLayer"
+import { LOCK_KEYS, type BodyPhoto, type ClubRef, type PhotoChoiceResult, type PhotoMode, type ScoutLayer, type Submission, type SubmitInput } from "./scoutLayer"
 
 const TEST_VIDEO =
   "https://upload.wikimedia.org/wikipedia/commons/transcoded/b/ba/Match_de_football_France-Allemagne_-_16_octobre_2018_-_Phase_de_jeu_%281%29.ogv/Match_de_football_France-Allemagne_-_16_octobre_2018_-_Phase_de_jeu_%281%29.ogv.480p.vp9.webm"
@@ -392,11 +392,11 @@ export const FIXTURE_ACCOUNT: AthleteAccount = {
 
 const daysFrom = (n: number) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10)
 
-const demoClub = (id: string, name: string, league: string, emblem: string, color: string): ClubRef =>
+export const demoClub = (id: string, name: string, league: string, emblem: string, color: string): ClubRef =>
   ({ id: `club-${id}`, name, country: "Brasil", league, crestUrl: null, emblem, color, catalogId: id })
 
-/** Atleta de teste em pé, desenhado em SVG (só para ver o palco sem uma foto real). */
-function demoBodySvg(cutout: boolean, kit: string) {
+/** Atleta de teste em pé, desenhado em SVG (só para ver o palco sem uma foto real). Também serve os Materiais do painel. */
+export function demoBodySvg(cutout: boolean, kit: string) {
   const bg = cutout ? "" : `<defs><radialGradient id="s" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#3a3a40"/><stop offset="1" stop-color="#121214"/></radialGradient></defs><rect width="800" height="1000" fill="url(#s)"/>`
   const skin = "#8d5a3b"
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">${bg}
@@ -417,22 +417,35 @@ const demoSubmissions: Submission[] = [
   { id: "env-1", videoId: "M7lc1UVf-VE", opponent: "Ceilândia Sub-17", playedOn: daysFrom(-6), note: "Entrei no 2º tempo, camisa 10.", status: "em_analise", reviewNote: null, matchId: null, createdAt: new Date(Date.now() - 5 * 86400000).toISOString() },
 ]
 
+/** A escolha da foto na demonstração (vale até recarregar a página). */
+let demoPhotoMode: PhotoMode | null = null
+/** O `?corpo=` com que a área abriu: os links internos não levam a URL de teste adiante. */
+let demoCorpo: string | null = null
+
 /**
  * Camada de teste. O membro principal tem duas oportunidades reais. `?corpo=moldura` ou
- * `?corpo=recorte` liga a foto de corpo inteiro; `?trava=matches` tranca uma parte da área.
+ * `?corpo=recorte` dá a foto de corpo inteiro (ligada; `&modo=perfil` começa na foto de perfil);
+ * `?trava=matches` tranca uma parte da área.
  */
 export function fixtureScoutLayer(memberId: string | null): ScoutLayer {
   const q = new URLSearchParams(window.location.search)
   const corpo = q.get("corpo")
+  demoCorpo = corpo
   const kit = demoClub("br2", "Palmeiras", "Série A", "🟢⚪", "#0b6b3a")
   const trava = q.get("trava")
   const main = memberId === "m-gabriel" || memberId === null
+  const option: BodyPhoto | null = corpo === "moldura" || corpo === "recorte"
+    ? { url: demoBodySvg(corpo === "recorte", kit.color ?? "#0b6b3a"), smallUrl: null, style: corpo, kit }
+    : null
+  const mode: PhotoMode = option && (demoPhotoMode ?? (q.get("modo") === "perfil" ? "perfil" : "corpo")) === "corpo" ? "corpo" : "perfil"
   return {
     memberId,
     locks: trava && (LOCK_KEYS as string[]).includes(trava) ? { [trava]: "locked" } : {},
-    bodyPhoto: corpo === "moldura" || corpo === "recorte"
-      ? { url: demoBodySvg(corpo === "recorte", kit.color ?? "#0b6b3a"), smallUrl: null, style: corpo, kit }
-      : null,
+    bodyPhoto: mode === "corpo" ? option : null,
+    bodyPhotoOption: option,
+    photoMode: mode,
+    photoChoiceBy: demoPhotoMode ? "atleta" : null,
+    photoChoiceAt: null,
     opportunities: main
       ? [
           { id: "op-1", club: kit, compatibility: 94, deadline: daysFrom(5), status: "aberta", athleteNote: "A base procura um meia-atacante canhoto para a avaliação de novembro.", publishedAt: new Date().toISOString() },
@@ -442,6 +455,12 @@ export function fixtureScoutLayer(memberId: string | null): ScoutLayer {
     submissions: [...demoSubmissions],
     available: true,
   }
+}
+
+export async function fixtureSetPhotoMode(mode: PhotoMode): Promise<PhotoChoiceResult> {
+  if (mode === "corpo" && demoCorpo !== "moldura" && demoCorpo !== "recorte") throw new Error("A sua foto de corpo inteiro ainda não foi feita pela equipe.")
+  demoPhotoMode = mode
+  return delay({ mode, choiceBy: "atleta" as const, choiceAt: new Date().toISOString() })
 }
 
 export async function fixtureSubmit(input: SubmitInput): Promise<Submission> {

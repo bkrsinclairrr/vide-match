@@ -139,6 +139,8 @@ export function buildDemoData(): VoxenData {
   const g = players[0]
   Object.assign(g, {
     name: "Gabriel Rocha da Silva",
+    // Membro de teste (a foto de corpo inteiro e os vídeos dele estão nos dados locais dos Materiais).
+    memberId: "m-gabriel",
     email: "gabriel.rocha07@gmail.com",
     profile: { age: 19, height: 178, weight: 72, foot: "Canhoto", nationality: "Brasil", position: "Meia-Atacante", category: "Sub 20", state: "Distrito Federal", city: "Brasília - DF" },
     hasProfile: true,
@@ -161,7 +163,7 @@ export function buildDemoData(): VoxenData {
   })
   // Lead + conta da mesma pessoa, já juntados (como o Juan Dérick Kretzer): um registro só, com a conta como apelido.
   players.push(person({
-    key: "lead:demo-juan", aliases: ["atleta:900"], userId: "demo-user-juan", name: "Juan Dérick Kretzer", email: "juan.kretzer@exemplo.com",
+    key: "lead:demo-juan", aliases: ["atleta:900"], userId: "demo-user-juan", memberId: "m-juan", name: "Juan Dérick Kretzer", email: "juan.kretzer@exemplo.com",
     phone: "47900000001", createdAt: new Date(now - 3 * 86400000).toISOString(),
     profile: { age: 17, height: 190, weight: 84, foot: "canhoto", nationality: "Brasil", position: "Zagueiro", category: "Sub 17", state: "Santa Catarina", city: "Joinville - SC" },
     hasProfile: true,

@@ -1,0 +1,43 @@
+/* "Como você aparece" (Perfil do atleta): duas opções lado a lado, a foto de perfil e a de corpo inteiro. */
+
+.ph-card { scroll-margin-top: 90px; }
+.ph-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.ph-choice { position: relative; display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 12px; padding: 18px 14px 16px; border-radius: 20px; border: 1px solid var(--vx-border-2); background: radial-gradient(90% 70% at 50% 0%, rgba(255, 255, 255, 0.045), transparent 70%), rgba(255, 255, 255, 0.015); cursor: pointer; text-align: center; transition: border-color 0.3s, background 0.3s, transform 0.4s var(--vx-ease), box-shadow 0.4s var(--vx-ease); }
+.ph-choice:hover:not(.is-locked):not([aria-disabled="true"]):not(.is-on) { border-color: rgba(251, 191, 36, 0.4); transform: translateY(-2px); }
+.ph-choice:focus-visible { outline: 2px solid var(--vx-gold); outline-offset: 3px; }
+.ph-choice.is-on { border-color: rgba(251, 191, 36, 0.7); background: radial-gradient(90% 70% at 50% 0%, rgba(251, 191, 36, 0.13), transparent 70%), rgba(251, 191, 36, 0.03); box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.22), 0 18px 40px -24px rgba(251, 191, 36, 0.65); }
+.ph-choice.is-locked, .ph-choice[aria-disabled="true"] { cursor: default; }
+.ph-choice.is-locked .ph-label b { color: var(--vx-muted); }
+
+.ph-check { position: absolute; top: 12px; right: 12px; z-index: 3; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--vx-border-2); color: var(--vx-dim); transition: background 0.25s, border-color 0.25s; }
+.ph-check svg { width: 13px; height: 13px; }
+.ph-choice.is-on .ph-check { border-color: transparent; background: linear-gradient(180deg, #fcd34d, #f59e0b); color: #1a1205; box-shadow: 0 0 14px -4px rgba(251, 191, 36, 0.9); }
+
+/* Só imagem: o toque em qualquer ponto vai para o cartão (o botão de ampliar do palco, desligado aqui, engoliria o clique). */
+.ph-stage { display: grid; width: 100%; height: 196px; place-items: center; pointer-events: none; }
+.ph-stage .bs { --bs-w: 136px; padding-bottom: 8px; }
+.ph-stage .bs-seal { bottom: -4px; transform: translateX(-50%) scale(0.58); transform-origin: 50% 100%; }
+.ph-stage .bs-chips, .ph-stage .bs-reflection { display: none; }
+.ph-ghost { width: 104px; height: 172px; opacity: 0.9; }
+
+.ph-label { display: grid; gap: 3px; justify-items: center; }
+.ph-label b { color: var(--vx-text); font-size: 15px; font-weight: 800; letter-spacing: -0.01em; }
+.ph-label small { max-width: 230px; color: var(--vx-muted); font-size: 12px; line-height: 1.45; }
+
+.ph-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+.ph-note { margin: 0; color: var(--vx-dim); font-size: 12px; }
+
+@media (max-width: 520px) {
+  .ph-choices { gap: 10px; }
+  .ph-choice { padding: 14px 8px 12px; }
+  .ph-stage { height: 168px; }
+  .ph-stage .bs { --bs-w: 112px; }
+  .ph-stage .mb-avatar { transform: scale(0.86); }
+  .ph-label b { font-size: 14px; }
+  .ph-label small { font-size: 11px; }
+  .ph-actions .vx-btn { flex: 1 1 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-choice { transition: none; }
+}

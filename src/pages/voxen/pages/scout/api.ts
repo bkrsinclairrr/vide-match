@@ -83,14 +83,17 @@ export type Controls = {
   /** Na lista da aba Oportunidades desde quando (null = fora). */
   shortlistedAt: string | null
   scoutId: string | null
+  /** Quem escolheu por último entre a foto de perfil e a de corpo inteiro (o banco grava), e quando. */
+  photoChoiceBy: "atleta" | "equipe" | null
+  photoChoiceAt: string | null
   updatedAt: string | null
 }
 
-export type ControlsPatch = Partial<Omit<Controls, "memberId" | "updatedAt">>
+export type ControlsPatch = Partial<Omit<Controls, "memberId" | "updatedAt" | "photoChoiceBy" | "photoChoiceAt">>
 
 export const emptyControls = (memberId: string): Controls => ({
   memberId, locks: {}, bodyPhotoUrl: null, bodyPhotoSmallUrl: null, bodyPhotoOn: false, bodyPhotoStyle: "moldura",
-  bodyPhotoPrev: null, kitClubId: null, shortlistedAt: null, scoutId: null, updatedAt: null,
+  bodyPhotoPrev: null, kitClubId: null, shortlistedAt: null, scoutId: null, photoChoiceBy: null, photoChoiceAt: null, updatedAt: null,
 })
 
 export type StaffSubmission = Submission & { userId: string; memberId: string | null; updatedAt: string }
@@ -259,6 +262,8 @@ export const toControls = (r: Row): Controls => ({
   kitClubId: str(r.kit_club_id),
   shortlistedAt: str(r.shortlisted_at),
   scoutId: str(r.scout_id),
+  photoChoiceBy: r.photo_choice_by === "atleta" || r.photo_choice_by === "equipe" ? r.photo_choice_by : null,
+  photoChoiceAt: str(r.photo_choice_at),
   updatedAt: str(r.updated_at),
 })
 
