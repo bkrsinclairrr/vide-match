@@ -14,6 +14,7 @@ import { hasAnyProfile, isJunkTeam, keysOf, mergePeople, realProfileOf, type Mem
 import { fetchChartEdits } from "./pages/chartedit/api"
 import { attachLinkedProspects, isCrmKey, openProspects, prospectBase, type ProspectRow } from "./prospects"
 import { applyChartEdit, type ChartEdit } from "./pages/chartedit/model"
+import { bandOf, levelPlayers } from "./scores"
 
 // Tabelas e colunas novas ainda não estão nos tipos gerados.
 const db = supabase as unknown as SupabaseClient
@@ -235,28 +236,13 @@ export function originOf(row: { utm_source?: string | null; fbclid?: string | nu
 /* Cores por nota                                                      */
 /* ------------------------------------------------------------------ */
 
-/**
- * Jogadores novos e inexperientes: o painel mostra as notas do relatório (que saem na faixa 76–95) reduzidas para
- * cerca de 34–62. Só vale aqui no painel; o relatório que o atleta recebe no funil não muda.
- */
-export const ROOKIE_BASE = 34
-export const ROOKIE_SPREAD = 1.5
-
-export const rookieScore = (score: number) => Math.max(1, Math.min(100, Math.round(ROOKIE_BASE + (score - 76) * ROOKIE_SPREAD)))
-
-export const rookieStats = (stats: StatResult[]): StatResult[] => stats.map((s) => ({ ...s, score: rookieScore(s.score) }))
-
 /** Nota (1–100) como fração de 0 a 1, para radar e medidores. */
 export const scoreUnit = (score: number) => Math.max(0, Math.min(1, score / 100))
 
-/** Cortes das cores da nota, os mesmos de antes (90, 86 e 81) levados para a escala reduzida. */
-export const SCORE_CUTS = [55, 49, 42] as const
-
+/** A cor e o nome da faixa da nota (ver scores.ts: Estreante, Iniciante, Em evolução, Destaque e Craque). */
 export function scoreTone(score: number) {
-  if (score >= SCORE_CUTS[0]) return { color: "#34d399", bg: "rgba(52,211,153,0.12)", label: "Elite" }
-  if (score >= SCORE_CUTS[1]) return { color: "#a3e635", bg: "rgba(163,230,53,0.11)", label: "Acima da média" }
-  if (score >= SCORE_CUTS[2]) return { color: "#fbbf24", bg: "rgba(251,191,36,0.11)", label: "Na média" }
-  return { color: "#fb923c", bg: "rgba(251,146,60,0.12)", label: "Abaixo da média" }
+  const band = bandOf(score)
+  return { color: band.color, bg: band.bg, label: band.name }
 }
 
 /** Percentil dentro da base (0–100). */
@@ -374,7 +360,7 @@ function fromLead(row: LeadRow, meta: Map<string, PlayerMeta>): Player {
   const key = `lead:${row.id}`
   const profile = profileFromJson(row.profile)
   const saved = statsFromReport(row.report)
-  const stats = rookieStats(saved?.stats ?? buildStats(key))
+  const stats = saved?.stats ?? buildStats(key)
   return {
     key,
     source: "funil",
@@ -390,7 +376,7 @@ function fromLead(row: LeadRow, meta: Map<string, PlayerMeta>): Player {
     origin: originOf(row),
     utm: { source: row.utm_source, medium: row.utm_medium, campaign: row.utm_campaign, content: row.utm_content, term: row.utm_term },
     stats,
-    overall: overallFrom(stats),
+    overall: saved?.overall ?? overallFrom(stats),
     reportFromFunnel: Boolean(saved),
     meta: meta.get(key) ?? EMPTY_META,
   }
@@ -409,7 +395,7 @@ function fromAthlete(row: AthleteRow, names: Map<string, string>, meta: Map<stri
     nationality: str(row.nacionalidade), position: str(row.posicao), city: str(row.cidade),
   }
   // Mesmo relatório que a pessoa vê na /analysis e na área dela: indicadores pelo id da conta.
-  const stats = rookieStats(buildStats(row.user_id ?? key))
+  const stats = buildStats(row.user_id ?? key)
   return {
     key,
     source: "conta",
@@ -435,7 +421,7 @@ function fromAthlete(row: AthleteRow, names: Map<string, string>, meta: Map<stri
 /** Pré-cadastro do CRM aprovado em Importados. O relatório é o gerado pela plataforma (ele ainda não passou pelo funil). */
 function fromProspect(row: ProspectRow, meta: Map<string, PlayerMeta>): Player {
   const base = prospectBase(row)
-  const stats = rookieStats(buildStats(base.key))
+  const stats = buildStats(base.key)
   return { ...base, stats, overall: overallFrom(stats), reportFromFunnel: false, meta: meta.get(base.key) ?? EMPTY_META }
 }
 
@@ -575,13 +561,15 @@ export async function loadVoxenData(): Promise<VoxenData> {
   const merged = mergePeople(built, links, members)
   const report = merged.report
   const joined = attachLinkedProspects(merged.players, prospects, metaMap)
+  // Jogadores novos e inexperientes: as notas entram na escala de iniciante (ver scores.ts) antes de qualquer mudança da equipe.
+  const leveled = levelPlayers(joined)
   // O que a equipe mudou nos gráficos vale em todas as telas: entra por cima do relatório (o original fica guardado).
   const players = charts.size
-    ? joined.map((p) => {
+    ? leveled.map((p) => {
         const edit = charts.get(p.key) ?? p.aliases.map((a) => charts.get(a)).find(Boolean)
         return edit ? applyChartEdit(p, edit) : p
       })
-    : joined
+    : leveled
 
   return {
     players,
