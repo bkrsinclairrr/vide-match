@@ -8,6 +8,7 @@ import type {
   Club, Conflict, Controls, MemberContext, Opportunity, ScoutApi, StaffSubmission,
 } from "./api"
 import { emptyControls } from "./api"
+import { NO_PROPOSAL } from "../opportunities/proposal"
 
 const now = () => new Date().toISOString()
 const days = (n: number) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10)
@@ -18,14 +19,34 @@ let clubs: Club[] = [
   { id: "club-br2", name: "Palmeiras", country: "Brasil", league: "Série A", crestUrl: null, emblem: "🟢⚪", color: "#0b6b3a", catalogId: "br2", active: true },
   { id: "club-br10", name: "Athletico-PR", country: "Brasil", league: "Série A", crestUrl: null, emblem: "🔴⚫", color: "#c8102e", catalogId: "br10", active: true },
   { id: "club-own", name: "Real Brasília", country: "Brasil", league: "Candango", crestUrl: null, emblem: null, color: "#1d4ed8", catalogId: null, active: true },
+  { id: "club-1", name: "Real Sociedad", country: "Espanha", league: "La Liga", crestUrl: null, emblem: "🔵⚪", color: "#2563eb", catalogId: "1", active: true },
 ]
 
 const clubOf = (id: string) => clubs.find((c) => c.id === id) ?? null
 
 let opportunities: Opportunity[] = [
-  { id: "op-1", memberId: "m-gabriel", clubId: "club-br2", club: null, compatibility: 94, deadline: days(5), status: "aberta", published: true, publishedAt: ago(2), athleteNote: "A base procura um meia-atacante canhoto para a avaliação de novembro.", internalNote: "Contato: coordenador da base. Mandar vídeos do 2º tempo.", createdAt: ago(3), updatedAt: ago(2) },
-  { id: "op-2", memberId: "m-gabriel", clubId: "club-br10", club: null, compatibility: 88, deadline: days(16), status: "enviada", published: true, publishedAt: ago(6), athleteNote: "Seu perfil já foi enviado ao coordenador da base.", internalNote: null, createdAt: ago(8), updatedAt: ago(6) },
-  { id: "op-3", memberId: "m-arthur", clubId: "club-own", club: null, compatibility: 81, deadline: days(2), status: "aberta", published: false, publishedAt: null, athleteNote: null, internalNote: "Rascunho: confirmar a data da peneira.", createdAt: ago(1), updatedAt: ago(1) },
+  {
+    ...NO_PROPOSAL, id: "op-1", memberId: "m-gabriel", clubId: "club-br2", club: null, compatibility: 94, deadline: days(5), status: "aberta", published: true, publishedAt: ago(2),
+    kind: "formacao", position: "Meia-Atacante", category: "Sub 17", amount: 8500, currency: "BRL", period: "mes", signingBonus: 20000, contractMonths: 24,
+    startsOn: days(75), benefits: ["moradia", "alimentacao", "estudos"], urgency: "alta",
+    athleteNote: "A base procura um meia-atacante canhoto para a avaliação de novembro.", internalNote: "Contato: coordenador da base. Mandar vídeos do 2º tempo.", createdAt: ago(3), updatedAt: ago(2),
+  },
+  {
+    ...NO_PROPOSAL, id: "op-2", memberId: "m-gabriel", clubId: "club-br10", club: null, compatibility: 88, deadline: days(16), status: "negociacao", published: true, publishedAt: ago(6),
+    kind: "avaliacao", position: "Meia-Atacante", category: "Sub 17", amount: null, benefits: ["passagens", "alimentacao"], urgency: "media",
+    athleteNote: "Seu perfil já foi enviado ao coordenador da base.", internalNote: null, createdAt: ago(8), updatedAt: ago(1),
+  },
+  {
+    ...NO_PROPOSAL, id: "op-3", memberId: "m-arthur", clubId: "club-own", club: null, compatibility: 81, deadline: days(2), status: "aberta", published: false, publishedAt: null,
+    kind: "profissional", position: "Zagueiro", category: "Sub 20", amount: 4200, currency: "BRL", period: "mes", contractMonths: 12, urgency: "urgente",
+    athleteNote: null, internalNote: "Rascunho: confirmar a data da peneira.", createdAt: ago(1), updatedAt: ago(1),
+  },
+  {
+    ...NO_PROPOSAL, id: "op-4", memberId: "m-gabriel", clubId: "club-1", club: null, compatibility: 90, deadline: days(40), status: "enviada", published: false, publishedAt: null,
+    kind: "profissional", position: "Meia-Atacante", category: "Sub 19", amount: 12000, currency: "EUR", period: "mes", signingBonus: 50000, contractMonths: 36,
+    startsOn: days(150), benefits: ["moradia", "saude", "passagens"], urgency: "baixa",
+    athleteNote: null, internalNote: "Intermediário em Madri confirmou interesse; aguardando vídeo completo.", createdAt: ago(5), updatedAt: ago(4),
+  },
 ]
 
 let controls: Controls[] = [

@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom"
 import { Crown, GitCompareArrows, Plus, Search, X } from "lucide-react"
 import { useVoxen } from "../store"
 import {
-  SCOUT_ATTRS, dimensionScores, placeOf, positionCode, positionOf, scoutAverage, stageInfo, type Player,
+  SCOUT_ATTRS, dimensionScores, initials, placeOf, positionCode, positionOf, scoutAverage, stageInfo, type Player,
 } from "../data"
 import { Meter, Pitch, RadarChart } from "../charts"
 import { Avatar, CardHead, Empty, PosBadge, ScoreChip, playerPath } from "../ui"
@@ -173,13 +173,15 @@ export default function Compare() {
             <div className="grid gap-5 sm:grid-cols-3">
               {chosen.map((p, i) => {
                 const pos = positionOf(p)
+                // A posição do cadastro, ou o que a equipe marcou à mão na ficha do jogador.
+                const at = p.chart?.marker ?? (pos ? { x: pos.x, y: pos.y } : null)
                 return (
                   <div key={p.key} className="mx-auto w-full max-w-[220px] text-center">
                     <Pitch
-                      markers={pos ? [{ x: pos.x, y: pos.y, label: pos.code, highlight: true, color: COLORS[i] }] : []}
-                      heat={pos ? [{ x: pos.x, y: pos.y }] : []}
+                      markers={at ? [{ x: at.x, y: at.y, label: pos?.code ?? initials(p.name), highlight: true, color: COLORS[i] }] : []}
+                      heat={p.chart?.heat ?? (at ? [at] : [])}
                     />
-                    <p className="mt-2 text-[12.5px] text-zinc-400">{p.profile.position ?? "Posição não informada"}</p>
+                    <p className="mt-2 text-[12.5px] text-zinc-400">{p.profile.position ?? (at ? "Posição marcada pela equipe" : "Posição não informada")}</p>
                   </div>
                 )
               })}

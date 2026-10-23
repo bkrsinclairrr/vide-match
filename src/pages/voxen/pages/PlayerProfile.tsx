@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import {
-  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, Eye, GitCompareArrows, KeyRound, Mail, NotebookPen, Pencil, Printer, Radar, Save,
+  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, Eye, GitCompareArrows, KeyRound, Mail, NotebookPen, Pencil, PencilLine, Printer, Radar, Save,
   Trash2, UserRoundSearch, X,
 } from "lucide-react"
 import { getSource } from "@/pages/membros/api"
@@ -10,14 +10,17 @@ import { useToast } from "@/hooks/use-toast"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { useVoxen } from "../store"
 import {
-  LINES, SCOUT_ATTRS, STAGES, dimensionScores, formatDate, formatDateTime, formatPhone, pctTone, placeOf,
+  LINES, SCOUT_ATTRS, STAGES, dimensionScores, formatDate, formatDateTime, formatPhone, initials, pctTone, placeOf,
   positionOf, scoreTone, scoutAverage, scoutTone, timeAgo, whatsappLink, type Player, type Profile,
 } from "../data"
 import { Est } from "../estimated"
 import { keysOf } from "../people"
 import { deleteSummary } from "./PlayerDialogs"
+import { ChartEditor, type ChartTab } from "./chartedit/ChartEditor"
+import { originalOf, pitchOf, summaryOf } from "./chartedit/model"
 import { MaterialsSection } from "./media/MaterialsSection"
 import { PlayerLook } from "./media/PlayerLook"
+import { PlayerOpportunities } from "./opportunities/PlayerOpportunities"
 import { Meter, Pitch, RadarChart, Ring, CountUp } from "../charts"
 import { CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
 
@@ -181,6 +184,36 @@ function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: (
   )
 }
 
+type ChartPart = "geral" | "radar" | "campo" | "indicadores"
+
+/** O lápis do canto de um gráfico: abre o editor (só para quem mantém jogador). */
+function ChartButton({ tab, onEdit }: { tab: ChartTab; onEdit: (t: ChartTab) => void }) {
+  const { canScout } = useVoxen()
+  if (!canScout) return null
+  return (
+    <button type="button" className="vx-icon-btn ce-edit vx-no-print" onClick={() => onEdit(tab)} aria-label="Editar os gráficos" title="Editar as notas, a nota geral, a posição e o calor">
+      <Pencil />
+    </button>
+  )
+}
+
+/** "Editado pela equipe", com o que mudou, o original e o motivo na dica; só aparece se este gráfico foi mudado. */
+function ChartBadge({ p, part }: { p: Player; part: ChartPart }) {
+  const c = p.chart
+  const hasStats = Boolean(c && Object.keys(c.stats).length)
+  const edited = Boolean(c && (part === "campo" ? c.marker || c.heat !== null : part === "geral" ? hasStats || c.overall !== null : hasStats))
+  if (!c || !edited) return null
+  const original = originalOf(p)
+  const extra = [part === "geral" || part === "indicadores" ? `Nota geral original: ${original.overall}.` : null, c.note ? `Motivo: ${c.note}.` : null].filter(Boolean).join(" ")
+  return (
+    <div className="ce-badge-row">
+      <span className="ce-badge" title={`Mudou: ${summaryOf(c).join(", ")}. ${extra} O atleta continua vendo o relatório que recebeu.`.replace(/\s+/g, " ")}>
+        <PencilLine /> Editado pela equipe
+      </span>
+    </div>
+  )
+}
+
 function ScoutCard({ p }: { p: Player }) {
   const { updateMeta, canScout } = useVoxen()
   const { toast } = useToast()
@@ -316,6 +349,7 @@ export default function PlayerProfile() {
   const { key = "" } = useParams()
   const { byKey, percentile, canScout } = useVoxen()
   const [editing, setEditing] = useState(false)
+  const [chartTab, setChartTab] = useState<ChartTab | null>(null)
   const p = byKey.get(key)
 
   const dims = useMemo(() => (p ? dimensionScores(p) : []), [p])
@@ -331,6 +365,9 @@ export default function PlayerProfile() {
   }
 
   const pos = positionOf(p)
+  // O campo: a posição do cadastro, ou o que a equipe marcou à mão.
+  const pitch = pitchOf(pos ? { x: pos.x, y: pos.y } : null, p.chart)
+  const first = p.name.trim().split(/\s+/)[0] || p.name
   const overallPct = percentile("overall", p.overall)
   const tone = scoreTone(p.overall)
   const line = LINES.find((l) => l.key === pos?.line)
@@ -344,14 +381,16 @@ export default function PlayerProfile() {
         </Suspense>
       )}
 
-      <MaterialsSection key={`materiais-${p.key}`} p={p} />
-
       <div className="vx-grid mb-[18px] lg:grid-cols-2 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)_minmax(0,0.85fr)]">
         <section className="vx-card">
           <CardHead
             title="Nota geral"
-            sub={p.reportFromFunnel ? "Mesmo relatório exibido ao atleta no resultado" : "Relatório gerado pela plataforma (lead sem relatório salvo)"}
+            sub={p.chart && (Object.keys(p.chart.stats).length || p.chart.overall !== null)
+              ? "Ajustada pela equipe"
+              : p.reportFromFunnel ? "Mesmo relatório exibido ao atleta no resultado" : "Relatório gerado pela plataforma (lead sem relatório salvo)"}
+            actions={<ChartButton tab="indicadores" onEdit={setChartTab} />}
           />
+          <ChartBadge p={p} part="geral" />
           <div className="flex flex-col items-center gap-5">
             <Ring value={p.overall - 50} max={50} size={170} stroke={12} color={tone.color}>
               <span className="text-[44px] font-extrabold leading-none tracking-[-0.04em] tnum" style={{ color: tone.color }}><CountUp value={p.overall} /></span>
@@ -374,7 +413,12 @@ export default function PlayerProfile() {
         </section>
 
         <section className="vx-card">
-          <CardHead title={<span className="inline-flex items-center gap-2"><Radar className="h-4 w-4 text-amber-300" /> Radar do relatório</span>} sub="Os 10 indicadores individuais" />
+          <CardHead
+            title={<span className="inline-flex items-center gap-2"><Radar className="h-4 w-4 text-amber-300" /> Radar do relatório</span>}
+            sub="Os 10 indicadores individuais"
+            actions={<ChartButton tab="indicadores" onEdit={setChartTab} />}
+          />
+          <ChartBadge p={p} part="radar" />
           <div className="mx-auto max-w-[440px]">
             <RadarChart
               axes={p.stats.map((s) => s.label)}
@@ -386,11 +430,16 @@ export default function PlayerProfile() {
         </section>
 
         <section className="vx-card lg:col-span-2 xl:col-span-1">
-          <CardHead title="Posição em campo" sub={pos ? `${p.profile.position} · ${line?.label ?? ""}` : "Posição não informada no funil"} />
+          <CardHead
+            title="Posição em campo"
+            sub={pos ? `${p.profile.position} · ${line?.label ?? ""}` : pitch.marker ? "Posição marcada pela equipe" : "Posição não informada no funil"}
+            actions={<ChartButton tab="campo" onEdit={setChartTab} />}
+          />
+          <ChartBadge p={p} part="campo" />
           <div className="mx-auto max-w-[270px]">
             <Pitch
-              markers={pos ? [{ x: pos.x, y: pos.y, label: pos.code, name: p.name.split(" ")[0], highlight: true }] : []}
-              heat={pos ? [{ x: pos.x, y: pos.y }, { x: Math.min(92, Math.max(8, pos.x + (pos.x > 50 ? -8 : 8))), y: Math.max(8, pos.y - 9) }] : []}
+              markers={pitch.marker ? [{ x: pitch.marker.x, y: pitch.marker.y, label: pos?.code ?? initials(p.name), name: first, highlight: true }] : []}
+              heat={pitch.heat}
             />
           </div>
           {pos && (
@@ -403,8 +452,15 @@ export default function PlayerProfile() {
         </section>
       </div>
 
+      <PlayerOpportunities key={`oportunidades-${p.key}`} p={p} />
+
       <section className="vx-card mb-[18px]">
-        <CardHead title="Indicadores individuais" sub="Nota do relatório e posição do atleta dentro da base da Zyron" />
+        <CardHead
+          title="Indicadores individuais"
+          sub="Nota do relatório e posição do atleta dentro da base da Zyron"
+          actions={<ChartButton tab="indicadores" onEdit={setChartTab} />}
+        />
+        <ChartBadge p={p} part="indicadores" />
         <div className="vx-stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
           {[...p.stats].sort((a, b) => b.score - a.score).map((s, i) => {
             const pct = percentile(s.key, s.score)
@@ -412,7 +468,12 @@ export default function PlayerProfile() {
             return (
               <div key={s.key} className="vx-stat" style={{ "--i": i } as React.CSSProperties}>
                 <div className="flex items-start justify-between gap-2">
-                  <span className="text-[13px] font-semibold text-zinc-200">{s.label}</span>
+                  <span className="text-[13px] font-semibold text-zinc-200">
+                    {s.label}
+                    {p.chart?.stats[s.key as keyof typeof p.chart.stats] !== undefined && (
+                      <i className="ce-dot" title={`Mudado pela equipe. Nota original: ${originalOf(p).stats.find((o) => o.key === s.key)?.score ?? "—"}`} />
+                    )}
+                  </span>
                   <ScoreChip score={s.score} size="sm" />
                 </div>
                 <div className="my-3"><Meter value={pct} color={t.color} height={5} delay={i * 50} /></div>
@@ -427,6 +488,8 @@ export default function PlayerProfile() {
       </section>
 
       <div className="mb-[18px]"><ScoutCard p={p} /></div>
+
+      <MaterialsSection key={`materiais-${p.key}`} p={p} />
 
       <div className="vx-grid xl:grid-cols-2">
         <section className="vx-card">
@@ -464,6 +527,8 @@ export default function PlayerProfile() {
         </section>
         <NotesCard p={p} />
       </div>
+
+      {canScout && <ChartEditor key={p.key} open={chartTab !== null} tab={chartTab ?? "indicadores"} onTab={setChartTab} p={p} onClose={() => setChartTab(null)} />}
     </>
   )
 }

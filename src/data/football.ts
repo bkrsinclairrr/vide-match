@@ -30,3 +30,17 @@ export const COUNTRIES = [
   "Sérvia", "Bulgária", "Hungria", "República Tcheca", "Eslováquia", "Ucrânia", "Rússia",
   "Israel", "Paraguai", "Bolívia",
 ]
+
+/** Linha de campo de cada posição (goleiro, defesa, meio ou ataque): quem joga na mesma linha é uma posição "próxima". */
+export const POSITION_LINE: Record<string, "gol" | "def" | "mei" | "ata"> = {
+  "Goleiro": "gol",
+  "Lateral Direito": "def",
+  "Lateral Esquerdo": "def",
+  "Zagueiro": "def",
+  "Volante": "mei",
+  "Meio-Campo": "mei",
+  "Meia-Atacante": "mei",
+  "Ponta Direita": "ata",
+  "Ponta Esquerda": "ata",
+  "Centroavante": "ata",
+}

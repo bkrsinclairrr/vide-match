@@ -5,6 +5,8 @@ import {
   type Percentiles, type Player, type PlayerEdit, type PlayerMeta, type ProfileEdit, type VoxenData,
 } from "./data"
 import { withEstimates } from "./estimate"
+import { saveChartEdit } from "./pages/chartedit/api"
+import { applyChartEdit, type ChartEdit } from "./pages/chartedit/model"
 import { ageFromBirth, hasAnyProfile, keysOf } from "./people"
 import { canAdminAs, canScoutAs, type StaffRole } from "./access"
 
@@ -44,6 +46,8 @@ type VoxenStore = {
   /** Recarrega a base; `true` se deu certo. */
   reload: () => Promise<boolean>
   updateMeta: (key: string, patch: Partial<PlayerMeta>) => Promise<void>
+  /** Muda o que os gráficos do jogador mostram (indicadores, nota geral, campo e calor); `null` volta ao relatório original. Vale só no painel. */
+  saveChart: (key: string, edit: ChartEdit | null) => Promise<void>
   /** Edita o cadastro do atleta (toda a equipe). `partial`: o perfil do lead não pôde ser gravado. */
   editPlayer: (key: string, edit: PlayerEdit) => Promise<EditResult>
   /** Muda o mesmo campo em vários jogadores e recarrega só no fim. `failed`: chaves que o banco recusou. */
@@ -168,6 +172,18 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
       hasProfile: hasAnyProfile(profile),
     }
   }
+
+  const saveChart = useCallback(async (key: string, edit: ChartEdit | null) => {
+    const current = dataRef.current
+    const player = findReal(key)
+    if (!canScoutAs(role) || !current || !player) throw new Error("Você não tem permissão para editar os gráficos.")
+    if (!demo) await saveChartEdit(player.key, player.aliases, edit)
+    const stamped = edit ? { ...edit, updatedAt: new Date().toISOString() } : null
+    const latest = dataRef.current ?? current
+    const updated = { ...latest, players: latest.players.map((p) => (p.key === player.key ? applyChartEdit(p, stamped) : p)) }
+    dataRef.current = updated
+    setData(updated)
+  }, [demo, role])
 
   const editPlayer = useCallback(async (key: string, edit: PlayerEdit): Promise<EditResult> => {
     const current = dataRef.current
@@ -298,12 +314,13 @@ export function VoxenProvider({ demo, role, children }: { demo: boolean; role: S
       estimatedCount: showEstimated ? players.filter((p) => p.estimated.length).length : withEstimates(real).filter((p) => p.estimated.length).length,
       reload,
       updateMeta,
+      saveChart,
       editPlayer,
       editPlayers,
       removePlayer,
       removePlayers,
     }
-  }, [data, loading, error, demo, role, showEstimated, setShowEstimated, reload, updateMeta, editPlayer, editPlayers, removePlayer, removePlayers])
+  }, [data, loading, error, demo, role, showEstimated, setShowEstimated, reload, updateMeta, saveChart, editPlayer, editPlayers, removePlayer, removePlayers])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

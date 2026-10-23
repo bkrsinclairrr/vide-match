@@ -12,12 +12,19 @@ import { ClubCrest, DeadlineChip } from "../components/ClubCrest"
 import { deadlineInfo, shortDay, type RealOpportunity } from "../scoutLayer"
 import type { AthleteAccount } from "../account"
 
+/** A frase curta da situação, no ponto de vista do atleta. */
+const statusLine = (status: RealOpportunity["status"]) =>
+  status === "negociacao" ? "A equipe está negociando com o clube"
+    : status === "enviada" ? "Seu perfil já foi enviado ao clube"
+      : "Oportunidade aberta pela equipe"
+
 /** O botão de agir numa oportunidade real (desligado no "ver como" da equipe). */
 function ActButton({ account, category, opp, adminPreview, big = false }: { account: AthleteAccount; category: string | null; opp: RealOpportunity; adminPreview: boolean; big?: boolean }) {
-  const label = opp.status === "enviada" ? "Falar com a equipe sobre isso" : "Quero agir"
+  const going = opp.status === "enviada" || opp.status === "negociacao"
+  const label = going ? "Falar com a equipe sobre isso" : "Quero agir"
   const cls = `vx-btn ${big ? "vx-btn--gold mt-4" : ""}`
   if (adminPreview) return <button type="button" className={cls} disabled title="Só o atleta faz isso na conta dele"><WhatsAppIcon className="h-4 w-4" /> {label}</button>
-  const topic = opp.status === "enviada"
+  const topic = going
     ? `Quero saber como está a oportunidade no ${opp.club.name}.`
     : `Vi a oportunidade no ${opp.club.name}${opp.deadline ? ` (prazo ${shortDay(opp.deadline)})` : ""} e quero agir.`
   return <a className={cls} href={whatsappLink(teamMessage(account, category, topic))} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4" /> {label}</a>
@@ -65,7 +72,7 @@ export default function OpportunitiesPage() {
             <h2>{top.club.name}</h2>
             <p className="gm-feature-meta">
               {[top.club.country, top.club.league].filter(Boolean).length > 0 && <><MapPin className="inline h-3.5 w-3.5" /> {[top.club.country, top.club.league].filter(Boolean).join(" · ")} · </>}
-              {top.status === "enviada" ? "Seu perfil já foi enviado ao clube" : "Oportunidade aberta pela equipe"}
+              {statusLine(top.status)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <DeadlineChip {...deadlineInfo(top.deadline)} />
@@ -88,7 +95,7 @@ export default function OpportunitiesPage() {
                 <ClubCrest club={o.club} size={46} />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate">{o.club.name}</h3>
-                  <p>{o.athleteNote ?? (o.status === "enviada" ? "Seu perfil já foi enviado ao clube." : "Oportunidade aberta pela equipe.")}</p>
+                  <p>{o.athleteNote ?? `${statusLine(o.status)}.`}</p>
                   <div className="mt-2"><DeadlineChip {...deadlineInfo(o.deadline)} /></div>
                 </div>
                 <span className="gm-compat tnum">{o.compatibility}%<small>encaixe</small></span>

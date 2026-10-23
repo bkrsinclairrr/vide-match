@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { affinity } from "@/pages/membros/game"
 import { deadlineInfo, type OpportunityStatus } from "@/pages/membros/scoutLayer"
 import type { Opportunity } from "../scout/api"
+import { isLiveStatus } from "./proposal"
 
 /** Relógio que anda sozinho (a contagem regressiva dos prazos). */
 export function useNow(ms = 30_000) {
@@ -27,12 +28,17 @@ export function countdown(deadline: string | null, now: Date) {
 export const STATUS_LABEL: Record<OpportunityStatus, string> = {
   aberta: "Aberta",
   enviada: "Perfil enviado",
+  negociacao: "Em negociação",
+  aceita: "Aceita",
   encerrada: "Encerrada",
   recusada: "Recusada",
 }
 
-/** Em andamento: aberta ou enviada ao clube. */
-export const isLive = (o: Pick<Opportunity, "status">) => o.status === "aberta" || o.status === "enviada"
+/** Os passos do caminho feliz, na ordem em que acontecem (encerrada e recusada são saídas). */
+export const STEPS: OpportunityStatus[] = ["aberta", "enviada", "negociacao", "aceita"]
+
+/** Em andamento: aberta, enviada ao clube ou em negociação. */
+export const isLive = (o: Pick<Opportunity, "status">) => isLiveStatus(o.status)
 
 /** O prazo mais próximo entre as oportunidades em andamento (para ordenar e marcar "vencendo"). */
 export function nearest(opps: Opportunity[], now = new Date()) {
