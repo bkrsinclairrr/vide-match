@@ -57,8 +57,8 @@ test("o que mudou, em palavras", () => {
 })
 
 test("escala do controle de nota", () => {
-  assert.deepEqual(scoreRange(88), { min: 64, max: 100 })
-  assert.deepEqual(scoreRange(50), { min: 50, max: 100 })
+  assert.deepEqual(scoreRange(88), { min: 20, max: 100 })
+  assert.deepEqual(scoreRange(12), { min: 12, max: 100 })
   assert.equal(clampScore(101), 100)
   assert.equal(clampScore(0), 1)
   assert.equal(clampScore(87.6), 88)

@@ -5,17 +5,17 @@ import { Crosshair, Eraser, Flame, Loader2, MousePointer2, RotateCcw, Save, Spar
 import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { STAT_KEYS } from "@/lib/funnel"
-import { POSITIONS, initials, scoreTone, type Player } from "../../data"
+import { POSITIONS, initials, scoreTone, scoreUnit, type Player } from "../../data"
 import { Pitch, RadarChart, Ring } from "../../charts"
 import { useVoxen } from "../../store"
 import {
-  MAX_HEAT, MAX_NOTE, autoOverall, clampScore, draftOf, editFromDraft, nudge, originalOf, pitchOf, pointFromRect, scoreRange, summaryOf, toggleHeat,
+  MAX_HEAT, MAX_NOTE, SCORE_FLOOR, autoOverall, clampScore, draftOf, editFromDraft, nudge, originalOf, pitchOf, pointFromRect, scoreRange, summaryOf, toggleHeat,
   type ChartDraft, type Point, type StatId,
 } from "./model"
 
 export type ChartTab = "indicadores" | "campo"
 
-const norm = (score: number) => (score - 64) / 34
+const norm = scoreUnit
 
 type Mode = "marker" | "heat"
 
@@ -177,7 +177,7 @@ export function ChartEditor({ open, tab, onTab, p, onClose }: {
 
               <aside className="ce-preview" aria-label="Prévia">
                 <div className="ce-ring">
-                  <Ring value={overall - 50} max={50} size={132} stroke={10} color={tone.color}>
+                  <Ring value={overall} max={100} size={132} stroke={10} color={tone.color}>
                     <span className="ce-ring-n tnum" style={{ color: tone.color }}>{overall}</span>
                     <span className="ce-ring-l">Geral</span>
                   </Ring>
@@ -193,8 +193,8 @@ export function ChartEditor({ open, tab, onTab, p, onClose }: {
                       ? <small>A média dos indicadores{auto !== original.overall ? ` (era ${original.overall})` : ""}.</small>
                       : (
                         <div className="ce-fixed">
-                          <input type="range" className="ce-range" min={50} max={100} value={Math.max(50, clampScore(draft.overall))}
-                            style={{ "--v": `${((Math.max(50, clampScore(draft.overall)) - 50) / 50) * 100}%`, "--c": tone.color } as CSSProperties}
+                          <input type="range" className="ce-range" min={SCORE_FLOOR} max={100} value={Math.max(SCORE_FLOOR, clampScore(draft.overall))}
+                            style={{ "--v": `${((Math.max(SCORE_FLOOR, clampScore(draft.overall)) - SCORE_FLOOR) / (100 - SCORE_FLOOR)) * 100}%`, "--c": tone.color } as CSSProperties}
                             onChange={(e) => set({ overall: Number(e.target.value) })} aria-label={`Nota geral fixada: ${clampScore(draft.overall)}`} />
                           <small>Fica {clampScore(draft.overall)} mesmo se as notas mudarem. A média seria {auto}.</small>
                         </div>

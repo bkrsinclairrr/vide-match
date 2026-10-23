@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Check, Copy, Download, GitCompareArrows, Pencil, Se
 import { STAT_KEYS } from "@/lib/funnel"
 import { useVoxen } from "../store"
 import {
-  POSITIONS, STAGES, STAT_ABBR, formatDate, formatPhone, placeOf, positionCode, scoutAverage, scoutTone, type Player,
+  POSITIONS, SCORE_CUTS, STAGES, STAT_ABBR, formatDate, formatPhone, placeOf, positionCode, scoutAverage, scoutTone, type Player,
 } from "../data"
 import { Avatar, Empty, PosBadge, ScoreChip, StageTag, comparePath, playerPath } from "../ui"
 import { DataDots, EST_HINT, Est, EstimatedSwitch } from "../estimated"
@@ -195,8 +195,8 @@ export default function PlayersPage() {
             <option value="incompletos">Dados incompletos</option>
             <option value="nenhum">Nenhum dado informado</option>
           </select>
-          <button type="button" className={`vx-chip ${onlyProfile ? "is-on" : ""}`} onClick={() => setFilter("perfil", onlyProfile ? "" : "1")} title="Só quem informou algum dado de perfil (o estimado não conta)">
-            <SlidersHorizontal className="h-3.5 w-3.5" /> Só com perfil real
+          <button type="button" className={`vx-chip ${onlyProfile ? "is-on" : ""}`} onClick={() => setFilter("perfil", onlyProfile ? "" : "1")} title="Atletas R (reais): só quem informou algum dado de perfil (o estimado não conta)">
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Atletas R
           </button>
           {dups.groups.length > 0 && (
             <button type="button" className={`vx-chip ${dupOnly ? "is-on" : ""}`} onClick={() => setFilter("duplicados", dupOnly ? "" : "1")}
@@ -223,7 +223,7 @@ export default function PlayersPage() {
             {sorted.length !== players.length && <> de <span className="tnum">{players.length}</span></>}
             <span className="ml-2 hidden text-zinc-500 sm:inline">· marque até 3 para comparar</span>
           </p>
-          <p className="text-[12px] text-zinc-500">Notas do relatório: <span style={{ color: "#34d399" }}>90+</span> · <span style={{ color: "#a3e635" }}>86+</span> · <span style={{ color: "#fbbf24" }}>81+</span> · <span style={{ color: "#fb923c" }}>até 80</span></p>
+          <p className="text-[12px] text-zinc-500">Notas do relatório: <span style={{ color: "#34d399" }}>{SCORE_CUTS[0]}+</span> · <span style={{ color: "#a3e635" }}>{SCORE_CUTS[1]}+</span> · <span style={{ color: "#fbbf24" }}>{SCORE_CUTS[2]}+</span> · <span style={{ color: "#fb923c" }}>até {SCORE_CUTS[2] - 1}</span></p>
         </div>
 
         {rows.length ? (

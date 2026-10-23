@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom"
 import { Crown, GitCompareArrows, Plus, Search, X } from "lucide-react"
 import { useVoxen } from "../store"
 import {
-  SCOUT_ATTRS, dimensionScores, initials, placeOf, positionCode, positionOf, scoutAverage, stageInfo, type Player,
+  SCOUT_ATTRS, dimensionScores, initials, placeOf, positionCode, positionOf, scoreUnit, scoutAverage, stageInfo, type Player,
 } from "../data"
 import { Meter, Pitch, RadarChart } from "../charts"
 import { Avatar, CardHead, Empty, PosBadge, ScoreChip, playerPath } from "../ui"
@@ -84,7 +84,7 @@ export default function Compare() {
       const dims = chosen.map(dimensionScores)
       return {
         axes: dims[0]?.map((d) => d.label) ?? [],
-        series: chosen.map((p, i) => ({ name: p.name, color: COLORS[i], values: dims[i].map((d) => (d.score - 64) / 34) })),
+        series: chosen.map((p, i) => ({ name: p.name, color: COLORS[i], values: dims[i].map((d) => scoreUnit(d.score)) })),
       }
     }
     if (tab === "scout") {
@@ -97,7 +97,7 @@ export default function Compare() {
     }
     return {
       axes: chosen[0]?.stats.map((s) => s.label) ?? [],
-      series: chosen.map((p, i) => ({ name: p.name, color: COLORS[i], values: p.stats.map((s) => (s.score - 64) / 34) })),
+      series: chosen.map((p, i) => ({ name: p.name, color: COLORS[i], values: p.stats.map((s) => scoreUnit(s.score)) })),
     }
   }, [chosen, tab])
 
@@ -233,7 +233,7 @@ export default function Compare() {
                       <div className="flex flex-col gap-1.5">
                         {row.values.map((v, i) => (
                           <div key={i} className="grid grid-cols-[minmax(0,1fr)_44px] items-center gap-3">
-                            <Meter value={((v - 64) / 34) * 100} color={COLORS[i]} height={7} delay={r * 40 + i * 60} />
+                            <Meter value={scoreUnit(v) * 100} color={COLORS[i]} height={7} delay={r * 40 + i * 60} />
                             <span className="inline-flex items-center justify-end gap-1 text-[12.5px] font-bold tnum" style={{ color: v === best ? COLORS[i] : "#a1a1aa" }}>
                               {v === best && <Crown className="h-3 w-3" />}{v}
                             </span>
