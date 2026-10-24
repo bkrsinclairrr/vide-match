@@ -1,0 +1,712 @@
+{
+  "conferidoEm": "2026-10-23",
+  "itens": [
+    {
+      "id": "casa-anos",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "numero": "10+",
+      "texto": "anos levando atletas aos clubes",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "casa-326",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "numero": "326",
+      "texto": "atletas nossos enviados a clubes do Brasil e do exterior",
+      "textoCurto": "atletas enviados",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "casa-renda",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "numero": "Inicialmente R$ 30 mil+ por mês",
+      "texto": "é o valor médio que atletas nossos, acompanhados por nós, fecham quando chegam ao profissional",
+      "faixa": {
+        "numero": "Entre R$ 5 mil e R$ 30 mil por mês",
+        "texto": "faixa dos contratos fechados por atletas nossos acompanhados"
+      },
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-23",
+        "url": null,
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "casa-prazo",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "numero": "Cerca de 3 meses",
+      "texto": "é o tempo médio que os nossos atletas acompanhados levam até fechar com um clube",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-23",
+        "url": null,
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "frase-marca",
+      "tipo": "experiencia_da_casa",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "texto": "O problema nunca foi o talento. Sempre foi o método.",
+      "fonte": {
+        "veiculo": "Voxen | Zyron",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-01",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "numero": "~200",
+      "texto": "Numa peneira de 2017, cerca de 200 meninos jogaram partidas de 20 minutos. Perto de 10% passaram de fase.",
+      "fonte": {
+        "veiculo": "AFP via Estado de Minas",
+        "data": "2017-11-16",
+        "url": "https://www.em.com.br/app/noticia/internacional/2017/11/16/interna_internacional,917217/olheiros-no-futebol-a-peneira-para-encontrar-o-proximo-neymar.shtml",
+        "titulo": null
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-02",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "numero": "47,5%",
+      "texto": "Na base de um grande clube paulista, 47,5% dos atletas nasceram de janeiro a março. Só 8,8%, de outubro a dezembro.",
+      "fonte": {
+        "veiculo": "Rev. Bras. Cineantropometria e Desempenho Humano (Massa et al.)",
+        "data": "2014",
+        "url": "https://periodicos.ufsc.br/index.php/rbcdh/article/view/1980-0037.2014v16n4p399",
+        "titulo": null
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-03",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "texto": "Existem peneiras com centenas de vagas e inscrição paga: mais de 350 vagas e taxa de R$ 20 num clube do Rio (2019); 200 vagas, R$ 40 e jogos de 25 minutos noutra (2014).",
+      "fonte": {
+        "veiculo": "Lance! e Folha BV",
+        "data": "2019-10-23",
+        "url": "https://www.lance.com.br/fluminense/fluminense-realiza-nova-peneira-para-xerem-novembro.html",
+        "titulo": null,
+        "urlExtra": "https://folhabv.com.br/?p=1807"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-04",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "reserva": true,
+      "confirmadoPeloDono": false,
+      "texto": "Até 500 garotos por vez nos testes de um grande clube; cerca de 30 mil testados em 2011.",
+      "fonte": {
+        "veiculo": "Agência Pública",
+        "data": "2012-05-22",
+        "url": "https://apublica.org/2012/05/brazil-court-condemns-child-exploitation-major-football-championship/",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-05",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "texto": "Em um estudo no Rio Grande do Norte, 40 de 46 técnicos de base disseram avaliar só por observação.",
+      "fonte": {
+        "veiculo": "FIEP Bulletin (Câmara e Alchieri)",
+        "data": "2010",
+        "url": "https://ojs.fiepbulletin.net/fiepbulletin/article/download/894/1724/1764",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-06",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "reserva": true,
+      "confirmadoPeloDono": false,
+      "texto": "Nos times das oitavas da Copinha 2023, 44,4% dos jogadores nasceram de janeiro a março. Só 7,9%, de outubro a dezembro.",
+      "fonte": {
+        "veiculo": "RBFF (Moraes e Massa)",
+        "data": "2024-12-20",
+        "url": "https://www.rbff.com.br/index.php/rbff/article/view/1457",
+        "titulo": "Efeito da idade relativa na Copa São Paulo de futebol júnior"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null,
+      "observacao": "Substitui o estudo da Motriz citado no briefing: o DOI 10.5016/s1980-6574e10240004 não existe no doi.org nem na Crossref (conferido em 23/10/2026). Amostra de 329 jogadores dos times das oitavas de final."
+    },
+    {
+      "id": "PEN-07",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "reserva": true,
+      "confirmadoPeloDono": false,
+      "texto": "Um estudo de 2020 numa academia inglesa mostrou que, a partir dos 12 anos, a seleção passa a favorecer quem amadurece mais cedo.",
+      "fonte": {
+        "veiculo": "Journal of Sports Sciences (Hill et al.)",
+        "data": "2020",
+        "url": "https://doi.org/10.1080/02640414.2019.1649524",
+        "titulo": null
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-08",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "reserva": true,
+      "confirmadoPeloDono": false,
+      "texto": "Uma meta-análise de 38 estudos, em 14 esportes, encontrou o efeito da idade relativa na seleção de jovens.",
+      "fonte": {
+        "veiculo": "Sports Medicine (Cobley et al.)",
+        "data": "2009",
+        "url": "https://doi.org/10.2165/00007256-200939030-00005",
+        "titulo": null
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "PEN-09",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "reserva": true,
+      "confirmadoPeloDono": false,
+      "texto": "Um grande clube descreve a captação em fases, com tecnologia aliada à experiência dos observadores.",
+      "fonte": {
+        "veiculo": "Estadão Conteúdo via Band B",
+        "data": "2022-02-10",
+        "url": "https://bandab.com.br/esporte/futebol/olheiro-se-moderniza-mercado-da-bola/",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "REC-01",
+      "tipo": "recorte_de_imprensa",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "ordem": 1,
+      "manchete": "Inteligência artificial 'prevê' futuros craques e ajudou Watford a contratar Richarlison",
+      "assinatura": "André Linares, de Barcelona",
+      "texto": "Uma consultoria de dados que acompanha mais de 130 mil jogadores ajudou o Watford a contratar Richarlison.",
+      "fonte": {
+        "veiculo": "ESPN Brasil",
+        "data": "2020-04-01",
+        "url": "https://www.espn.com.br/futebol/artigo/_/id/6814867/inteligencia-artificial-preve-futuros-craques-ajudou-watford-contratar-richarlison",
+        "titulo": "Inteligência artificial 'prevê' futuros craques e ajudou Watford a contratar Richarlison"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "REC-02",
+      "tipo": "recorte_de_imprensa",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "ordem": 2,
+      "manchete": "IA protagoniza primeira transferência internacional de jogador no futebol",
+      "assinatura": "Da CNN Brasil",
+      "texto": "Meia de 18 anos teve o jogo identificado por algoritmos e assinou com o Spezia, da Itália.",
+      "fonte": {
+        "veiculo": "CNN Brasil",
+        "data": "2025-09-22",
+        "url": "https://www.cnnbrasil.com.br/esportes/futebol/futebol-internacional/ia-protagoniza-primeira-transferencia-internacional-de-jogador-no-futebol/",
+        "titulo": "IA protagoniza primeira transferência internacional de jogador no futebol"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "REC-03",
+      "tipo": "recorte_de_imprensa",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "ordem": 3,
+      "manchete": "Clube brasileiro anuncia jogador descoberto por inteligência artificial",
+      "assinatura": "Redação Lance!",
+      "texto": "Atacante de 16 anos usou IA pra medir a própria evolução e chegou à base do Juventude.",
+      "fonte": {
+        "veiculo": "Lance!",
+        "data": "2026-07-20",
+        "url": "https://www.lance.com.br/futebol-nacional/clube-brasileiro-anuncia-jogador-descoberto-por-inteligencia-artificial.html",
+        "titulo": "Clube brasileiro anuncia jogador descoberto por inteligência artificial"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "REC-04",
+      "tipo": "recorte_de_imprensa",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "ordem": 4,
+      "manchete": "Times brasileiros fazem “peneira” usando inteligência artificial",
+      "assinatura": "Victor Boscato e Vinicius Filgueira",
+      "texto": "Palmeiras e Corinthians estão entre os clubes que recorrem a plataformas de IA pra avaliar jovens.",
+      "fonte": {
+        "veiculo": "Poder360",
+        "data": "2025-05-30",
+        "url": "https://www.poder360.com.br/poder-sportsmkt/times-brasileiros-fazem-peneira-usando-inteligencia-artificial/",
+        "titulo": "Times brasileiros fazem “peneira” usando inteligência artificial"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "REC-05",
+      "tipo": "recorte_de_imprensa",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "ordem": 5,
+      "manchete": "Clubes de futebol já começam a usar inteligência artificial para caçar talentos",
+      "assinatura": "Jack Bantock, CNN",
+      "texto": "Chelsea e Burnley, da Premier League, usam um app em que a IA pontua vídeos de jovens.",
+      "fonte": {
+        "veiculo": "CNN Brasil",
+        "data": "2024-03-01",
+        "url": "https://www.cnnbrasil.com.br/esportes/futebol/futebol-internacional/clubes-de-futebol-ja-comecam-a-usar-inteligencia-artificial-para-cacar-talentos/",
+        "titulo": "Clubes de futebol já começam a usar inteligência artificial para caçar talentos"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "REC-06",
+      "tipo": "recorte_de_imprensa",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "ordem": 6,
+      "manchete": "Cambridge United usará inteligência artificial para contratos de jogadores",
+      "assinatura": "Cambridge United, Inglaterra",
+      "texto": "O clube inglês passou a cuidar dos contratos dos jogadores com agentes de IA.",
+      "fonte": {
+        "veiculo": "Cambridge United (anúncio oficial)",
+        "data": "2025-07-29",
+        "url": "https://www.cambridgeunited.com/news/cambridge-united-partners-genie-ai-adopt-ai-contract-management",
+        "titulo": "Cambridge United partners with Genie AI to adopt AI for contract management"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null,
+      "observacao": "Manchete em português do print enviado pelo dono; o veículo em português não foi achado. A fonte primária é o anúncio oficial do clube, em inglês."
+    },
+    {
+      "id": "IA-00",
+      "tipo": "afirmacao_atribuida",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Chelsea",
+      "escudo": null,
+      "selo": "CFC",
+      "texto": "Em 2024, o Chelsea apresentou o Future Blues, projeto de recrutamento da base: jovens de qualquer lugar do mundo fazem testes pelo celular e uma IA analisa e pontua o desempenho. A IA ajuda olheiros e treinadores a decidir.",
+      "fonte": {
+        "veiculo": "Site oficial do Chelsea FC",
+        "data": "2024-10-14",
+        "url": "https://www.chelseafc.com/en/news/article/introducing-the-future-blues-recruitment-programme",
+        "titulo": "Introducing the Future Blues recruitment programme"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-01",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Brighton",
+      "escudo": "brighton",
+      "texto": "Um modelo de dados próprio filtra os alvos antes de os olheiros irem ver ao vivo.",
+      "fonte": {
+        "veiculo": "Training Ground Guru",
+        "data": "2024-11-21",
+        "url": "https://trainingground.guru/brighton-make-trio-of-senior-scouts-redundant/",
+        "titulo": null
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-02",
+      "tipo": "afirmacao_atribuida",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Liverpool",
+      "escudo": null,
+      "selo": "LFC",
+      "texto": "Usou modelos estatísticos próprios pra apoiar contratações, segundo o ex-diretor de pesquisa do clube.",
+      "fonte": {
+        "veiculo": "Sky Sports",
+        "data": "2024-08-21",
+        "url": "https://www.skysports.com/football/news/11669/13200552/liverpool-s-former-director-of-research-ian-graham-explains-how-data-helped-the-reds-win-the-premier-league-title",
+        "titulo": null
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-03",
+      "tipo": "afirmacao_atribuida",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Bayer Leverkusen",
+      "escudo": null,
+      "selo": "B04",
+      "texto": "O diretor esportivo disse, em 2021, que o clube analisa milhões de dados com inteligência artificial pra pré-selecionar jogadores.",
+      "fonte": {
+        "veiculo": "Stadium Astro",
+        "data": "2021-01-28",
+        "url": "https://english.stadiumastro.com/node/269427",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-04",
+      "tipo": "afirmacao_atribuida",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Bologna",
+      "escudo": "bologna",
+      "texto": "Foi o primeiro clube a adotar o Opta Vision, ferramenta de visão computacional pra olheiros, segundo a Stats Perform.",
+      "fonte": {
+        "veiculo": "SVG Europe",
+        "data": "2023-04-21",
+        "url": "https://svgeurope.org/blog/headlines/bologna-fc-becomes-fist-club-to-use-stats-performs-opta-vision/",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-05",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Brentford",
+      "escudo": null,
+      "selo": "BFC",
+      "texto": "Usa dados pra filtrar cerca de 85 mil jogadores, posição por posição, antes de os olheiros e o treinador decidirem.",
+      "fonte": {
+        "veiculo": "Training Ground Guru",
+        "data": "2023-11-07",
+        "url": "https://trainingground.guru/lee-dykes-the-seven-stages-of-brentfords-recruitment/",
+        "titulo": null
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-06",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Midtjylland",
+      "escudo": "midtjylland",
+      "texto": "Virou referência na Europa ao basear as decisões do futebol em dados, segundo o The Guardian.",
+      "fonte": {
+        "veiculo": "The Guardian (via PressReader)",
+        "data": "2020-10-26",
+        "url": "https://www.pressreader.com/australia/the-guardian-australia/20201026/282093459233607",
+        "titulo": "'What we do isn't rocket science': how FC Midtjylland started football's data revolution"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-07",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Palmeiras",
+      "escudo": "palmeiras",
+      "texto": "Está entre os clubes que recorrem a plataformas de IA pra avaliar jovens, segundo o Poder360.",
+      "fonte": {
+        "veiculo": "Poder360",
+        "data": "2025-05-30",
+        "url": "https://www.poder360.com.br/poder-sportsmkt/times-brasileiros-fazem-peneira-usando-inteligencia-artificial/",
+        "titulo": "Times brasileiros fazem “peneira” usando inteligência artificial"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-08",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Corinthians",
+      "escudo": "corinthians",
+      "texto": "Investe em ciência de dados pra decidir contratações e está entre os clubes que usam plataformas de IA na base.",
+      "fonte": {
+        "veiculo": "ESPN Brasil e Poder360",
+        "data": "2024-03-08",
+        "url": "https://www.espn.com.br/futebol/mercado-da-bola/artigo/_/id/13342579/como-clubes-brasileiros-investiram-scouting-diminuir-chance-erro-contratacoes",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-09",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Internacional",
+      "escudo": "internacional",
+      "texto": "Investe em ciência de dados pra decidir contratações.",
+      "fonte": {
+        "veiculo": "ESPN Brasil",
+        "data": "2024-03-08",
+        "url": "https://www.espn.com.br/futebol/mercado-da-bola/artigo/_/id/13342579/como-clubes-brasileiros-investiram-scouting-diminuir-chance-erro-contratacoes",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "IA-10",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "clube": "Sport",
+      "escudo": "sport",
+      "texto": "Investe em ciência de dados pra decidir contratações.",
+      "fonte": {
+        "veiculo": "ESPN Brasil",
+        "data": "2024-03-08",
+        "url": "https://www.espn.com.br/futebol/mercado-da-bola/artigo/_/id/13342579/como-clubes-brasileiros-investiram-scouting-diminuir-chance-erro-contratacoes",
+        "titulo": null
+      },
+      "confianca": "media",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "lucas-silva",
+      "tipo": "depoimento",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Lucas Silva",
+      "papel": "Atleta",
+      "foto": "assets/depoimentos/lucas-silva.webp",
+      "texto": "Fui em mais de 10 peneiras nos últimos 3 anos e nada. Com a Zyron, em menos de 2 meses já estava em contato com um clube em Portugal. O relatório foi o que abriu a porta, não o meu contato.",
+      "fonte": {
+        "veiculo": "aizyron.com, depoimentos",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "cecilia",
+      "tipo": "depoimento",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Cecília",
+      "papel": "Mãe de atleta",
+      "foto": "assets/depoimentos/cecilia.webp",
+      "texto": "Meu marido achava que era mais uma promessa. O relatório apontou que meu filho rende muito melhor como ala do que como ponta. O clube que o chamou procurava exatamente esse perfil.",
+      "fonte": {
+        "veiculo": "aizyron.com, depoimentos",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "marcos-oliveira",
+      "tipo": "depoimento",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Marcos Oliveira",
+      "papel": "Atleta",
+      "foto": "assets/depoimentos/marcos-oliveira.webp",
+      "texto": "A maior dificuldade era ser visto. Não tenho pai famoso nem contato com dirigente. A Zyron me deu um relatório técnico que falou por mim.",
+      "fonte": {
+        "veiculo": "aizyron.com, depoimentos",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "cleiton",
+      "tipo": "depoimento",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Cleiton",
+      "papel": "Pai de atleta",
+      "foto": "assets/depoimentos/cleiton.webp",
+      "texto": "O que mudou foi a conversa. Deixei de chegar como pai pedindo favor e passei a chegar com um documento técnico na mão. Meu filho assinou o primeiro contrato de formação dele em março.",
+      "fonte": {
+        "veiculo": "aizyron.com, depoimentos",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "catia-silva",
+      "tipo": "depoimento",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Cátia Silva",
+      "papel": "Mãe de atleta",
+      "foto": "assets/depoimentos/catia-silva.webp",
+      "texto": "Já tinha gastado muito com peneira, transporte e inscrição, sempre no escuro. Pela primeira vez eu soube de verdade em que pé estava o meu filho.",
+      "fonte": {
+        "veiculo": "aizyron.com, depoimentos",
+        "data": "2026-10-23",
+        "url": "https://aizyron.com/",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    },
+    {
+      "id": "MUN-01",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "numero": "78.742",
+      "texto": "transferências internacionais de jogadores em 2024, um recorde. Mais de 200 por dia.",
+      "fonte": {
+        "veiculo": "FIFA",
+        "data": "2025-01-30",
+        "url": "https://inside.fifa.com/news/international-transfers-reach-historic-high-in-2024",
+        "titulo": "International transfers reach historic high in 2024"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "observacao": "Conta de todo o futebol (masculino e feminino, profissional e amador). 78.742 dividido por 366 dias dá 215 por dia.",
+      "notaLegal": null
+    },
+    {
+      "id": "MUN-02",
+      "tipo": "fato_com_fonte",
+      "ativo": true,
+      "confirmadoPeloDono": false,
+      "numero": "1.113",
+      "texto": "transferências saíram de clubes brasileiros pro exterior em 2024. O Brasil liderou o mundo em número de transferências.",
+      "fonte": {
+        "veiculo": "FIFA",
+        "data": "2025-01-30",
+        "url": "https://inside.fifa.com/news/international-transfers-reach-historic-high-in-2024",
+        "titulo": "International transfers reach historic high in 2024"
+      },
+      "confianca": "alta",
+      "conferidoEm": "2026-10-23",
+      "observacao": "A página da FIFA: os clubes brasileiros lideraram em número total de transferências, com 1.102 chegadas e 1.113 saídas.",
+      "notaLegal": null
+    },
+    {
+      "id": "audio-mae",
+      "tipo": "depoimento_audio",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "foto": "assets/depoimentos/mae-do-audio.webp",
+      "texto": "Áudio real, enviado pela mãe de um atleta nosso (37,6 segundos).",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-09",
+        "url": null,
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-23",
+      "notaLegal": null
+    }
+  ]
+}

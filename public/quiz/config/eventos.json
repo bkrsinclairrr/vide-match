@@ -1,0 +1,39 @@
+{
+  "versao": "1.0.0",
+  "nota": "Nenhum evento leva nome, telefone, e-mail, texto livre, idade exata nem leadId. Todo evento leva só o sessaoId, que vive na memória da aba.",
+  "eventos": {
+    "quiz_view": ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "plataforma", "inApp", "versao"],
+    "quiz_start": [],
+    "step_view": ["id", "n", "ms"],
+    "step_answer": ["id", "valor"],
+    "step_back": ["id"],
+    "menor_declarado": ["faixa"],
+    "menor12_saida": [],
+    "campo_toggle": ["modo"],
+    "prova_fontes_open": ["tela"],
+    "recorte_view": ["id"],
+    "audio_view": [],
+    "audio_play": ["pct"],
+    "audio_pause": ["pct"],
+    "audio_progress": ["pct"],
+    "audio_end": [],
+    "audio_seek": ["pct"],
+    "audio_error": ["estado"],
+    "audio_skip": ["estado"],
+    "compromisso": ["ms"],
+    "contact_submit": ["tier", "total", "adulto", "duracaoSeg"],
+    "lead_enviado": ["tentativa"],
+    "lead_fila": ["tentativa"],
+    "quiz_complete": ["tier", "total"],
+    "cta_click": ["tier"],
+    "tierC_click": [],
+    "abandono": ["id", "n"],
+    "erro_js": ["msg", "id"],
+    "cookies_escolha": ["aceite"]
+  },
+  "pixel": {
+    "contact_submit": { "meta": "Lead", "utmify": "Lead" },
+    "quiz_complete": { "meta": "QuizCompleto", "metaPersonalizado": true },
+    "cta_click": { "meta": "CtaClick", "metaPersonalizado": true }
+  }
+}

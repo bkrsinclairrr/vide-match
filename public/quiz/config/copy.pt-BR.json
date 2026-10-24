@@ -1,0 +1,381 @@
+{
+  "geral": {
+    "marcaNome": "ZYRON",
+    "titulo": "Diagnóstico do Atleta · Voxen | Zyron",
+    "voltar": "Voltar",
+    "continuar": "Continuar",
+    "fechar": "Fechar",
+    "verFontes": "Ver fontes",
+    "fontesTitulo": "Fontes",
+    "fontesApoio": "Cada afirmação deste diagnóstico tem origem. Toque pra abrir a fonte original.",
+    "consultadoEm": "Consultado em {data}",
+    "abrirFonte": "Abrir a fonte",
+    "rodapeCasa": "Voxen · Assessoria esportiva · @assessoria.voxen",
+    "progressoRotulo": "Progresso do diagnóstico",
+    "passoDeTotal": "Etapa {n} de {total}",
+    "toqueParaPular": "Toque pra continuar",
+    "erroGeral": "Algo não carregou. Toque pra tentar de novo.",
+    "tentarDeNovo": "Tentar de novo",
+    "novaAba": "abre em outra aba"
+  },
+  "posicao": {
+    "chip": "DIAGNÓSTICO DO ATLETA · GRÁTIS",
+    "titulo": "Descubra por que você ainda não *chegou* lá.",
+    "apoio": "Em poucos minutos, o diagnóstico da Voxen |⁠ Zyron mostra o que travou a sua carreira e qual é o caminho.",
+    "pergunta": "Pra começar: em qual posição você joga?",
+    "selecione": "Selecione",
+    "legendaRotulo": "O que significa cada sigla",
+    "legenda": [
+      ["AT", "Atacante"], ["PE", "Ponta esquerda"], ["PD", "Ponta direita"],
+      ["MC", "Meia central"], ["VOL", "Volante"], ["ZAG", "Zagueiro"],
+      ["LE", "Lateral esquerdo"], ["LD", "Lateral direito"], ["GOL", "Goleiro"]
+    ],
+    "selos": "Grátis · Menos de 4 minutos · Resultado na hora",
+    "prova": [
+      { "prova": "casa-anos" },
+      { "prova": "casa-326" }
+    ],
+    "abreviacoes": {
+      "GOL": "GOL", "LD": "LD", "LE": "LE", "ZAG-d": "ZAG", "ZAG-e": "ZAG",
+      "VOL-d": "VOL", "VOL-e": "VOL", "MC": "MC", "ALE": "PE", "ADD": "PD", "CA": "AT"
+    },
+    "nomes": { "CA": "Atacante" },
+    "quem": { "CA": "um atacante" },
+    "campoAria": "Campo com as 11 posições. Toque na posição em que você joga.",
+    "retomadaTitulo": "Você já começou o seu diagnóstico.",
+    "retomadaBotao": "Continuar de onde parei",
+    "recomecar": "Recomeçar do zero",
+    "politicaLinha": "Leia a Política de Privacidade."
+  },
+  "idade": {
+    "titulo": "Quantos anos você tem?",
+    "apoio": "Isso muda o jeito de conduzir a sua carreira.",
+    "opcoes": [
+      { "id": "menos12", "texto": "Menos de 12 anos" },
+      { "id": "12_14", "texto": "12 a 14 anos" },
+      { "id": "15_17", "texto": "15 a 17 anos" },
+      { "id": "18_21", "texto": "18 a 21 anos" },
+      { "id": "22_mais", "texto": "22 anos ou mais" }
+    ],
+    "faixaTexto": { "12_14": "12 a 14 anos", "15_17": "15 a 17 anos", "18_21": "18 a 21 anos", "22_mais": "22 anos ou mais" },
+    "saidaTitulo": "O diagnóstico é a partir dos 12 anos.",
+    "saidaApoio": "Peça pra um responsável falar com a gente. Ele ou ela pode nos chamar no Instagram.",
+    "saidaBotao": "Falar no Instagram",
+    "saidaVoltar": "Escolhi errado, voltar"
+  },
+  "experiencia": {
+    "titulo": "Há quanto tempo você joga de verdade?",
+    "opcoes": [
+      { "id": "menos1", "texto": "Menos de 1 ano" },
+      { "id": "1_3", "texto": "De 1 a 3 anos" },
+      { "id": "3_5", "texto": "De 3 a 5 anos" },
+      { "id": "mais5", "texto": "Mais de 5 anos" }
+    ]
+  },
+  "epoca": {
+    "titulo": "Em que época do ano você nasceu?",
+    "apoio": "Só o trimestre. Você já vai entender por quê.",
+    "opcoes": [
+      { "id": "jan_mar", "texto": "Jan a mar" },
+      { "id": "abr_jun", "texto": "Abr a jun" },
+      { "id": "jul_set", "texto": "Jul a set" },
+      { "id": "out_dez", "texto": "Out a dez" },
+      { "id": "nao_dizer", "texto": "Prefiro não dizer" }
+    ],
+    "textos": { "jul_set": "julho a setembro", "out_dez": "outubro a dezembro" },
+    "linhaPessoal": "Você nasceu de {epocaTexto}. Na sua categoria, tem gente até um ano mais velha que você, e isso costuma pesar numa peneira.",
+    "linhaOutDez": "Nesse estudo, só 8,8% dos atletas nasceram nesse trimestre."
+  },
+  "objetivo": {
+    "titulo": "O que o futebol é pra você?",
+    "opcoes": [
+      { "id": "hobby", "texto": "Um hobby que eu amo" },
+      { "id": "chance", "texto": "Uma chance, se tudo der certo" },
+      { "id": "profissional", "texto": "Meu objetivo: ser jogador profissional, de verdade" }
+    ],
+    "espelhos": {
+      "hobby": "Respeito. O diagnóstico vale do mesmo jeito.",
+      "chance": "Uma chance já é um começo.",
+      "profissional": "É isso que a gente mais respeita: querer de verdade."
+    }
+  },
+  "peneiras": {
+    "titulo": "Quantas peneiras ou avaliações você já fez?",
+    "apoio": "Conte seletivas e testes em clubes ou projetos.",
+    "opcoes": [
+      { "id": "0", "texto": "Nenhuma ainda" },
+      { "id": "1_2", "texto": "1 ou 2" },
+      { "id": "3_5", "texto": "3 a 5" },
+      { "id": "6_mais", "texto": "6 ou mais" }
+    ],
+    "textos": { "1_2": "1 ou 2 peneiras", "3_5": "3 a 5 peneiras", "6_mais": "6 ou mais peneiras" },
+    "gastoTitulo": "E a sua família, quanto já investiu pra você ser visto?",
+    "gastoApoio": "Inscrição, transporte, hospedagem, uniforme.",
+    "gastoOpcoes": [
+      { "id": "nada", "texto": "Nada" },
+      { "id": "ate_500", "texto": "Até R$ 500" },
+      { "id": "500_2000", "texto": "R$ 500 a R$ 2.000" },
+      { "id": "mais_2000", "texto": "Mais de R$ 2.000" }
+    ],
+    "gastoTextos": { "ate_500": "até R$ 500", "500_2000": "entre R$ 500 e R$ 2.000", "mais_2000": "mais de R$ 2.000" },
+    "espelhoGasto": {
+      "nada": "Melhor assim. Ninguém deveria gastar no escuro.",
+      "ate_500": "Isso é investimento de quem acredita em você.",
+      "500_2000": "Isso é investimento de quem acredita em você.",
+      "mais_2000": "Isso é investimento de quem acredita muito em você."
+    }
+  },
+  "trava": {
+    "titulo": "O que mais trava a sua carreira hoje?",
+    "opcoes": [
+      { "id": "ninguem_viu", "texto": "Ninguém viu o meu jogo de verdade" },
+      { "id": "sem_contato", "texto": "Não tenho contato com clubes nem com agentes" },
+      { "id": "gastei", "texto": "Já gastei com peneira e não tive retorno" },
+      { "id": "qual_clube", "texto": "Não sei qual clube combina comigo" },
+      { "id": "recursos", "texto": "Falta de recursos pra me bancar" },
+      { "id": "nivel", "texto": "Tenho dúvida do meu próprio nível" }
+    ],
+    "cartaoPessoal": "Você disse que o que mais trava é: “{travaTexto}”. Agora dá pra entender de onde vem."
+  },
+  "dispensas": {
+    "titulo": "Em quantas você foi dispensado ou ficou sem resposta?",
+    "apoio": "Vale o “ligamos depois” que nunca ligou.",
+    "opcoes": [
+      { "id": "0", "texto": "Nenhuma" },
+      { "id": "1_2", "texto": "1 ou 2" },
+      { "id": "3_5", "texto": "3 a 5" },
+      { "id": "6_mais", "texto": "6 ou mais" }
+    ],
+    "textos": { "1_2": "1 ou 2", "3_5": "3 a 5", "6_mais": "6 ou mais" },
+    "espelhoNenhuma": "Nenhuma dispensa. Vamos ver o resto.",
+    "espelhoAlguma": "Pesa. E não define o seu futebol.",
+    "jogouTitulo": "E nessas vezes, você sentiu que jogou bem?",
+    "jogouOpcoes": [
+      { "id": "sim", "texto": "Sim. Joguei bem e mesmo assim não passei." },
+      { "id": "as_vezes", "texto": "Às vezes sim, às vezes não." },
+      { "id": "nao", "texto": "Não consegui mostrar o meu melhor." }
+    ],
+    "jogouEspelhos": {
+      "sim": "Imaginei. E isso tem explicação.",
+      "as_vezes": "Normal. E ninguém te explicou o porquê.",
+      "nao": "Acontece. Uma partida curta nunca mostra quem você é."
+    }
+  },
+  "inimigo": {
+    "A": {
+      "titulo": "Você não foi reprovado por ser ruim. Foi *enganado*.",
+      "p1Sim": "Você jogou bem e mesmo assim saiu sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você.",
+      "p1": "Você saiu dispensado ou sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você."
+    },
+    "B": {
+      "titulo": "Antes de tentar de novo, saiba como ela *funciona*.",
+      "p1": "Você já fez {peneirasTexto} e não ficou sem resposta. Ótimo. Mas a maior parte dos garotos fica, e quase nunca é por falta de talento."
+    },
+    "C": {
+      "titulo": "Antes da primeira peneira, saiba como ela *funciona*.",
+      "p1": "Muita gente sai de uma peneira achando que é ruim. Quase nunca é. Veja por quê."
+    },
+    "adversario": {
+      "rotulo": "O adversário que ninguém te mostrou",
+      "nome": "O *olhômetro*.",
+      "texto": "Centenas de garotos, jogos de 20 minutos e um avaliador seguindo a bola. É assim que decidem o futuro de um atleta.",
+      "fatos": ["PEN-05"]
+    },
+    "campoRotulo": "Toque pra comparar",
+    "abas": { "olho": "Olhômetro", "ia": "IA (Zyron)" },
+    "contadorOlho": "Observados agora: {n} de 22",
+    "contadorIa": "Observados agora: 22 de 22",
+    "legendaOlho": "Numa peneira com centenas de garotos, o avaliador segue a bola e decide em poucos minutos. Quase sempre, procura uma posição só, pra uma vaga só.",
+    "legendaIa": "Com o Zyron, os 22 são acompanhados o jogo inteiro. Inclusive você.",
+    "voce": "Você",
+    "iaVoce": "O Zyron vê você",
+    "dica": "Toque em Olhômetro pra comparar",
+    "campoAria": "Campo com 22 jogadores. No olhômetro, só os perto da bola são vistos; com IA, todos são acompanhados.",
+    "p3": "No olhômetro, quem está longe da bola não é visto. Foi o método que falhou com você, não o seu jogo.",
+    "p3C": "No olhômetro, quem está longe da bola não é visto. Quando um garoto não passa, quase sempre foi o método que falhou, não o jogo dele.",
+    "destaque": "O problema nunca foi o talento. Sempre foi o *método*.",
+    "pessoalComGasto": "Você disse que fez {peneirasTexto} e que a família investiu {gastoTexto}. Em quantas delas alguém mediu o seu jogo de verdade?",
+    "pessoalSemGasto": "Você disse que fez {peneirasTexto}. Em quantas delas alguém mediu o seu jogo de verdade?",
+    "verNumeros": "Ver os números",
+    "numerosTitulo": "A peneira, em números",
+    "numerosLinha": "Quem nasce no começo do ano é quase um ano mais velho e parece mais pronto. Isso não quer dizer que seja melhor."
+  },
+  "zyron": {
+    "titulo": "Um clube procura exatamente {quem} como você.",
+    "neymar": "Você não precisa ser o novo Neymar.",
+    "apoio": "Todo dia, clubes do mundo inteiro fecham com jogadores pra funções bem específicas.",
+    "fatos": ["MUN-01", "MUN-02"],
+    "fonteFatos": "Fonte: FIFA, relatório de transferências de 2024",
+    "certeza": "Em algum lugar, alguém precisa das suas *características*. O difícil nunca foi jogar bem. É ser encontrado.",
+    "perfilRotulo": "O seu perfil",
+    "perfilJogo": "O seu jogo",
+    "perfilJogoValor": "o Zyron lê no vídeo",
+    "redeRotulo": "Clubes da nossa rede, no Brasil e no exterior",
+    "match": "Um clube procura esse perfil",
+    "radarAria": "Radar: o seu perfil cruzado com os clubes da nossa rede, até achar um que procura esse perfil.",
+    "passos": [
+      { "titulo": "O Zyron lê o seu jogo.", "texto": "Você envia os vídeos das suas partidas. Ele identifica você em campo e mede o seu jogo." },
+      { "titulo": "O seu perfil encontra o clube.", "texto": "As suas características são cruzadas com o que cada clube da nossa rede procura." },
+      { "titulo": "A gente conecta.", "texto": "Um estrategista de carreiras conduz cada passo com você, até o clube." }
+    ],
+    "videoPergunta": "Você tem vídeo dos seus jogos?",
+    "videoOpcoes": [
+      { "id": "jogos", "texto": "Jogos inteiros" },
+      { "id": "lances", "texto": "Só alguns lances" },
+      { "id": "nada", "texto": "Ainda não" }
+    ],
+    "videoEspelhos": {
+      "jogos": "Ótimo. É com vídeo que o Zyron trabalha.",
+      "lances": "Já ajuda. O ideal é jogo inteiro, e a gente mostra como.",
+      "nada": "Sem problema. O primeiro passo é gravar, e a gente explica como."
+    }
+  },
+  "mundo": {
+    "rotulo": "O MUNDO JÁ JOGA ASSIM",
+    "titulo": "Clubes já usam *IA* pra encontrar jogadores.",
+    "apoio": "Não é promessa de internet. Está nos jornais.",
+    "recortesRotulo": "Na imprensa",
+    "contador": "{i} de {n}",
+    "recortesAria": "Manchetes da imprensa sobre inteligência artificial no futebol. Arraste pro lado pra ver as outras.",
+    "arraste": "Arraste pro lado",
+    "verMateria": "Ver a matéria",
+    "escudosRotulo": "Clubes que já escolhem com dados",
+    "ponte": "Análise por vídeo com IA, agora do lado do atleta. É o que o Zyron faz por você.",
+    "fecho": "Há peneiras com centenas de vagas e inscrição paga. A maior parte dos garotos não passa da primeira etapa. Quem lucra com a peneira cheia não quer que você saiba que existe outro caminho.",
+    "destaque": "Agora esse caminho chegou até você."
+  },
+  "historico": {
+    "titulo": "É isso que acontece com quem usa o Zyron.",
+    "numeros": ["casa-326", "casa-renda", "casa-prazo"],
+    "depoimentosRotulo": "Quem já viveu isso",
+    "depoimentosAria": "Depoimentos de atletas e famílias. Arraste pro lado pra ver os outros.",
+    "depoimentos": ["lucas-silva", "cecilia", "marcos-oliveira", "cleiton", "catia-silva"]
+  },
+  "sonho": {
+    "titulo": "Feche os olhos um instante. Onde você se vê jogando?",
+    "opcoes": [
+      { "id": "brasil", "texto": "Num grande clube do Brasil", "curto": "um grande clube do Brasil" },
+      { "id": "europa", "texto": "Na Europa", "curto": "a Europa" },
+      { "id": "chance", "texto": "Em qualquer clube que me dê a chance", "curto": "o clube que te der a chance" },
+      { "id": "selecao", "texto": "Na seleção", "curto": "a seleção" }
+    ],
+    "espelho": "Anotado: {sonhoCurto}. A gente parte daí."
+  },
+  "audio": {
+    "abertura": ["Imagina.", "Daqui a alguns meses, o celular vibra.", "É a pessoa que mais torce por você."],
+    "pularAbertura": "Toque pra continuar",
+    "titulo": "E se a sua mãe te enviasse um áudio como esse?",
+    "apoio": "Pense na pessoa que mais torce por você. Aumente o volume.",
+    "remetente": "Mãe de um atleta nosso",
+    "gravando": "gravando áudio…",
+    "dicaTocar": "Toque pra ouvir. Aumente o volume.",
+    "legenda": "Áudio real, enviado pela mãe de um atleta nosso.",
+    "depois": "Agora imagine a sua.",
+    "grupoAria": "Mensagem de voz",
+    "tocar": "Tocar áudio",
+    "pausar": "Pausar áudio",
+    "ouvirDeNovo": "Ouvir de novo",
+    "toqueDeNovo": "Toque de novo",
+    "erro": "Não foi possível carregar o áudio.",
+    "continuarSem": "Continuar sem o áudio",
+    "velocidadeAria": "Velocidade do áudio: {v}",
+    "ondaAria": "Posição do áudio",
+    "legendas": [
+      { "t": 14.5, "ate": 18.5, "texto": "Nunca reconheceram o talento dele." },
+      { "t": 24.5, "ate": 29.5, "texto": "Você mudou a vida dele e a nossa também." }
+    ]
+  },
+  "quer": {
+    "titulo": "Você quer viver isso de verdade?",
+    "opcoes": [
+      { "id": "sim", "texto": "Quero. É o que eu mais quero." },
+      { "id": "receio", "texto": "Quero, mas já me decepcionei antes." },
+      { "id": "nao_sei", "texto": "Ainda não sei." }
+    ],
+    "espelhoNaoSei": "Sem pressa. O diagnóstico ajuda a decidir.",
+    "receioComAudio": "Normal. A mãe do áudio também tentou muito antes. O que mudou foi o método.",
+    "receioSemAudio": "Normal. Quem já tentou muito sabe o valor de um caminho novo. O que muda é o método.",
+    "segurarTitulo": "Segure para confirmar.",
+    "segurarTexto": "Eu quero isso de verdade e vou fazer a minha parte: treinar, me cuidar e seguir um plano.",
+    "segurarBotao": "Segure",
+    "segurarAria": "Segure para confirmar o seu compromisso",
+    "confirmarSemSegurar": "Confirmar sem segurar",
+    "confirmado": "Combinado. Bora."
+  },
+  "chance": {
+    "titulo": "Uma última pergunta.",
+    "pergunta": "Se um clube se interessar pelo seu perfil, você está pronto pra essa chance?",
+    "apoio": "Você vai ter uma *avaliação gratuita* do seu perfil. Ela pode abrir a porta pra oportunidade da sua vida.",
+    "opcoes": [
+      { "id": "pronto", "texto": "Estou pronto. Pode ser a chance da minha vida." },
+      { "id": "familia", "texto": "Estou, e quero a minha família junto nisso." },
+      { "id": "entender", "texto": "Quero, mas antes quero entender como funciona." },
+      { "id": "nao_sei", "texto": "Ainda não sei." }
+    ],
+    "espelhos": {
+      "pronto": "É assim que se agarra uma chance.",
+      "familia": "Ótimo. Com a família junto, tudo anda mais rápido.",
+      "entender": "Justo. No próximo passo, você entende tudo com calma.",
+      "nao_sei": "Sem pressa. A sua avaliação ajuda a decidir."
+    }
+  },
+  "contato": {
+    "titulo": "Quase lá. Pra onde enviamos o seu diagnóstico?",
+    "apoioAdulto": "O seu nome e o seu WhatsApp. É por lá que a equipe fala com você.",
+    "apoioMenor": "O nome do responsável e o WhatsApp dele. É por lá que a equipe fala com a família.",
+    "nome": "Seu primeiro nome",
+    "responsavelNome": "Nome do responsável",
+    "whatsapp": "WhatsApp com DDD",
+    "whatsappMenor": "Número do WhatsApp",
+    "whatsappExemplo": "(11) 91234-5678",
+    "aceiteAdulto": "Aceito receber o meu diagnóstico e mensagens da Voxen no WhatsApp. Li a {politica}.",
+    "aceiteMenor": "Sou o responsável por {nomeAtleta} e aceito receber o diagnóstico e mensagens da Voxen no WhatsApp. Li a {politica}.",
+    "nomeAtletaPadrao": "este atleta",
+    "politicaLink": "Política de Privacidade",
+    "lerPolitica": "Ler a Política de Privacidade",
+    "botao": "Ver meu diagnóstico",
+    "semSpam": "Sem spam. Você pode pedir pra parar de receber mensagens quando quiser.",
+    "comoUsamos": "Como usamos seus dados",
+    "erros": {
+      "nome": "Escreva o seu primeiro nome.",
+      "responsavelNome": "Escreva o nome do responsável.",
+      "whatsapp": "Confira o número: DDD e mais 8 ou 9 dígitos.",
+      "aceite": "Marque a caixa pra receber o diagnóstico."
+    },
+    "montando": "Montando o seu diagnóstico…"
+  },
+  "resultado": {
+    "titulo": "Diagnóstico de {nome}",
+    "tituloSemNome": "O seu diagnóstico",
+    "selo": "Pronto para o próximo passo",
+    "resumoTitulo": "O que você contou",
+    "resumo": {
+      "perfil": "Perfil",
+      "historico": "Histórico",
+      "objetivo": "Objetivo",
+      "video": "Vídeo"
+    },
+    "historicoTexto": "{peneirasTexto} · {dispensasTexto} sem resposta ou dispensado",
+    "historicoSemDispensa": "{peneirasTexto} · nenhuma dispensa",
+    "indicaTitulo": "O que o seu diagnóstico indica",
+    "indica1Recusado": "Pelo que você contou, você não foi reprovado por ser ruim. Foi avaliado a olho, sem nenhum dado.",
+    "indica1": "Pelo que você contou, o seu próximo passo é ter o seu jogo lido por dados.",
+    "indica2": "Em algum lugar do mundo, um clube procura {quem} com o seu perfil. O caminho é o Zyron ler o seu jogo e apresentar você a quem procura.",
+    "indica3SemVideo": "Comece a gravar jogos inteiros: o Zyron trabalha com vídeo.",
+    "indica3": "O seu vídeo é a base do relatório.",
+    "botao": "Continuar",
+    "botaoSub": "No próximo passo, você entende como tudo funciona.",
+    "tierB": "Se puder, assista com a sua família.",
+    "tierCTexto": "Ainda não é o melhor momento, e tudo bem. Guardamos o seu diagnóstico.",
+    "tierCBotao": "Seguir @assessoria.voxen",
+    "whatsapp": "Falar com a equipe no WhatsApp",
+    "vagas": "{vagas} vagas de avaliação abertas esta semana.",
+    "proximaTurma": "Próximas avaliações: {data}."
+  },
+  "cookies": {
+    "texto": "Usamos cookies de medição e de anúncios (Meta e Utmify) pra saber se o quiz funciona e melhorar os anúncios. Você escolhe.",
+    "aceitar": "Aceitar",
+    "rejeitar": "Rejeitar",
+    "politica": "Política de Privacidade"
+  }
+}
