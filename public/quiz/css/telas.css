@@ -28,7 +28,7 @@
 .t-zyron .fatos-mundo strong { font-size: 26px; }
 .fonte-mini { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 2px; border: 0; background: none; font-size: 12.5px; font-weight: 600; color: var(--muted); text-align: left; }
 .fonte-mini svg { width: 13px; height: 13px; flex: none; }
-.certeza { margin-top: 4px; padding: 14px 16px; border-radius: var(--r); border-left: 3px solid var(--gold); background: rgba(251, 191, 36, .06); font-size: 16.5px; font-weight: 700; line-height: 1.45; color: #fff; }
+.certeza { margin-top: 14px; padding: 14px 16px; border-radius: var(--r); border-left: 3px solid var(--gold); background: rgba(251, 191, 36, .06); font-size: 16.5px; font-weight: 700; line-height: 1.45; color: #fff; }
 
 /* T05: o adversário (o olhômetro), o destaque e a linha pessoal */
 .adversario { margin-top: 18px; padding: 16px 16px 14px; border-radius: var(--r-lg); border: 1px solid rgba(249, 115, 22, .42); background: linear-gradient(160deg, rgba(249, 115, 22, .16), rgba(249, 115, 22, .04) 62%); }
@@ -50,7 +50,7 @@
 .t-mundo .link-btn, .t-historico .link-btn { margin-top: 10px; }
 
 /* T09 e T11: escolhas grandes */
-.t-sonho .opcao, .t-quer .opcao, .t-chance .opcao { min-height: 64px; }
+.t-sonho .opcao, .t-quer .opcao, .t-chance .opcao, .t-video .opcao { min-height: 64px; }
 
 /* T10 */
 .t-audio .titulo { margin-top: 10px; }

@@ -164,7 +164,7 @@
   "inimigo": {
     "A": {
       "titulo": "Você não foi reprovado por ser ruim. Foi *enganado*.",
-      "p1Sim": "Você jogou bem e mesmo assim saiu sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você.",
+      "p1Sim": "Você jogou bem e saiu sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você.",
       "p1": "Você saiu dispensado ou sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você."
     },
     "B": {
@@ -178,21 +178,21 @@
     "adversario": {
       "rotulo": "O adversário que ninguém te mostrou",
       "nome": "O *olhômetro*.",
-      "texto": "Centenas de garotos, jogos de 20 minutos e um avaliador seguindo a bola. É assim que decidem o futuro de um atleta.",
+      "texto": "Centenas de garotos, 20 minutos de jogo e um avaliador seguindo a bola. Assim decidem o seu futuro.",
       "fatos": ["PEN-05"]
     },
     "campoRotulo": "Toque pra comparar",
     "abas": { "olho": "Olhômetro", "ia": "IA (Zyron)" },
     "contadorOlho": "Observados agora: {n} de 22",
     "contadorIa": "Observados agora: 22 de 22",
-    "legendaOlho": "Numa peneira com centenas de garotos, o avaliador segue a bola e decide em poucos minutos. Quase sempre, procura uma posição só, pra uma vaga só.",
+    "legendaOlho": "O olho segue a bola. Quem está longe dela não é visto.",
     "legendaIa": "Com o Zyron, os 22 são acompanhados o jogo inteiro. Inclusive você.",
     "voce": "Você",
     "iaVoce": "O Zyron vê você",
     "dica": "Toque em Olhômetro pra comparar",
     "campoAria": "Campo com 22 jogadores. No olhômetro, só os perto da bola são vistos; com IA, todos são acompanhados.",
-    "p3": "No olhômetro, quem está longe da bola não é visto. Foi o método que falhou com você, não o seu jogo.",
-    "p3C": "No olhômetro, quem está longe da bola não é visto. Quando um garoto não passa, quase sempre foi o método que falhou, não o jogo dele.",
+    "p3": "Foi o método que falhou com você, não o seu jogo.",
+    "p3C": "Quando um garoto não passa, quase sempre foi o método que falhou, não o jogo dele.",
     "destaque": "O problema nunca foi o talento. Sempre foi o *método*.",
     "pessoalComGasto": "Você disse que fez {peneirasTexto} e que a família investiu {gastoTexto}. Em quantas delas alguém mediu o seu jogo de verdade?",
     "pessoalSemGasto": "Você disse que fez {peneirasTexto}. Em quantas delas alguém mediu o seu jogo de verdade?",
@@ -214,17 +214,20 @@
     "match": "Um clube procura esse perfil",
     "radarAria": "Radar: o seu perfil cruzado com os clubes da nossa rede, até achar um que procura esse perfil.",
     "passos": [
-      { "titulo": "O Zyron lê o seu jogo.", "texto": "Você envia os vídeos das suas partidas. Ele identifica você em campo e mede o seu jogo." },
-      { "titulo": "O seu perfil encontra o clube.", "texto": "As suas características são cruzadas com o que cada clube da nossa rede procura." },
+      { "titulo": "O Zyron lê o seu jogo.", "texto": "Você manda o vídeo. Ele acha você em campo e mede o seu jogo." },
+      { "titulo": "O seu perfil encontra o clube.", "texto": "As suas características são cruzadas com o que cada clube procura." },
       { "titulo": "A gente conecta.", "texto": "Um estrategista de carreiras conduz cada passo com você, até o clube." }
-    ],
-    "videoPergunta": "Você tem vídeo dos seus jogos?",
-    "videoOpcoes": [
+    ]
+  },
+  "video": {
+    "titulo": "Você tem vídeo dos seus jogos?",
+    "apoio": "É com vídeo que o Zyron lê o seu jogo.",
+    "opcoes": [
       { "id": "jogos", "texto": "Jogos inteiros" },
       { "id": "lances", "texto": "Só alguns lances" },
       { "id": "nada", "texto": "Ainda não" }
     ],
-    "videoEspelhos": {
+    "espelhos": {
       "jogos": "Ótimo. É com vídeo que o Zyron trabalha.",
       "lances": "Já ajuda. O ideal é jogo inteiro, e a gente mostra como.",
       "nada": "Sem problema. O primeiro passo é gravar, e a gente explica como."
@@ -237,11 +240,11 @@
     "recortesRotulo": "Na imprensa",
     "contador": "{i} de {n}",
     "recortesAria": "Manchetes da imprensa sobre inteligência artificial no futebol. Arraste pro lado pra ver as outras.",
-    "arraste": "Arraste pro lado",
+    "arraste": "Arraste",
     "verMateria": "Ver a matéria",
     "escudosRotulo": "Clubes que já escolhem com dados",
-    "ponte": "Análise por vídeo com IA, agora do lado do atleta. É o que o Zyron faz por você.",
-    "fecho": "Há peneiras com centenas de vagas e inscrição paga. A maior parte dos garotos não passa da primeira etapa. Quem lucra com a peneira cheia não quer que você saiba que existe outro caminho.",
+    "ponte": "Análise por vídeo com IA, agora do lado do atleta: é o Zyron.",
+    "fecho": "Há peneiras com centenas de vagas e inscrição paga. Quem lucra com a peneira cheia não quer que você saiba que existe outro caminho.",
     "destaque": "Agora esse caminho chegou até você."
   },
   "historico": {
@@ -249,6 +252,7 @@
     "numeros": ["casa-326", "casa-renda", "casa-prazo"],
     "depoimentosRotulo": "Quem já viveu isso",
     "depoimentosAria": "Depoimentos de atletas e famílias. Arraste pro lado pra ver os outros.",
+    "arraste": "Arraste",
     "depoimentos": ["lucas-silva", "cecilia", "marcos-oliveira", "cleiton", "catia-silva"]
   },
   "sonho": {

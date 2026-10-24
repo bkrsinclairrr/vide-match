@@ -1,6 +1,6 @@
 // O áudio da mãe (T10), no Chrome de teste com --autoplay-policy=no-user-gesture-required. Os cinco estados (nao_tocou, menos,
 // mais_da_metade, ate_o_fim, erro) geram o evento e a pontuação certos no payload; seek pela onda (toque e setas); troca de
-// velocidade; play() recusado mostra "Toque de novo"; arquivo ausente mostra "Continuar sem o áudio"; o Continuar aparece em 10 s
+// velocidade; play() recusado mostra "Toque de novo"; arquivo ausente mostra "Continuar sem o áudio"; o Continuar aparece em 8 s
 // sem toque; a onda vem do waveform.json (48 valores de 0 a 1) e as barras aparecem de verdade (altura medida).
 // Uso: node testes/teste-audio.mjs
 import { sobe } from './servidor.mjs';
@@ -39,7 +39,7 @@ async function terminaEPega(c, q) {
 const nomes = async q => (await q.eventos()).map(e => e.e + (e.p && e.p.estado ? ':' + e.p.estado : '') + (e.p && e.p.pct !== undefined && e.e === 'audio_progress' ? ':' + e.p.pct : ''));
 
 try {
-  /* nao_tocou: o Continuar aparece em 10 s sem toque */
+  /* nao_tocou: o Continuar aparece em 8 s sem toque */
   {
     s.coleta.corpos.length = 0;
     const { c, q } = await naT10();
@@ -48,7 +48,7 @@ try {
     const t0 = Date.now();
     await c.ate(`!!document.querySelector('#barra .btn')`, 14000, 100);
     const seg = (Date.now() - t0) / 1000;
-    ok(seg > 8.5 && seg < 11.5, `sem tocar, o Continuar aparece em cerca de 10 s (${seg.toFixed(1)} s)`);
+    ok(seg > 6.5 && seg < 9.5, `sem tocar, o Continuar aparece em cerca de 8 s (${seg.toFixed(1)} s)`);
     const p = await terminaEPega(c, q);
     const ev = await nomes(q);
     ok(p && p.quiz.audio.estado === 'nao_tocou' && p.pontuacao.porRegra.audio === 0, 'nao_tocou: estado no payload e 0 ponto');

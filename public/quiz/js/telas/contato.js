@@ -125,7 +125,7 @@ export function render(ctx) {
     // transição honesta: não finge análise nenhuma
     const montando = h('div', { class: 'montando', role: 'status' }, h('div', { class: 'montando-in' }, h('span', { class: 'montando-roda', 'aria-hidden': 'true' }), h('span', { text: c.montando })));
     document.body.append(montando);
-    await espera(ctx.reduz ? 600 : 1500);
+    await espera(ctx.reduz ? 600 : 1100);
     ctx.estado.marcaEnviado({ leadId, resultado: { tier: pont.tier, total: pont.total } });
     montando.remove();
     ctx.vaiPara('resultado', { historico: 'push' });

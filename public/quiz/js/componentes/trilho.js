@@ -1,11 +1,16 @@
 // Trilho de cartões que rolam de lado (recortes de jornal, depoimentos): rolagem nativa com encaixe, um cartão por vez. Enquanto
 // está na tela, vai passando sozinho de cartão em cartão, em volta contínua, e o ponto ativo enche no tempo do próximo. O toque, a
 // rolagem com o dedo ou o teclado pausam; depois de alguns segundos sem mexer, volta a rolar. Com "reduzir movimento", nunca anda
-// sozinho. Rolagem nativa: funciona igual no navegador do Instagram.
+// sozinho. Rolagem nativa: funciona igual no navegador do Instagram. Com `dica`, uma mão animada por cima do cartão seguinte mostra que
+// dá pra arrastar; ela some no primeiro toque ou arrasto.
 import { h, reduzMovimento } from '../motor/util.js';
+import { icone } from './icones.js';
 
-export function trilho({ itens, rotulo, auto = 0, retoma = 6000, aoVer }) {
+export function trilho({ itens, rotulo, auto = 0, retoma = 6000, aoVer, dica }) {
   const pista = h('div', { class: 'trilho', role: 'region', 'aria-label': rotulo, tabindex: '0' }, ...itens);
+  const maozinha = dica ? h('div', { class: 'trilho-dica', 'aria-hidden': 'true' }, h('span', { class: 'trilho-mao', html: icone.arrasta }), h('span', { class: 'trilho-dica-t', text: dica })) : null;
+  const caixa = h('div', { class: 'trilho-caixa' }, pista, maozinha);
+  const someDica = () => maozinha?.classList.add('some');
   const pontos = h('div', { class: 'pontos parado', 'aria-hidden': 'true', style: { '--dur': auto + 'ms' } }, ...itens.map(() => h('i')));
   const reduz = reduzMovimento();
   let atual = -1, timer = 0, ligado = false, visivel = false, foco = false, pausaAte = 0, ignoraAte = 0;
@@ -41,12 +46,12 @@ export function trilho({ itens, rotulo, auto = 0, retoma = 6000, aoVer }) {
   }
 
   // quem mexe pausa; a rolagem do próprio trilho (o avanço sozinho) não conta como mexer
-  const pausa = () => { pausaAte = Date.now() + retoma; agenda(); };
+  const pausa = () => { someDica(); pausaAte = Date.now() + retoma; agenda(); };
   let pendente = 0;
   pista.addEventListener('scroll', () => {
     if (Date.now() < ignoraAte) return;
     cancelAnimationFrame(pendente);
-    pendente = requestAnimationFrame(() => { pausaAte = Math.max(pausaAte, Date.now() + retoma); marca(indice()); agenda(); });
+    pendente = requestAnimationFrame(() => { someDica(); pausaAte = Math.max(pausaAte, Date.now() + retoma); marca(indice()); agenda(); });
   }, { passive: true });
   ['pointerdown', 'touchstart', 'wheel'].forEach(e => pista.addEventListener(e, pausa, { passive: true }));
   pista.addEventListener('focusin', () => { foco = true; agenda(); });
@@ -64,7 +69,7 @@ export function trilho({ itens, rotulo, auto = 0, retoma = 6000, aoVer }) {
 
   marca(0);
   return {
-    el: pista, pontos,
+    el: caixa, pista, pontos,
     liga() { ligado = true; agenda(); },
     para() { ligado = false; agenda(); },
     vai,

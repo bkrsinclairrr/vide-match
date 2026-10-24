@@ -71,7 +71,7 @@ export function deriva(r, { copy, mapa, cfg }) {
   const op = (lista, id) => (lista || []).find(o => o.id === id);
   const gastoOp = op(copy.peneiras.gastoOpcoes, gasto);
   const sonhoOp = op(copy.sonho.opcoes, r.sonho);
-  const videoOp = op(copy.zyron.videoOpcoes, r.video);
+  const videoOp = op(copy.video.opcoes, r.video);
 
   const ficha = {
     nome: r.nome ? String(r.nome).trim() : '',

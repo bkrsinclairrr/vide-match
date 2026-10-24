@@ -52,8 +52,8 @@ export function render(ctx) {
   ctx.aoSair(() => campo.destroi());
   el.append(h('div', { class: 'campo-bloco', style: { marginTop: '18px' } }, campo.el, dica), p3);
 
-  // sem toque em 5 s, troca sozinho pra IA uma vez, com a dica pra comparar
-  ctx.depois(5000, () => { if (!tocou) { campo.modo(true); dica.hidden = false; revela(); } });
+  // sem toque em 3,5 s, troca sozinho pra IA uma vez, com a dica pra comparar
+  ctx.depois(3500, () => { if (!tocou) { campo.modo(true); dica.hidden = false; revela(); } });
 
   el.append(h('p', { class: 'destaque', html: ctx.t(c.destaque) }));
 

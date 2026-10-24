@@ -96,7 +96,9 @@ try {
     ok(await c.avalia(`!!document.querySelector('.campo--jogo.modo-ia')`), 'T05: as setas trocam olhômetro e IA nas abas do campo');
     await tabAte('#barra .btn'); await c.aperta('Enter');
     await chega('zyron');
-    await tabAte('#barra .opcao'); await setaAte('lances'); await c.aperta('Enter'); await espera(200); await espelhos();
+    await tabAte('#barra .btn', 90); await c.aperta('Enter');
+    await chega('video');
+    await tabAte('.t-video .opcao'); await setaAte('lances'); await c.aperta('Enter'); await espera(200); await espelhos();
     await chega('mundo');
     await tabAte('#barra .btn', 90); await c.aperta('Enter');
     await chega('historico');
@@ -126,7 +128,7 @@ try {
     await tabAte('#barra .btn'); await c.aperta('Enter');
     await chega('resultado');
     await tabAte('#barra .btn');
-    ok(true, `o quiz inteiro só no teclado, das 14 telas até o botão da landing (${paradas} paradas de Tab)`);
+    ok(true, `o quiz inteiro só no teclado, das 15 telas até o botão da landing (${paradas} paradas de Tab)`);
     ok(!semTitulo.length, 'a cada troca de tela, o foco vai pro título' + (semTitulo.length ? ' (não foi em: ' + semTitulo.join(', ') + ')' : ''));
     ok(!semFoco.size, `o foco aparece em toda parada (${paradas})` + (semFoco.size ? ': sem marca em ' + [...semFoco].join(', ') : ''));
     ok(!foraDeOrdem.length, 'o Tab anda de cima pra baixo' + (foraDeOrdem.length ? ': ' + foraDeOrdem.slice(0, 4).join(' | ') : ''));
@@ -165,7 +167,7 @@ try {
     const pos2 = await c.avalia(`JSON.stringify([...document.querySelectorAll('.campo--jogo .jog')].slice(0, 6).map(j => j.getAttribute('style') || j.getAttribute('transform') || ''))`);
     ok(foco1 > 0 && pos1 === pos2, 'reduzir movimento: o campo da T05 fica parado');
     ok(!(await c.avalia(`!!document.querySelector('.abertura')`)), 'reduzir movimento: sem a abertura em preto que anda sozinha');
-    await q.inimigo(); await q.zyron('lances'); await q.mundo(); await q.historico(); await q.sonho('europa');
+    await q.inimigo(); await q.zyron(); await q.video('lances'); await q.mundo(); await q.historico(); await q.sonho('europa');
     await q.audio('fim'); await q.quer('sim'); await q.chance('familia'); await q.contato({ nome: 'Joãozinho', zap: '11955554444' }); await q.resultado();
     ok(true, 'reduzir movimento: o quiz inteiro funciona até o resultado');
     await c.fecha();

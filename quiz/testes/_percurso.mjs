@@ -23,8 +23,10 @@ export async function percorre({ c, q, url, aoTela }) {
   await c.ate(`!!document.querySelector('.campo--jogo.modo-ia')`, 8000); await espera(900);
   await para('inimigo-ia', { pausa: 300 });
   await q.continua();
-  await q.esperaTela('zyron'); await para('zyron', { pausa: 2600 });
-  await q.toca('#barra .opcao[data-id="lances"]');
+  await q.esperaTela('zyron'); await para('zyron', { pausa: 2800 });
+  await q.continua();
+  await q.esperaTela('video'); await para('video');
+  await q.toca('.t-video .opcao[data-id="lances"]');
   await q.esperaTela('mundo'); await para('mundo', { pausa: 1200 });
   await q.continua();
   await q.esperaTela('historico'); await para('historico', { pausa: 2000 });

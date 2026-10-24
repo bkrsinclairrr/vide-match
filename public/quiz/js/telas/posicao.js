@@ -33,7 +33,7 @@ export function render(ctx) {
       ctx.responde('posicao', id);
       if (primeira) ctx.evento('quiz_start', {});
       ctx.vibra(12);
-      ctx.avancaCom({ atraso: 520 });
+      ctx.avancaCom({ atraso: 420 });
     }
   });
   ctx.aoSair(() => campo.destroi());

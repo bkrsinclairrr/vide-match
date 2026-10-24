@@ -11,7 +11,7 @@ function partes(numero) {
   return { prefixo, grande: s, unidade };
 }
 
-function contaAte(el, alvo, ms = 1400) {
+function contaAte(el, alvo, ms = 1100) {
   if (reduzMovimento()) { el.textContent = String(alvo); return; }
   const t0 = performance.now();
   const passo = agora => {
@@ -41,7 +41,7 @@ export function render(ctx) {
       grandeEl.append(m[1], n, m[3]);
       contadores.push([n, parseInt(m[2], 10)]);
     } else grandeEl.textContent = grande;
-    return h('div', { class: 'numero' + (p.id === 'casa-renda' ? ' ouro' : ''), 'data-prova': p.id },
+    return h('div', { class: 'numero' + (p.id === 'casa-renda' ? ' ouro' : '') + (p.id === 'casa-prazo' ? ' prazo' : ''), 'data-prova': p.id },
       h('p', { class: 'numero-valor' }, prefixo ? h('span', { class: 'numero-prefixo', text: prefixo }) : null, grandeEl, unidade ? h('span', { class: 'numero-unidade', text: unidade }) : null),
       h('p', { class: 'numero-texto', text: fonte.texto }));
   });
@@ -57,7 +57,7 @@ export function render(ctx) {
       h('blockquote', { class: 'depo-texto', style: { margin: '0' }, text: p.texto }),
       h('div', { class: 'estrelas', 'aria-hidden': 'true', html: icone.estrela.repeat(5) })));
   if (depos.length) {
-    const t = trilho({ itens: depos, rotulo: c.depoimentosAria, auto: 4800 });
+    const t = trilho({ itens: depos, rotulo: c.depoimentosAria, auto: 4800, dica: c.arraste });
     ctx.aoSair(() => t.destroi());
     el.append(h('p', { class: 'mini-rotulo' }, h('span', { text: c.depoimentosRotulo }), h('span', { text: '' })), t.el, t.pontos);
     t.liga();

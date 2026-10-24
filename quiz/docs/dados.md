@@ -60,7 +60,7 @@ Ao pixel (Meta e Utmify), só adulto que aceitou os cookies: `contact_submit` vi
 3. A página fechou com envio pendente: `sendBeacon` (sobrevive ao fechamento), e o item fica na fila pra próxima visita conferir.
 4. O `leadId` é a chave: o destino deve fazer upsert por ele, e reenviar nunca duplica.
 
-O atleta nunca vê erro de rede: a transição "Montando o seu diagnóstico" dura 1,5 s e a T14 aparece de qualquer jeito.
+O atleta nunca vê erro de rede: a transição "Montando o seu diagnóstico" dura 1,1 s e a T14 aparece de qualquer jeito.
 
 ## Menor de idade (o que o sistema faz sozinho)
 

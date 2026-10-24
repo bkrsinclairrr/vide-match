@@ -1,5 +1,5 @@
 // Regras da casa. (1) Nenhum travessão (U+2014 nem U+2013) em nada: tela, código, comentário, documento. (2) A copy e as provas sem
-// palavra proibida, ressalva legal nem preço. (3) Percorrendo as 14 telas, com as 4 opcionais ligadas só pra este teste: todo texto
+// palavra proibida, ressalva legal nem preço. (3) Percorrendo as 15 telas, com as 4 opcionais ligadas só pra este teste: todo texto
 // renderizado dentro das regras; título de tela narrativa com até 9 palavras (em toda variante e com toda posição); a T08 com os três
 // números do dono e o universo dentro da frase; todo cartão de fato ligado a uma prova do provas.json, com fonte quando é de terceiro.
 // Os 12 caminhos (teste-caminhos.mjs) passam pela mesma varredura de texto.
@@ -52,7 +52,7 @@ for (const id of NARRATIVAS) {
 const longos = titulos.filter(([id, t]) => !/\{quem\}/.test(t) && palavras(semEnfase(t)) > 9);
 ok(titulos.length >= 6 && !longos.length, `${titulos.length} títulos de tela narrativa com até 9 palavras` + (longos.length ? ': ' + longos.map(([i, t]) => `${i} (${palavras(t)})`).join(', ') : ''));
 
-/* ---------- 3. na página: as 14 telas e as 4 opcionais ---------- */
+/* ---------- 3. na página: as 15 telas e as 4 opcionais ---------- */
 const s = await sobe();
 const c = await abreChrome({ antes: scriptTeste({ config: { endpoint: '', telasOpcionais: { objetivo: true, experiencia: true, trava: true, epoca: true } } }) });
 const q = quiz(c);
@@ -89,7 +89,8 @@ try {
       ok(abriu, 'a T05 abre "Ver os números" com as provas da peneira');
       await q.continua();
     }
-    else if (id === 'zyron') await q.zyron('jogos');
+    else if (id === 'zyron') await q.zyron();
+    else if (id === 'video') await q.video('jogos');
     else if (id === 'mundo') {
       // o innerText já traz os seis recortes, mesmo os que estão fora da vista no carrossel
       await q.colhe(); await colheProvas(); await q.continua();
@@ -114,8 +115,8 @@ try {
     // só segue quando a tela trocou (senão o laço responde a mesma tela duas vezes)
     if (!(await c.ate(`(() => { const t = document.querySelector('#palco .tela:not(.saindo)'); return !!t && t.dataset.passo !== ${JSON.stringify(id)} && !t.classList.contains('entrando'); })()`, 12000))) throw new Error('a tela ' + id + ' não avançou');
   }
-  const esperadas = ['posicao', 'idade', 'experiencia', 'epoca', 'objetivo', 'peneiras', 'trava', 'dispensas', 'inimigo', 'zyron', 'mundo', 'historico', 'sonho', 'audio', 'quer', 'chance', 'contato', 'resultado'];
-  ok(JSON.stringify(vistos) === JSON.stringify(esperadas), `com as opcionais ligadas, as 18 telas na ordem do fluxo (${vistos.length}: ${vistos.join(' > ')})`);
+  const esperadas = ['posicao', 'idade', 'experiencia', 'epoca', 'objetivo', 'peneiras', 'trava', 'dispensas', 'inimigo', 'zyron', 'video', 'mundo', 'historico', 'sonho', 'audio', 'quer', 'chance', 'contato', 'resultado'];
+  ok(JSON.stringify(vistos) === JSON.stringify(esperadas), `com as opcionais ligadas, as 19 telas na ordem do fluxo (${vistos.length}: ${vistos.join(' > ')})`);
 
   const achados = [...new Set(q.textos.flatMap(t => confereTexto(t.texto).map(a => `${t.id}: ${a}`)))];
   ok(!achados.length, `${q.textos.length} leituras de tela sem travessão, palavra proibida, ressalva nem preço` + (achados.length ? ': ' + achados.slice(0, 4).join(' | ') : ''));

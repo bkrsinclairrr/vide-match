@@ -14,11 +14,11 @@ export const scriptTeste = ({ config = {}, audioArquivos = null, estado = null, 
 // um estado salvo pra entrar direto num passo (retomada): respostas até ali, criado há 2 minutos
 export const estadoSalvo = (respostas, passo) => ({ v: 1, respostas, passo, criadoEm: Date.now() - 120000, atualizadoEm: Date.now(), enviado: false, leadId: null, resultado: null });
 // respostas completas de um adulto até a tela pedida (o resto fica de fora)
-export const ATE = ['posicao', 'idade', 'peneiras', 'dispensas', 'inimigo', 'zyron', 'mundo', 'historico', 'sonho', 'audio', 'quer', 'chance', 'contato'];
+export const ATE = ['posicao', 'idade', 'peneiras', 'dispensas', 'inimigo', 'zyron', 'video', 'mundo', 'historico', 'sonho', 'audio', 'quer', 'chance', 'contato'];
 export function respostasAte(passo, mais = {}) {
   const todas = {
     posicao: { posicao: 'LD' }, idade: { idade: '18_21' }, peneiras: { peneiras: '3_5', gasto: '500_2000' }, dispensas: { dispensas: '1_2', jogouBem: 'sim' },
-    inimigo: { viuOlhometro: true, viuInimigo: true }, zyron: { video: 'lances' }, mundo: { viuMundo: true }, historico: { viuHistorico: true },
+    inimigo: { viuOlhometro: true, viuInimigo: true }, zyron: { viuZyron: true }, video: { video: 'lances' }, mundo: { viuMundo: true }, historico: { viuHistorico: true },
     sonho: { sonho: 'europa' }, audio: { audio: { estado: 'ate_o_fim', pct: 100 } }, quer: { quer: 'sim', compromisso: true }, chance: { chance: 'familia' }
   };
   const r = {};
@@ -81,19 +81,20 @@ export function quiz(c) {
         await responde(`.t-dispensas .bloco-segunda .opcao[data-id="${jogou}"]`);
       }
     },
-    // espera a virada pra IA (5 s sozinha), colhe o texto revelado e segue
+    // espera a virada pra IA (3,5 s sozinha), colhe o texto revelado e segue
     async inimigo({ esperaIa = false } = {}) {
       await esperaTela('inimigo');
       if (esperaIa) { await c.ate(`!!document.querySelector('.campo--jogo.modo-ia')`, 8000); await espera(900); await colhe(); }
       else await espera(300);
       await continua();
     },
-    async zyron(video) { await esperaTela('zyron'); await c.ate(`!!document.querySelector('#barra .opcao')`, 4000); await espera(200); await colhe(); await responde(`#barra .opcao[data-id="${video}"]`); },
+    async zyron() { await esperaTela('zyron'); await espera(300); await continua(); },
+    async video(v) { await esperaTela('video'); await responde(`.t-video .opcao[data-id="${v}"]`); },
     async mundo() { await esperaTela('mundo'); await continua(); },
     async historico() { await esperaTela('historico'); await continua(); },
     async sonho(s) { await esperaTela('sonho'); await responde(`.t-sonho .opcao[data-id="${s}"]`); },
     // ouvir: 'fim' (pula pra 96%), 'inteiro' (toca até o fim de verdade), 'metade' (pula pra 60% e pausa), 'pouco' (toca 1 s),
-    // 'nada' (espera o Continuar dos 10 s)
+    // 'nada' (espera o Continuar dos 8 s)
     async audio(ouvir = 'fim') {
       await esperaTela('audio');
       // a abertura em preto: um toque por linha
@@ -138,14 +139,15 @@ export function quiz(c) {
   };
 }
 
-// o caminho 1 do aceite: adulto, 6 peneiras ou mais, de 3 a 5 dispensas, tier A (14 telas)
+// o caminho 1 do aceite: adulto, 6 peneiras ou mais, de 3 a 5 dispensas, tier A (15 telas)
 export async function caminhoCompleto(q, op = {}) {
   await q.posicao(op.posicao || 'LD');
   await q.idade(op.idade || '18_21');
   await q.peneiras(op.peneiras || '6_mais', op.gasto || '500_2000');
   if ((op.peneiras || '6_mais') !== '0') await q.dispensas(op.dispensas || '3_5', op.jogou || 'sim');
   await q.inimigo({ esperaIa: !!op.esperaIa });
-  await q.zyron(op.video || 'lances');
+  await q.zyron();
+  await q.video(op.video || 'lances');
   await q.mundo();
   await q.historico();
   await q.sonho(op.sonho || 'europa');

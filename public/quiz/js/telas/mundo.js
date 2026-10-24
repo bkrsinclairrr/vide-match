@@ -27,10 +27,10 @@ export function render(ctx) {
   });
   const conta = h('span', { text: ctx.tx(c.contador, { i: 1, n: cartoes.length }) });
   const t = trilho({
-    itens: cartoes, rotulo: c.recortesAria, auto: 4000,
+    itens: cartoes, rotulo: c.recortesAria, auto: 4000, dica: c.arraste,
     aoVer: i => { conta.textContent = ctx.tx(c.contador, { i: i + 1, n: cartoes.length }); ctx.evento('recorte_view', { id: idsRecortes[i] }); }
   });
-  t.el.addEventListener('scroll', () => { conta.textContent = ctx.tx(c.contador, { i: t.atual + 1, n: cartoes.length }); }, { passive: true });
+  t.pista.addEventListener('scroll', () => { conta.textContent = ctx.tx(c.contador, { i: t.atual + 1, n: cartoes.length }); }, { passive: true });
   ctx.aoSair(() => t.destroi());
   el.append(h('p', { class: 'mini-rotulo' }, h('span', { text: c.recortesRotulo }), conta), t.el, t.pontos);
   t.liga();

@@ -15,7 +15,7 @@ const vale = n => !pedidos.length || pedidos.includes(n);
 const s = await sobe();
 const COLETA = s.url + '/__coleta';
 const leads = () => s.coleta.corpos.filter(x => x && x.leadId);
-const TODAS = ['posicao', 'idade', 'peneiras', 'dispensas', 'inimigo', 'zyron', 'mundo', 'historico', 'sonho', 'audio', 'quer', 'chance', 'contato', 'resultado'];
+const TODAS = ['posicao', 'idade', 'peneiras', 'dispensas', 'inimigo', 'zyron', 'video', 'mundo', 'historico', 'sonho', 'audio', 'quer', 'chance', 'contato', 'resultado'];
 const SEM_DISPENSAS = TODAS.filter(x => x !== 'dispensas');
 const igual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const abertos = [];
@@ -61,12 +61,12 @@ try {
     const q = quiz(lento);
     const t0 = Date.now();
     await q.posicao('LD'); await q.idade('18_21'); await q.peneiras('6_mais', '500_2000'); await q.dispensas('3_5', 'sim');
-    await q.inimigo(); await q.zyron('lances'); await q.mundo(); await q.historico(); await q.sonho('europa');
+    await q.inimigo(); await q.zyron(); await q.video('lances'); await q.mundo(); await q.historico(); await q.sonho('europa');
     await q.audio('inteiro'); await q.quer('sim'); await q.chance('familia'); await q.contato(CONTATO); await q.resultado();
     const seg = (Date.now() - t0) / 1000;
     q0.textos.push(...q.textos);
     const telas = await q.telas();
-    ok(igual(telas, TODAS) && telas.length === 14, `caminho 1: as 14 telas na ordem (${telas.length})`);
+    ok(igual(telas, TODAS) && telas.length === 15, `caminho 1: as 15 telas na ordem (${telas.length})`);
     ok(seg <= 240, `caminho 1: tocando a cada 3 s e ouvindo o áudio inteiro, fechou em ${seg.toFixed(0)} s (até 240)`);
     const p = await ultimo();
     ok(p && p.pontuacao.tier === 'A' && p.quiz.audio.estado === 'ate_o_fim' && p.pontuacao.porRegra.audio === 6, 'caminho 1: tier A, áudio até o fim (6 pontos)');
@@ -74,15 +74,15 @@ try {
     ok((await c.avalia(`document.querySelector('.t-resultado .selo') !== null && !!document.querySelector('#barra .btn')?.dataset.url`)), 'caminho 1: selo e botão da landing no resultado');
   });
 
-  /* (2) adulto sem peneira: 13 telas, pula a T04, T05 variante C */
+  /* (2) adulto sem peneira: 14 telas, pula a T04, T05 variante C */
   await caminho(2, 'adulto sem peneira', async ({ c, q }) => {
     await q.posicao('CA'); await q.idade('22_mais'); await q.peneiras('0');
     await q.esperaTela('inimigo');
     ok((await c.avalia(`document.querySelector('.t-inimigo').dataset.variante`)) === 'C', 'caminho 2: T05 na variante C');
-    await q.inimigo(); await q.zyron('jogos'); await q.mundo(); await q.historico(); await q.sonho('brasil');
+    await q.inimigo(); await q.zyron(); await q.video('jogos'); await q.mundo(); await q.historico(); await q.sonho('brasil');
     await q.audio('fim'); await q.quer('sim'); await q.chance('pronto'); await q.contato(CONTATO); await q.resultado();
     const telas = await q.telas();
-    ok(igual(telas, SEM_DISPENSAS) && telas.length === 13, `caminho 2: 13 telas, sem a T04 (${telas.join(' > ')})`);
+    ok(igual(telas, SEM_DISPENSAS) && telas.length === 14, `caminho 2: 14 telas, sem a T04 (${telas.join(' > ')})`);
     const p = await ultimo();
     ok(p && p.ficha.peneirasFeitas === 0 && p.ficha.gastoPeneiras === 0 && p.quiz.dispensas === null && p.quiz.recusado === false, 'caminho 2: payload sem peneira, sem gasto e sem dispensa');
   });
@@ -92,9 +92,9 @@ try {
     await q.posicao('ZAG-d'); await q.idade('18_21'); await q.peneiras('1_2', 'ate_500'); await q.dispensas('0');
     await q.esperaTela('inimigo');
     ok((await c.avalia(`document.querySelector('.t-inimigo').dataset.variante`)) === 'B', 'caminho 3: T05 na variante B');
-    await q.inimigo(); await q.zyron('lances'); await q.mundo(); await q.historico(); await q.sonho('chance');
+    await q.inimigo(); await q.zyron(); await q.video('lances'); await q.mundo(); await q.historico(); await q.sonho('chance');
     await q.audio('fim'); await q.quer('sim'); await q.chance('familia'); await q.contato(CONTATO); await q.resultado();
-    ok(igual(await q.telas(), TODAS), 'caminho 3: as 14 telas na ordem');
+    ok(igual(await q.telas(), TODAS), 'caminho 3: as 15 telas na ordem');
     const p = await ultimo();
     ok(p && p.quiz.dispensas === '0' && p.quiz.recusado === false && p.quiz.jogouBem === null, 'caminho 3: dispensa 0, sem "jogou bem"');
   });
@@ -103,10 +103,10 @@ try {
   await caminho(4, 'menor de 15 a 17', async ({ c, q }) => {
     await q.posicao('MC'); await q.idade('15_17');
     await q.peneiras('3_5', 'mais_2000'); await q.dispensas('1_2', 'as_vezes');
-    await q.inimigo(); await q.zyron('nada'); await q.mundo(); await q.historico(); await q.sonho('europa');
+    await q.inimigo(); await q.zyron(); await q.video('nada'); await q.mundo(); await q.historico(); await q.sonho('europa');
     await q.audio('metade'); await q.quer('receio'); await q.chance('entender');
     await q.contato({ nome: 'Joãozinho', responsavel: 'Maria Souza', zap: '11955554444' }); await q.resultado();
-    ok(igual(await q.telas(), TODAS), 'caminho 4: as 14 telas na ordem');
+    ok(igual(await q.telas(), TODAS), 'caminho 4: as 15 telas na ordem');
     const p = await ultimo();
     ok(p && p.contato.responsavelNome === 'Maria Souza' && !('responsavelPresente' in p.consentimento) && p.quiz.idadeFaixa === '15_17', 'caminho 4: contato e aceite do responsável no payload');
     ok(p && /^Sou o responsável por Joãozinho/.test(p.consentimento.texto), 'caminho 4: o aceite do menor sai com a frase do responsável');
@@ -140,7 +140,7 @@ try {
   /* (7) tier B */
   await caminho(7, 'tier B', async ({ c, q }) => {
     await q.posicao('LE'); await q.idade('18_21'); await q.peneiras('6_mais', '500_2000'); await q.dispensas('3_5', 'nao');
-    await q.inimigo(); await q.zyron('lances'); await q.mundo(); await q.historico(); await q.sonho('selecao');
+    await q.inimigo(); await q.zyron(); await q.video('lances'); await q.mundo(); await q.historico(); await q.sonho('selecao');
     await q.audio('fim'); await q.quer('receio'); await q.chance('entender'); await q.contato(CONTATO); await q.resultado();
     const p = await ultimo();
     ok(p && p.pontuacao.tier === 'B', `caminho 7: tier B (${p && p.pontuacao.total} pontos)`);
@@ -151,7 +151,7 @@ try {
   /* (8) tier C com saída */
   await caminho(8, 'tier C, saída', async ({ c, q }) => {
     await q.posicao('ADD'); await q.idade('22_mais'); await q.peneiras('1_2', 'nada'); await q.dispensas('0');
-    await q.inimigo(); await q.zyron('nada'); await q.mundo(); await q.historico(); await q.sonho('chance');
+    await q.inimigo(); await q.zyron(); await q.video('nada'); await q.mundo(); await q.historico(); await q.sonho('chance');
     await q.audio('nada'); await q.quer('nao_sei'); await q.chance('nao_sei'); await q.contato(CONTATO); await q.resultado();
     const p = await ultimo();
     ok(p && p.pontuacao.tier === 'C', 'caminho 8: tier C');
@@ -162,7 +162,7 @@ try {
   /* (9) tier C com "landing": a tela do B, a landing recebe o tier real */
   await caminho(9, 'tier C, landing', async ({ c, q }) => {
     await q.posicao('VOL-e'); await q.idade('18_21'); await q.peneiras('0');
-    await q.inimigo(); await q.zyron('nada'); await q.mundo(); await q.historico(); await q.sonho('brasil');
+    await q.inimigo(); await q.zyron(); await q.video('nada'); await q.mundo(); await q.historico(); await q.sonho('brasil');
     await q.audio('nada'); await q.quer('sim'); await q.chance('nao_sei'); await q.contato(CONTATO); await q.resultado();
     const p = await ultimo();
     ok(p && p.pontuacao.tier === 'C', 'caminho 9: tier C no payload');
@@ -173,7 +173,7 @@ try {
   /* (10) "ainda não sei" na T11: sem o segurar */
   await caminho(10, 'ainda não sei', async ({ c, q }) => {
     await q.posicao('VOL-d'); await q.idade('22_mais'); await q.peneiras('3_5', 'ate_500'); await q.dispensas('1_2', 'sim');
-    await q.inimigo(); await q.zyron('jogos'); await q.mundo(); await q.historico(); await q.sonho('europa');
+    await q.inimigo(); await q.zyron(); await q.video('jogos'); await q.mundo(); await q.historico(); await q.sonho('europa');
     await q.audio('pouco');
     await q.esperaTela('quer');
     await q.toca('.t-quer .opcao[data-id="nao_sei"]');
@@ -182,20 +182,20 @@ try {
     await q.chance('familia'); await q.contato(CONTATO); await q.resultado();
     const p = await ultimo();
     ok(p && p.quiz.quer === 'nao_sei' && p.quiz.compromisso === false && p.quiz.audio.estado === 'menos', 'caminho 10: quer "nao_sei", sem compromisso, áudio "menos"');
-    ok(igual(await q.telas(), TODAS), 'caminho 10: as 14 telas na ordem');
+    ok(igual(await q.telas(), TODAS), 'caminho 10: as 15 telas na ordem');
   });
 
   /* (11) voltar até a T01 pela seta e pelo voltar nativo, avançar de novo sem perder nada; na T14 o voltar reabre a T14 */
   await caminho(11, 'voltar e avançar', async ({ c, q }) => {
     const R = { posicao: 'LD', idade: '18_21', peneiras: '6_mais', gasto: '500_2000', dispensas: '3_5', jogouBem: 'sim', video: 'lances', sonho: 'europa', quer: 'sim', chance: 'familia' };
     await q.posicao(R.posicao); await q.idade(R.idade); await q.peneiras(R.peneiras, R.gasto); await q.dispensas(R.dispensas, R.jogouBem);
-    await q.inimigo(); await q.zyron(R.video); await q.mundo(); await q.historico(); await q.sonho(R.sonho);
+    await q.inimigo(); await q.zyron(); await q.video(R.video); await q.mundo(); await q.historico(); await q.sonho(R.sonho);
     await q.audio('fim'); await q.quer(R.quer); await q.chance(R.chance);
     await q.esperaTela('contato');
     const MARCA = {
       posicao: `.pos.escolhida[data-pos="${R.posicao}"]`, idade: `.t-idade .opcao[data-id="${R.idade}"][aria-checked="true"]`,
       peneiras: `.t-peneiras > .opcoes .opcao[data-id="${R.peneiras}"][aria-checked="true"]`, dispensas: `.t-dispensas > .opcoes .opcao[data-id="${R.dispensas}"][aria-checked="true"]`,
-      zyron: `#barra .opcao[data-id="${R.video}"][aria-checked="true"]`, sonho: `.t-sonho .opcao[data-id="${R.sonho}"][aria-checked="true"]`,
+      video: `.t-video .opcao[data-id="${R.video}"][aria-checked="true"]`, sonho: `.t-sonho .opcao[data-id="${R.sonho}"][aria-checked="true"]`,
       quer: `.t-quer .opcao[data-id="${R.quer}"][aria-checked="true"]`, chance: `.t-chance .opcao[data-id="${R.chance}"][aria-checked="true"]`
     };
     const ordem = TODAS.slice(0, TODAS.indexOf('contato'));
@@ -216,7 +216,6 @@ try {
         const temContinuar = await c.avalia(`(() => { const b = document.querySelector('#barra .btn:not([aria-disabled="true"])'); return !!b; })()`);
         if (temContinuar) { await q.toca('#barra .btn'); continue; }
         if (id === 'posicao') await q.toca(MARCA.posicao);
-        else if (id === 'zyron') await q.toca(MARCA.zyron);
         else if (MARCA[id]) await q.toca(MARCA[id]);
         else throw new Error('sem como avançar em ' + id);
       }
@@ -240,7 +239,7 @@ try {
   /* (12) recarregar no meio e retomar; recarregar depois de enviar (contato apagado do aparelho) */
   await caminho(12, 'recarregar', async ({ c, q }) => {
     await q.posicao('ADD'); await q.idade('18_21'); await q.peneiras('3_5', '500_2000'); await q.dispensas('3_5', 'sim');
-    await q.inimigo(); await q.zyron('lances');
+    await q.inimigo(); await q.zyron(); await q.video('lances');
     await q.esperaTela('mundo');
     await c.envia('Page.reload', {});
     await q.esperaTela('mundo', 15000);

@@ -48,17 +48,18 @@ Os ids, as chaves e as convenções que todo arquivo do quiz segue. Mudou um id 
 | `trava` | opcional | I | chips | tela opcional ligada em geral.json | `quiz.trava` |
 | `dispensas` | 4 | I | chips-duas-perguntas | `quiz.peneirasFaixa != "0"` | `quiz.dispensas`, `quiz.recusado`, `quiz.jogouBem` |
 | `inimigo` | 5 | II | narrativa-campo | sempre (variantes A, B, C) | `quiz.viuOlhometro` |
-| `zyron` | 6 | III | narrativa-radar-pergunta | sempre | `quiz.video`, `ficha.temVideo` |
-| `mundo` | 7 | III | recortes-escudos | sempre | |
-| `historico` | 8 | III | provas-depoimentos | sempre | |
-| `sonho` | 9 | IV | chips | sempre | `ficha.sonho` |
-| `audio` | 10 | IV | audio | `config.audio.ativo = true` | `quiz.audio` |
-| `quer` | 11 | IV | chips-segurar | sempre | `quiz.quer`, `quiz.compromisso` |
-| `chance` | 12 | V | chips | sempre | `quiz.chance` |
-| `contato` | 13 | V | formulario | sempre | `ficha.nome`, `contato.whatsapp`, `contato.responsavelNome`, `consentimento.aceite` |
-| `resultado` | 14 | V | resultado | sempre | `pontuacao.total`, `pontuacao.tier` |
+| `zyron` | 6 | III | narrativa-radar | sempre | (nada: conta como vista no Continuar) |
+| `video` | 7 | III | chips | sempre | `quiz.video`, `ficha.temVideo` |
+| `mundo` | 8 | III | recortes-escudos | sempre | |
+| `historico` | 9 | III | provas-depoimentos | sempre | |
+| `sonho` | 10 | IV | chips | sempre | `ficha.sonho` |
+| `audio` | 11 | IV | audio | `config.audio.ativo = true` | `quiz.audio` |
+| `quer` | 12 | IV | chips-segurar | sempre | `quiz.quer`, `quiz.compromisso` |
+| `chance` | 13 | V | chips | sempre | `quiz.chance` |
+| `contato` | 14 | V | formulario | sempre | `ficha.nome`, `contato.whatsapp`, `contato.responsavelNome`, `consentimento.aceite` |
+| `resultado` | 15 | V | resultado | sempre | `pontuacao.total`, `pontuacao.tier` |
 
-Variantes da T05: A (`quiz.recusado = true`), B (fez peneira e não foi dispensado), C (nunca fez peneira). Caminho mais longo: 14 telas; sem peneira: 13; sem peneira e sem áudio: 12.
+Variantes da T05: A (`quiz.recusado = true`), B (fez peneira e não foi dispensado), C (nunca fez peneira). Caminho mais longo: 15 telas; sem peneira: 14; sem peneira e sem áudio: 13. Nos documentos, a tela do vídeo é a T06b, pra não renumerar as outras.
 
 ## Respostas (no aparelho: `qz:estado.respostas`)
 

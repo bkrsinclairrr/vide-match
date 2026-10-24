@@ -91,7 +91,7 @@ try {
     await espera(600);
     ok(!(await temFolha(c)), 'rejeitar fecha a folha');
     await q.peneiras('3_5', '500_2000'); await q.dispensas('1_2', 'sim');
-    await q.inimigo(); await q.zyron('lances'); await q.mundo(); await q.historico(); await q.sonho('europa');
+    await q.inimigo(); await q.zyron(); await q.video('lances'); await q.mundo(); await q.historico(); await q.sonho('europa');
     await q.audio('fim'); await q.quer('sim'); await q.chance('familia'); await q.contato({ nome: 'Carlos', zap: '11955554444' }); await q.resultado();
     await espera(1500);
     ok(terceiros().length === 0, `rejeitou: nenhum pedido a terceiro até o fim (${terceiros().length})`);
@@ -113,7 +113,7 @@ try {
     const carregou = terceiros();
     ok(carregou.some(u => /connect\.facebook\.net\/.*fbevents\.js/.test(u)) && carregou.filter(u => /cdn\.utmify\.com\.br/.test(u)).length === 2, `aceitou: o pixel da Meta e os dois scripts da Utmify carregam (${carregou.length} pedidos)`);
     await q.peneiras('6_mais', 'mais_2000'); await q.dispensas('3_5', 'sim');
-    await q.inimigo(); await q.zyron('jogos'); await q.mundo(); await q.historico(); await q.sonho('europa');
+    await q.inimigo(); await q.zyron(); await q.video('jogos'); await q.mundo(); await q.historico(); await q.sonho('europa');
     await q.audio('fim'); await q.quer('sim'); await q.chance('pronto'); await q.contato({ nome: 'Diego', zap: '11955554444' }); await q.resultado();
     await espera(800);
     const p = leads()[0];

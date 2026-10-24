@@ -58,7 +58,7 @@ export function render(ctx) {
     requestAnimationFrame(() => conteudo.querySelector('h1')?.focus({ preventScroll: true }));
 
     // "gravando áudio…" por 1,4 s, e a bolha chega (quem já ouviu vê a bolha direto)
-    ctx.depois(ctx.reduz || jaOuviu ? 0 : 1400, () => {
+    ctx.depois(ctx.reduz || jaOuviu ? 0 : 1000, () => {
       comp = audioVoz({
         ondas: w.barras, duracao: w.duracao || 37.6, textos: c, legendas, foto,
         evento: (n, p) => ctx.evento(n, p),
@@ -74,17 +74,17 @@ export function render(ctx) {
       if (comp.legendaViva) corpo.append(comp.legendaViva);
       vibra(40);
       ctx.evento('audio_view', {});
-      ctx.depois(ctx.reduz ? 0 : 1800, () => {
+      ctx.depois(ctx.reduz ? 0 : 1200, () => {
         comp.pulsa();
         if (comp.estado === 'nao_tocou') { dica = h('p', { class: 'dica-tocar', text: c.dicaTocar }); corpo.append(dica); }
       });
-      // quem não tocar não fica preso: o Continuar aparece em 10 s (na hora, pra quem já tinha ouvido)
+      // quem não tocar não fica preso: o Continuar aparece em 8 s (na hora, pra quem já tinha ouvido)
       if (jaOuviu) mostraContinuar();
-      else ctx.depois(10000, () => mostraContinuar());
+      else ctx.depois(8000, () => mostraContinuar());
     });
   }
 
-  // a abertura: preto, silêncio, uma linha a cada 1,3 s (o toque acelera)
+  // a abertura: preto, silêncio, uma linha a cada 1,05 s (o toque acelera)
   if (ctx.reduz || ctx.r.audio?.estado && ctx.r.audio.estado !== 'nao_tocou') { monta(); return el; }
   const linhas = c.abertura.map(t => h('p', { text: t }));
   const abertura = h('div', { class: 'abertura', role: 'dialog', 'aria-label': c.abertura.join(' ') },
@@ -97,14 +97,14 @@ export function render(ctx) {
     if (acabou) return;
     acabou = true; clearTimeout(tm);
     abertura.classList.add('saindo');
-    setTimeout(() => abertura.remove(), 480);
+    setTimeout(() => abertura.remove(), 400);
     ctx.barra.esconde(false);
     monta();
   };
   const proxima = () => {
     if (!ctx.vivo()) return;
-    if (i < linhas.length) { linhas[i].classList.add('vis'); i++; tm = setTimeout(proxima, 1300); }
-    else tm = setTimeout(fecha, 900);
+    if (i < linhas.length) { linhas[i].classList.add('vis'); i++; tm = setTimeout(proxima, 1050); }
+    else tm = setTimeout(fecha, 600);
   };
   const acelera = () => { clearTimeout(tm); if (i < linhas.length) proxima(); else fecha(); };
   abertura.addEventListener('pointerdown', acelera);
@@ -113,6 +113,6 @@ export function render(ctx) {
   abertura.tabIndex = -1;
   requestAnimationFrame(() => abertura.focus({ preventScroll: true }));
   ctx.aoSair(() => { clearTimeout(tm); document.removeEventListener('keydown', tecla); abertura.remove(); ctx.barra.esconde(false); });
-  tm = setTimeout(proxima, 350);
+  tm = setTimeout(proxima, 250);
   return el;
 }

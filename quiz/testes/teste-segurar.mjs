@@ -1,4 +1,4 @@
-// Segurar pra confirmar (T11), com toque por CDP: soltar antes de 1,6 s volta o anel e não avança; completar avança em 700 ms;
+// Segurar pra confirmar (T11), com toque por CDP: soltar antes de 1,6 s volta o anel e não avança; completar avança em 500 ms;
 // Enter e Espaço confirmam direto; "Confirmar sem segurar" funciona. Em todos, o compromisso chega ao estado.
 // Uso: node testes/teste-segurar.mjs
 import { sobe } from './servidor.mjs';
@@ -23,7 +23,7 @@ const anel = c => c.avalia(`parseFloat(document.querySelector('.segurar .enche')
 const compromisso = c => c.avalia(`window.__qz.estado.r.compromisso === true`);
 
 try {
-  /* soltar antes de 1,6 s: o anel volta, nada avança; depois, segurar até o fim avança em 700 ms */
+  /* soltar antes de 1,6 s: o anel volta, nada avança; depois, segurar até o fim avança em 500 ms */
   {
     const { c, q } = await naT11();
     const ct = await c.centro('.segurar-botao');
@@ -44,7 +44,7 @@ try {
     ok(await compromisso(c), 'completar grava o compromisso');
     await c.ate(`window.__qzTelas.includes('chance')`, 3000, 20);
     const tAvanca = Date.now() - t0 - tOk;
-    ok(tAvanca > 550 && tAvanca < 1100, `avançou ${tAvanca} ms depois de completar (700 ms mais a troca de tela)`);
+    ok(tAvanca > 380 && tAvanca < 950, `avançou ${tAvanca} ms depois de completar (500 ms mais a troca de tela)`);
     await c.fecha();
   }
 

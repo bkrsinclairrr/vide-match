@@ -94,7 +94,8 @@ body::before {
 @keyframes tela-sai { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
 
 /* entrada do texto narrativo, escalonada */
-.entra > * { animation: entra .6s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
+/* curta de propósito: cada tela fica pronta pra ler em menos de meio segundo */
+.entra > * { animation: entra .42s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
 @keyframes entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 /* a primeira tela da visita pinta direto: é ela que mede o LCP, e no celular lento cada quadro de animação atrasa a primeira pintura */
 .tela.primeira .entra > * { animation: none; }
@@ -160,5 +161,7 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .tela.entrando { animation: tela-fade .12s linear both !important; }
+  .trilho-mao, .barra .btn::before, .selecione i, .adversario-rotulo i { animation: none !important; }
+  .barra .btn::before { display: none; }
   @keyframes tela-fade { from { opacity: 0; } to { opacity: 1; } }
 }

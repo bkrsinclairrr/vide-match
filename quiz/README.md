@@ -1,6 +1,6 @@
 # Quiz: diagnóstico do atleta (Voxen | Zyron)
 
-Quiz de pré-qualificação em `https://aizyron.com/quiz/`: o atleta chega do anúncio, responde 14 telas de um toque em menos de 4 minutos, recebe o diagnóstico e segue pra landing com a VSL. Estático (HTML, CSS e módulos JavaScript, sem build e sem npm), servido pelo mesmo projeto da Vercel do site (`vide-match`). O quiz não vende nada e não fala de preço em tela nenhuma: quem explica e vende é a VSL.
+Quiz de pré-qualificação em `https://aizyron.com/quiz/`: o atleta chega do anúncio, responde 15 telas curtas, quase todas de um toque, em menos de 4 minutos, recebe o diagnóstico e segue pra landing com a VSL. Estático (HTML, CSS e módulos JavaScript, sem build e sem npm), servido pelo mesmo projeto da Vercel do site (`vide-match`). O quiz não vende nada e não fala de preço em tela nenhuma: quem explica e vende é a VSL.
 
 ## Onde fica cada coisa
 
@@ -40,7 +40,7 @@ O `teste-dados.mjs` confere a ficha contra as regras do Painel do Closer, que mo
 | `teste-regras-da-casa.mjs` | Travessão em qualquer arquivo, o topo da capa no `index.html` igual à copy, palavras proibidas, ressalva, preço, títulos com até 9 palavras, os números da T08 com o universo e cada fato ligado a uma prova com fonte (com as 4 telas opcionais ligadas) |
 | `teste-caminhos.mjs` | Os 12 caminhos do aceite, ponta a ponta, com a sequência de telas, o payload e a varredura de texto e de eventos; o caminho 1 toca a cada 3 s e ouve o áudio inteiro; os caminhos 13 e 14 são de quem volta pela capa (seguir de onde parou e recomeçar) |
 | `teste-acessibilidade.mjs` | O quiz inteiro só no teclado, foco visível e em ordem, foco no título, espelhos anunciados, alvos de 44 px, 320 px e zoom de 200%, reduzir movimento e o contraste |
-| `teste-audio.mjs` | Os 5 estados do áudio com evento e pontuação, seek, velocidade, `play()` recusado, arquivo ausente e o Continuar em 10 s |
+| `teste-audio.mjs` | Os 5 estados do áudio com evento e pontuação, seek, velocidade, `play()` recusado, arquivo ausente e o Continuar em 8 s |
 | `teste-segurar.mjs` | Soltar antes, completar, Enter, Espaço e "Confirmar sem segurar" |
 | `teste-consentimento.mjs` | Nenhuma tag antes da idade nem pra menor, a folha só pra adulto e com ID, botões iguais, rejeitar e aceitar |
 | `teste-desempenho.mjs` | Com 4G lento e CPU 4 vezes mais lenta, em HTTP/2: carga, LCP e CLS (mediana de 3 visitas), JavaScript comprimido e nenhum terceiro; a capa antes do JavaScript, sem piscar pra quem volta no meio e sem pular quando a T01 monta |

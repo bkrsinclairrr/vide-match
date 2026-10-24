@@ -27,7 +27,7 @@ Todo texto de tela mora em `config/copy.pt-BR.json`, por id de tela. Nenhuma fra
 | Autoridade da IA no futebol, como as manchetes | T07: os recortes (ESPN Brasil, Cambridge United e mais quatro), "Clubes já usam *IA* pra encontrar jogadores." e "Não é promessa de internet. Está nos jornais." |
 | Viés de confirmação | T04: "E nessas vezes, você sentiu que jogou bem?"; os espelhos depois de cada resposta; a linha pessoal da T05 com os números dele |
 | Sem "fictício", "ilustrativo" e parecidos | Nenhum, em lugar nenhum (o teste de regras da casa procura) |
-| Curto, pra levar à VSL | 14 telas no caminho mais longo, tudo de um toque até o contato |
+| Curto, pra levar à VSL | 15 telas no caminho mais longo, quase tudo de um toque até o contato |
 
 ## Variantes
 

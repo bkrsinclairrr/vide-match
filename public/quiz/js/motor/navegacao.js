@@ -20,6 +20,7 @@ const TELAS = {
   dispensas: () => import('../telas/dispensas.js'),
   inimigo: () => import('../telas/inimigo.js'),
   zyron: () => import('../telas/zyron.js'),
+  video: () => import('../telas/video.js'),
   mundo: () => import('../telas/mundo.js'),
   historico: () => import('../telas/historico.js'),
   sonho: () => import('../telas/sonho.js'),
@@ -29,6 +30,9 @@ const TELAS = {
   contato: () => import('../telas/contato.js'),
   resultado: () => import('../telas/resultado.js')
 };
+
+// fração real (etapa / total) pra barra: 6% de saída e curva rápida no começo, lenta no fim; 1 continua 1
+export const barraDeProgresso = x => x >= 1 ? 1 : 0.06 + 0.94 * (1 - Math.pow(1 - Math.max(0, x), 1.5));
 
 export function criaMotor(app) {
   const { cfg, fluxo, copy, provas, estado, eventos, rastreio, mapa, barra } = app;
@@ -58,7 +62,10 @@ export function criaMotor(app) {
     if (atoNome) atoNome.textContent = fluxo.capitulos[cap] || '';
     const i = Math.max(0, cam.indexOf(id));
     const frac = cam.length ? (i + 1) / cam.length : 0;
-    prog.style.setProperty('--p', String(frac));
+    // a barra anda mais no começo e menos no fim (rápida e depois lenta reduz abandono: meta-análise de 32 experimentos, Villar,
+    // Callegaro e Yang, 2013) e já sai com um pouco de avanço (efeito do progresso dado, Nunes e Drèze, 2006). O leitor de tela
+    // continua ouvindo a etapa exata ("Etapa 3 de 15").
+    prog.style.setProperty('--p', String(barraDeProgresso(frac)));
     prog.setAttribute('aria-valuenow', String(Math.round(frac * 100)));
     prog.setAttribute('aria-valuetext', tx(copy.geral.passoDeTotal, { n: i + 1, total: cam.length }));
     const semVoltar = id === 'posicao' || id === 'resultado' || (id === 'contato' && estado.s.enviado);
@@ -116,13 +123,13 @@ export function criaMotor(app) {
       continuarSeCompleto() {
         if ((COMPLETO[id] || (() => false))(estado.r, estado.s)) barra.botao({ texto: copy.geral.continuar, aoClicar: () => avanca(meuToken) });
       },
-      // espelho de uma linha embaixo do alvo; avança em 1,1 s (ou no próximo toque). Sem espelho, avança em 260 ms
+      // espelho de uma linha embaixo do alvo; avança em 1 s (ou no próximo toque). Sem espelho, avança em 260 ms
       async avancaCom({ espelho, alvo, atraso } = {}) {
         if (!vivo()) return;
         if (espelho) {
           const linha = linhaEspelho(espelho);
           alvo ? alvo.after(linha) : palco.querySelector('.tela')?.append(linha);
-          await esperaOuToque(atraso ?? 1100, meuToken);
+          await esperaOuToque(atraso ?? 1000, meuToken);
         } else {
           await espera(atraso ?? 260);
         }
@@ -214,9 +221,9 @@ export function criaMotor(app) {
     tVista = agora;
     setTimeout(() => { el.classList.remove('entrando'); trocando = false; }, 260);
 
-    // baixa a próxima tela enquanto o atleta lê esta
+    // baixa a próxima tela enquanto o atleta lê esta (cedo: no 4G, o toque seguinte não espera o download)
     const prox = cam[cam.indexOf(id) + 1];
-    if (prox && TELAS[prox]) setTimeout(() => { TELAS[prox]().catch(() => {}); }, 700);
+    if (prox && TELAS[prox]) setTimeout(() => { TELAS[prox]().catch(() => {}); }, 300);
   }
 
   function erroDeCarga(id, historico, direcao) {
