@@ -1,194 +1,25 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react"
-import { Link, useNavigate, useParams } from "react-router-dom"
-import {
-  ArrowLeft, BadgeCheck, Check, ClipboardList, Copy, DownloadCloud, Eye, GitCompareArrows, KeyRound, Mail, NotebookPen, Pencil, PencilLine, Printer, Radar, Save,
-  Trash2, UserRoundSearch, X,
-} from "lucide-react"
-import { getSource } from "@/pages/membros/api"
-import { CLIENT_BASE } from "@/pages/membros/paths"
+import { Link, useParams } from "react-router-dom"
+import { Check, ClipboardList, NotebookPen, Pencil, PencilLine, Radar, Save, UserRoundSearch, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { useVoxen } from "../store"
 import {
-  LINES, SCOUT_ATTRS, STAGES, dimensionScores, formatDate, formatDateTime, formatPhone, initials, pctTone, placeOf,
-  positionOf, scoreTone, scoreUnit, scoutAverage, scoutTone, timeAgo, whatsappLink, type Player, type Profile,
+  LINES, SCOUT_ATTRS, dimensionScores, formatDate, formatPhone, initials, pctTone, placeOf,
+  positionOf, scoreTone, scoreUnit, scoutAverage, scoutTone, type Player, type Profile,
 } from "../data"
 import { Est } from "../estimated"
-import { keysOf } from "../people"
-import { PROSPECT_EDIT_HINT, crmLeadIdOf, isProspect } from "../prospects"
-import { deleteSummary } from "./PlayerDialogs"
+import { isProspect } from "../prospects"
 import { ChartEditor, type ChartTab } from "./chartedit/ChartEditor"
 import { originalOf, pitchOf, summaryOf } from "./chartedit/model"
 import { MaterialsSection } from "./media/MaterialsSection"
-import { PlayerLook } from "./media/PlayerLook"
+import { PlayerHero } from "./hero/PlayerHero"
 import { PlayerOpportunities } from "./opportunities/PlayerOpportunities"
 import { Meter, Pitch, RadarChart, Ring, CountUp } from "../charts"
-import { CardHead, Empty, PosBadge, ScoreChip, comparePath } from "../ui"
+import { CardHead, Empty, ScoreChip } from "../ui"
 
 const PlayerEditor = lazy(() => import("./PlayerEditor"))
 
 const norm = scoreUnit
-
-/** Lead que virou cliente: abre o cadastro de membro preenchido ou o membro já criado. */
-function MemberButton({ p }: { p: Player }) {
-  const { demo, canScout } = useVoxen()
-  const navigate = useNavigate()
-  const leadId = p.key.startsWith("lead:") ? p.key.slice(5) : null
-  const [memberId, setMemberId] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!leadId) return
-    let cancelled = false
-    getSource(demo)
-      .then((s) => s.findByLead(leadId))
-      .then((m) => { if (!cancelled) setMemberId(m?.id ?? null) })
-      .catch(() => undefined) // área de membros ainda não ativada: o botão leva ao aviso
-    return () => { cancelled = true }
-  }, [leadId, demo])
-
-  if (memberId) {
-    return <Link to={`/voxen/membros/${memberId}`} className="vx-btn"><BadgeCheck /> Ver membro</Link>
-  }
-  if (!canScout) return null
-  return (
-    <button type="button" className="vx-btn" title="Cadastrar na área de membros com os dados do funil"
-      onClick={() => navigate(`/voxen/membros?${new URLSearchParams({ de: p.key })}`)}>
-      <BadgeCheck /> Tornar membro
-    </button>
-  )
-}
-
-function Header({ p, editing, onEdit }: { p: Player; editing: boolean; onEdit: () => void }) {
-  const { updateMeta, canScout, canAdmin, removePlayer } = useVoxen()
-  const { toast } = useToast()
-  const navigate = useNavigate()
-  const wa = whatsappLink(p)
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-
-  const remove = async () => {
-    setDeleting(true)
-    try {
-      await removePlayer(p.key)
-      toast({ title: "Cadastro excluído", description: p.name })
-      navigate("/voxen/jogadores")
-    } catch (err) {
-      setDeleting(false)
-      setConfirmDelete(false)
-      toast({ title: "Não foi possível excluir", description: err instanceof Error ? err.message : String(err), variant: "destructive" })
-    }
-  }
-
-  const copyPhone = async () => {
-    try {
-      await navigator.clipboard.writeText(formatPhone(p.phone))
-      toast({ title: "Telefone copiado", description: formatPhone(p.phone) })
-    } catch {
-      toast({ title: "Não foi possível copiar", variant: "destructive" })
-    }
-  }
-
-  const chips = ([
-    [p.profile.category, "category"],
-    [p.profile.age ? `${p.profile.age} anos` : null, "age"],
-    [placeOf(p), "city"],
-    [p.profile.team ? `Time: ${p.profile.team}` : null, "team"],
-    [p.profile.foot ? `Pé ${p.profile.foot.toLowerCase()}` : null, "foot"],
-  ] as [string | null, keyof Profile][]).filter(([label]) => Boolean(label)) as [string, keyof Profile][]
-  const accountKey = keysOf(p).find((k) => k.startsWith("atleta:"))
-  const erase = deleteSummary(p)
-
-  return (
-    <section className="vx-card mb-[18px] overflow-hidden">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(600px 220px at 10% 0%, rgba(251,191,36,0.12), transparent 70%)" }} />
-      <div className="relative flex flex-wrap items-center gap-5">
-        <Link to="/voxen/jogadores" className="vx-icon-btn vx-no-print vx-back-btn" aria-label="Voltar para jogadores"><ArrowLeft /></Link>
-        <PlayerLook key={p.key} p={p} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="break-words text-[22px] font-bold leading-tight tracking-[-0.02em] sm:text-[26px]">{p.name}</h2>
-            <PosBadge player={p} />
-          </div>
-          <p className="mt-1 text-[13.5px] text-zinc-400">{p.profile.position ?? "Posição não informada"}</p>
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {chips.map(([label, k]) => <span key={label} className="vx-chip h-7 cursor-default"><Est p={p} k={k}>{label}</Est></span>)}
-            <span className="vx-chip h-7 cursor-default">Origem: {p.origin}</span>
-            {isProspect(p) && <span className="vx-chip h-7 cursor-default" title="Aprovado em Importados. Ainda não se cadastrou na plataforma: ninguém foi contatado e nenhum cadastro foi criado.">Pré-cadastro do CRM</span>}
-            {accountKey && <span className="vx-chip h-7 cursor-default" title="Esta pessoa tem o cadastro do funil e a conta de atleta juntos num registro só">Com conta de atleta</span>}
-          </div>
-        </div>
-        <div className="vx-no-print flex w-full flex-wrap items-center gap-2 2xl:ml-auto 2xl:w-auto">
-          {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="vx-btn vx-btn--wpp"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>}
-          {p.phone && <button type="button" className="vx-btn" onClick={() => void copyPhone()}><Copy /> {formatPhone(p.phone)}</button>}
-          {isProspect(p)
-            ? <Link to={`/voxen/importados?item=${encodeURIComponent(`pre:${crmLeadIdOf(p)}`)}`} className="vx-btn" title="O que veio da wsltda.com: respostas do formulário, responsável e notas"><DownloadCloud /> Contexto do CRM</Link>
-            : <MemberButton p={p} />}
-          {accountKey && (
-            <Link to={`${CLIENT_BASE}?como=${encodeURIComponent(accountKey)}`} className="vx-btn" title="Abre a área do cliente exatamente como o atleta a vê" target="_blank" rel="noopener noreferrer">
-              <Eye /> Ver como atleta
-            </Link>
-          )}
-          {accountKey && p.userId && canAdmin && (
-            <Link to={`/voxen/contas?conta=${encodeURIComponent(p.userId)}`} className="vx-btn" title="Mudar o acesso, desativar ou excluir a conta de login">
-              <KeyRound /> Gerenciar acesso
-            </Link>
-          )}
-          {canScout && (
-            <button type="button" className={`vx-btn ${editing ? "is-on" : ""}`} onClick={onEdit} disabled={isProspect(p)} title={isProspect(p) ? PROSPECT_EDIT_HINT : undefined}>
-              <Pencil /> {editing ? "Fechar edição" : "Editar"}
-            </button>
-          )}
-          {canAdmin && (
-            <button type="button" className="vx-icon-btn pp-danger" title="Excluir este cadastro" aria-label="Excluir este cadastro" onClick={() => setConfirmDelete(true)}><Trash2 /></button>
-          )}
-          {p.email && <a href={`mailto:${p.email}`} className="vx-icon-btn" aria-label={`E-mail para ${p.email}`} title={p.email}><Mail /></a>}
-          <button type="button" className="vx-icon-btn" aria-label="Comparar com outros" title="Comparar" onClick={() => navigate(comparePath([p.key]))}><GitCompareArrows /></button>
-          <button type="button" className="vx-icon-btn" aria-label="Imprimir ficha" title="Imprimir ficha" onClick={() => window.print()}><Printer /></button>
-        </div>
-      </div>
-
-      {confirmDelete && (
-        <div className="pp-confirm" role="alertdialog" aria-label="Confirmar exclusão">
-          <p>
-            Excluir o cadastro de <strong>{p.name}</strong>? Apaga {erase.erased}.
-            {erase.kept ? ` Continuam: ${erase.kept} (exclua em Contas e acessos ou na tela do membro, se quiser).` : ""} <strong>Não dá para desfazer.</strong>
-          </p>
-          <div>
-            <button type="button" className="vx-btn" onClick={() => setConfirmDelete(false)} disabled={deleting}>Cancelar</button>
-            <button type="button" className="vx-btn pp-danger-solid" onClick={() => void remove()} disabled={deleting}>{deleting ? "Excluindo..." : "Excluir de vez"}</button>
-          </div>
-        </div>
-      )}
-
-      <div className="relative mt-5 flex flex-wrap items-center gap-3 border-t border-white/5 pt-4">
-        <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Etapa</span>
-        <div className="vx-stages" role="radiogroup" aria-label="Etapa do atleta">
-          {STAGES.map((s) => {
-            const on = p.meta.stage === s.key
-            return (
-              <button
-                key={s.key}
-                type="button"
-                role="radio"
-                aria-checked={on}
-                className="vx-stage-btn"
-                disabled={!canScout}
-                style={on ? { color: s.color, borderColor: `${s.color}66`, background: `${s.color}17`, boxShadow: `0 0 18px -6px ${s.color}` } : undefined}
-                onClick={() => void updateMeta(p.key, { stage: s.key })}
-              >
-                <span className="vx-stage-dot" style={{ background: s.color }} />{s.label}
-              </button>
-            )
-          })}
-        </div>
-        <span className="ml-auto text-[12px] text-zinc-500">
-          Entrou {timeAgo(p.createdAt)} · {formatDateTime(p.createdAt)}
-          {p.meta.updatedAt && <> · atualizado {timeAgo(p.meta.updatedAt)}</>}
-        </span>
-      </div>
-    </section>
-  )
-}
 
 type ChartPart = "geral" | "radar" | "campo" | "indicadores"
 
@@ -380,7 +211,7 @@ export default function PlayerProfile() {
 
   return (
     <>
-      <Header p={p} editing={editing} onEdit={() => setEditing((v) => !v)} />
+      <PlayerHero key={`hero-${p.key}`} p={p} editing={editing} onEdit={() => setEditing((v) => !v)} />
       {editing && (
         <Suspense fallback={null}>
           <PlayerEditor key={p.key} p={p} onClose={() => setEditing(false)} />

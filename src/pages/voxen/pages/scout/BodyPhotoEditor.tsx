@@ -2,7 +2,7 @@ import "../media/media.css"
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent, type PointerEvent } from "react"
 import {
-  AlertTriangle, Camera, Check, CircleUserRound, Crosshair, Frame, ImagePlus, Loader2, Monitor, PersonStanding, RotateCcw, Scissors, Smartphone, Upload, X,
+  AlertTriangle, Camera, Check, Crosshair, Frame, ImagePlus, Loader2, Monitor, RotateCcw, Scissors, Smartphone, Upload, X,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useVoxen } from "@/pages/voxen/store"
@@ -11,6 +11,7 @@ import type { BodyPhoto, BodyStyle } from "@/pages/membros/scoutLayer"
 import type { Member } from "@/pages/membros/model"
 import { ClubPicker, NewClubForm } from "../opportunities/ClubPicker"
 import { choiceNote } from "../media/model"
+import { PhotoSwitch } from "../hero/PhotoSwitch"
 import { errMsg, type Club, type Controls, type ScoutApi } from "./api"
 import {
   centered, clampCrop, containScale, coverScale, encode, extOf, hasTransparency, luminance, openImage, previewUrl, render,
@@ -84,13 +85,15 @@ function drawEditor(canvas: HTMLCanvasElement, src: Source, crop: Crop, alpha: b
  * na área dele; vale a última escolha. Sobe duas versões em WebP (1000 e 640 px de altura); a foto
  * anterior só sai do Storage quando uma terceira a substitui, e pode ser restaurada.
  */
-export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onClubsChanged }: {
+export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onClubsChanged, initialFile = null }: {
   api: ScoutApi
   member: Pick<Member, "id" | "fullName" | "position" | "category" | "photoUrl">
   controls: Controls
   clubs: Club[]
   onControls: (c: Controls) => void
   onClubsChanged: (c: Club) => void
+  /** Foto que já veio solta de outro lugar (o cabeçalho da ficha): abre direto no recorte. */
+  initialFile?: File | null
 }) {
   const { canScout } = useVoxen()
   const { toast } = useToast()
@@ -138,6 +141,9 @@ export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onCl
       toast({ title: "Não foi possível abrir a foto", description: errMsg(e), variant: "destructive" })
     }
   }, [toast])
+
+  // Veio uma foto solta no cabeçalho da ficha: já abre no recorte.
+  useEffect(() => { if (initialFile) void accept(initialFile) }, [initialFile, accept])
 
   // Colar uma imagem (Ctrl V) enquanto a aba está aberta.
   useEffect(() => {
@@ -374,16 +380,8 @@ export function BodyPhotoEditor({ api, member, controls, clubs, onControls, onCl
             <div className="bp-state">
               <div className="bp-mode">
                 <span className="bp-mode-label">Como {first} aparece (no Início dele e na ficha)</span>
-                <div className="pl-look-switch" role="radiogroup" aria-label={`Como ${first} aparece`}>
-                  <button type="button" role="radio" aria-checked={!controls.bodyPhotoOn} className={controls.bodyPhotoOn ? "" : "is-on"} disabled={!canScout}
-                    onClick={() => { if (controls.bodyPhotoOn) void patch({ bodyPhotoOn: false }, `${first} aparece com a foto de perfil`) }}>
-                    <CircleUserRound /> Foto de perfil
-                  </button>
-                  <button type="button" role="radio" aria-checked={controls.bodyPhotoOn} className={controls.bodyPhotoOn ? "is-on" : ""} disabled={!canScout}
-                    onClick={() => { if (!controls.bodyPhotoOn) void patch({ bodyPhotoOn: true }, `${first} aparece de corpo inteiro`) }}>
-                    <PersonStanding /> Corpo inteiro
-                  </button>
-                </div>
+                <PhotoSwitch mode={controls.bodyPhotoOn ? "corpo" : "perfil"} bodyReady disabled={!canScout} label={`Como ${first} aparece`}
+                  onPick={(m) => void patch({ bodyPhotoOn: m === "corpo" }, m === "corpo" ? `${first} aparece de corpo inteiro` : `${first} aparece com a foto de perfil`)} />
                 <small>{choiceNote(controls.photoChoiceBy, controls.photoChoiceAt) || `${first} também pode escolher na área dele. Vale a última escolha.`}</small>
               </div>
               {controls.bodyPhotoPrev && canScout && <button type="button" className="vx-btn h-8 justify-self-start" onClick={restore}><RotateCcw /> Restaurar a foto anterior</button>}

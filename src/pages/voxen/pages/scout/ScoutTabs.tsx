@@ -134,15 +134,24 @@ export function AccessTab({ member }: { member: Member }) {
 /* Foto de corpo inteiro                                               */
 /* ------------------------------------------------------------------ */
 
-export function BodyTab({ member }: { member: Member }) {
+export function BodyTab({ member, initialFile, onChanged }: {
+  member: Pick<Member, "id" | "fullName" | "position" | "category" | "photoUrl">
+  /** Foto que a equipe soltou em cima do cabeçalho da ficha: o editor já abre no recorte. */
+  initialFile?: File | null
+  /** A foto, o estilo, o clube do uniforme ou a escolha de como aparece mudou (para a ficha se atualizar). */
+  onChanged?: (controls: Controls, kit: Club | null) => void
+}) {
   const { demo } = useVoxen()
   const api = useScoutApi(demo)
   const data = useLoad(api, async (a) => ({ controls: await a.controlsFor(member.id), clubs: await a.clubs() }), [member.id])
   if (data.error) return <ScoutSetupNotice error={data.error} />
   if (!api || !data.data) return <Loading />
   return (
-    <BodyPhotoEditor api={api} member={member} controls={data.data.controls} clubs={data.data.clubs}
-      onControls={(controls) => data.set((d) => (d ? { ...d, controls } : d))}
+    <BodyPhotoEditor api={api} member={member} controls={data.data.controls} clubs={data.data.clubs} initialFile={initialFile}
+      onControls={(controls) => {
+        data.set((d) => (d ? { ...d, controls } : d))
+        onChanged?.(controls, data.data?.clubs.find((c) => c.id === controls.kitClubId) ?? null)
+      }}
       onClubsChanged={(c: Club) => data.set((d) => (d ? { ...d, clubs: d.clubs.some((x) => x.id === c.id) ? d.clubs.map((x) => (x.id === c.id ? c : x)) : [...d.clubs, c] } : d))} />
   )
 }

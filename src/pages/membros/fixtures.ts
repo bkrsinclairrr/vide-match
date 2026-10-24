@@ -399,16 +399,25 @@ export const demoClub = (id: string, name: string, league: string, emblem: strin
 export function demoBodySvg(cutout: boolean, kit: string) {
   const bg = cutout ? "" : `<defs><radialGradient id="s" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#3a3a40"/><stop offset="1" stop-color="#121214"/></radialGradient></defs><rect width="800" height="1000" fill="url(#s)"/>`
   const skin = "#8d5a3b"
+  const shade = "#5e3822"
+  // Atleta em pé, de frente, com os braços cruzados (a pose clássica dos retratos de jogador).
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">${bg}
-<ellipse cx="400" cy="128" rx="58" ry="70" fill="${skin}"/><path d="M342 110q58-70 116 0q-6-58-58-62q-52 4-58 62z" fill="#1b1b1b"/>
-<rect x="378" y="186" width="44" height="40" rx="10" fill="${skin}"/>
-<path d="M262 238q138-40 276 0l34 236-70 10-14-120-10 190H322l-10-190-14 120-70-10z" fill="${kit}"/>
-<path d="M372 226h56l-28 34z" fill="#fff" opacity=".85"/>
-<path d="M228 474l34-236 26 6-24 228z" fill="${skin}"/><path d="M572 474l-34-236-26 6 24 228z" fill="${skin}"/>
-<path d="M322 544h156l8 118H314z" fill="#f4f4f5"/>
-<path d="M330 662h58l-6 214h-46z" fill="${skin}"/><path d="M412 662h58l-6 214h-46z" fill="${skin}"/>
-<path d="M330 700h58v120h-58zM412 700h58v120h-58z" fill="${kit}"/>
-<path d="M330 876h52l20 34h-80zM418 876h52l8 34h-80z" fill="#111"/>
+<path d="M326 690h72l-8 196h-56z" fill="${skin}"/><path d="M402 690h72l-8 196h-56z" fill="${skin}"/>
+<path d="M330 786h66l-6 98h-52z" fill="${kit}"/><path d="M404 786h66l-6 98h-52z" fill="${kit}"/>
+<path d="M322 884h74l24 36h-106zM404 884h74l32 36h-106z" fill="#111"/>
+<path d="M290 520h220l20 176H410l-10-72-10 72H270z" fill="#f4f4f5"/>
+<path d="M258 250q142-46 284 0l24 130-12 160H246l-12-160z" fill="${kit}"/>
+<path d="M364 228h72l-36 48z" fill="#f4f4f5" opacity=".92"/>
+<rect x="376" y="184" width="48" height="52" rx="12" fill="${skin}"/>
+<ellipse cx="400" cy="122" rx="56" ry="68" fill="${skin}"/>
+<path d="M340 106q60-78 120 0q-10-52-60-56q-50 4-60 56z" fill="#17120f"/>
+<path d="M236 262l56-8 8 76-56 8zM564 262l-56-8-8 76 56 8z" fill="${kit}"/>
+<path d="M244 338l56-8 8 90-56 10zM556 338l-56-8-8 90 56 10z" fill="${skin}"/>
+<path d="M522 428L294 358" stroke="${shade}" stroke-width="52" stroke-linecap="round" opacity=".5"/>
+<path d="M522 424L294 354" stroke="${skin}" stroke-width="46" stroke-linecap="round"/>
+<path d="M278 428L506 358" stroke="${shade}" stroke-width="52" stroke-linecap="round" opacity=".5"/>
+<path d="M278 424L506 354" stroke="${skin}" stroke-width="46" stroke-linecap="round"/>
+<path d="M300 346q22 6 40 16M500 346q-22 6-40 16" stroke="${shade}" stroke-width="3" fill="none" opacity=".45" stroke-linecap="round"/>
 </svg>`
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }

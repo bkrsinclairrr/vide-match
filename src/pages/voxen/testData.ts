@@ -172,7 +172,7 @@ export function buildDemoData(): VoxenData {
   }))
   // Dois cadastros com o mesmo nome e o mesmo telefone (provável duplicado) e um homônimo com telefone diferente.
   players.push(person({
-    key: "lead:demo-camilo-a", name: "Camilo Karam Escobar", email: "camilo.a@exemplo.com", phone: "61900000002",
+    key: "lead:demo-camilo-a", memberId: "m-camilo", name: "Camilo Karam Escobar", email: "camilo.a@exemplo.com", phone: "61900000002",
     createdAt: new Date(now - 5 * 86400000).toISOString(), profile: { age: 16, position: "Volante", category: "Sub 17", city: "Gama - DF" }, hasProfile: true,
   }))
   players.push(person({

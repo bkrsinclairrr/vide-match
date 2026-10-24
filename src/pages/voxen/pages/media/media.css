@@ -1,24 +1,7 @@
 /*
- * Materiais (os vídeos de cada jogador) e a foto do jogador na ficha. Quadrados escuros e premium no âmbar da
+ * Materiais (os vídeos de cada jogador). Quadrados escuros e premium no âmbar da
  * VOXEN: o vídeo preenche o quadrado; o quadrado livre parece um fotograma de filme esperando o vídeo.
  */
-
-/* ─── A foto do jogador no cabeçalho da ficha ──────────────────────── */
-
-.pl-look { display: flex; flex-shrink: 0; flex-direction: column; align-items: center; gap: 8px; }
-.pl-look-frame { position: relative; display: grid; min-height: 84px; place-items: center; }
-/* O palco do corpo inteiro (o mesmo do Início do atleta), em tamanho de ficha. */
-.pl-look .bs { --bs-w: 128px; padding-bottom: 8px; }
-.pl-look .bs-seal { bottom: -4px; transform: translateX(-50%) scale(0.58); transform-origin: 50% 100%; }
-.pl-look .bs-chips, .pl-look .bs-reflection { display: none; }
-.pl-look-switch { position: relative; z-index: 1; display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--vx-border-2); background: rgba(255, 255, 255, 0.03); }
-.pl-look-switch button { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 999px; color: var(--vx-dim); font-size: 11.5px; font-weight: 700; white-space: nowrap; transition: background 0.2s, color 0.2s, box-shadow 0.3s; }
-.pl-look-switch button svg { width: 14px; height: 14px; }
-.pl-look-switch button:hover:not(:disabled):not(.is-on) { color: var(--vx-text); background: rgba(255, 255, 255, 0.05); }
-.pl-look-switch button.is-on { background: linear-gradient(180deg, #fcd34d, #f59e0b); color: #1a1205; box-shadow: 0 0 16px -5px rgba(251, 191, 36, 0.85); }
-.pl-look-switch button:disabled { cursor: not-allowed; opacity: 0.4; }
-.pl-look-note { max-width: 168px; margin: 0; color: var(--vx-dim); font-size: 10.5px; line-height: 1.35; text-align: center; }
-.pl-look-note a { color: var(--vx-gold); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 
 /* ─── A seção Materiais ────────────────────────────────────────────── */
 
@@ -178,8 +161,6 @@ button.mt-slot:hover .mt-slot-icon { border-color: rgba(251, 191, 36, 0.4); colo
   .mt-slot b { font-size: 12px; }
   .mt-dialog-body { grid-template-columns: minmax(0, 1fr); padding: 16px; }
   .mt-preview { margin: 0 auto; width: 150px; }
-  /* Cabeçalho da ficha: a foto ocupa a primeira linha (ao lado do voltar) e o nome desce com a largura toda. */
-  .pl-look { flex: 1 1 calc(100% - 64px); }
   .mt-dialog-head { padding-left: 16px; }
   .mt-dialog-foot { padding: 12px 16px; }
   .mt-dialog-foot .vx-btn { flex: 1; justify-content: center; }
@@ -193,5 +174,5 @@ button.mt-slot:hover .mt-slot-icon { border-color: rgba(251, 191, 36, 0.4); colo
   .mt-tile, .mt-thumb, .mt-play, .mt-slot { transition: none; }
 }
 @media print {
-  .mt-menu-btn, .mt-head-actions, .pl-look-switch { display: none !important; }
+  .mt-menu-btn, .mt-head-actions { display: none !important; }
 }
