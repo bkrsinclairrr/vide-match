@@ -22,20 +22,25 @@ const GOLD = "#fbbf24"
  * que a equipe vê é exatamente o que o atleta vê.
  *
  * `variant`: "auto" segue a largura da tela; "desktop" e "mobile" forçam um dos dois (as abas
- * da pré-visualização). Se a imagem não carregar, chama `onFail` e o Início volta ao herói de sempre.
+ * da pré-visualização); "hero" é o retrato do alto da ficha do jogador no painel (ocupa a coluna que o
+ * cabeçalho lhe dá, sem nome nem selo: o cabeçalho cuida disso). Se a imagem não carregar, chama `onFail`
+ * e o Início volta ao herói de sempre.
  */
 export function BodyStage({
-  photo, name, chips, avatarUrl, variant = "auto", zoomable = true, onFail,
+  photo, name, chips, avatarUrl, variant = "auto", zoomable = true, seal = true, onFail,
 }: {
   photo: BodyPhoto
   name: string
   chips: string[]
   avatarUrl: string | null
-  variant?: "auto" | "desktop" | "mobile"
+  variant?: "auto" | "desktop" | "mobile" | "hero"
   zoomable?: boolean
+  /** O selo do rosto (avatar) com o escudo no pé do palco. */
+  seal?: boolean
   onFail?: () => void
 }) {
   const ref = useRef<HTMLElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
   const frame = useRef(0)
   const [loaded, setLoaded] = useState(false)
   const [open, setOpen] = useState(false)
@@ -43,10 +48,15 @@ export function BodyStage({
   const first = name.trim().split(/\s+/)[0] || name
   const accent = photo.kit?.color ?? GOLD
   const srcSet = photo.smallUrl ? `${photo.smallUrl} 512w, ${photo.url} 800w` : undefined
-  const sizes = variant === "mobile" ? "100vw" : variant === "desktop" ? "280px" : "(max-width: 760px) 100vw, 280px"
+  const sizes = variant === "mobile" ? "100vw" : variant === "desktop" ? "280px" : variant === "hero" ? "(max-width: 760px) 80vw, 360px" : "(max-width: 760px) 100vw, 280px"
 
-  // Troca de foto (pré-visualização do Scout): carrega de novo, com a entrada de novo.
-  useEffect(() => { setLoaded(false) }, [photo.url])
+  // Troca de foto (pré-visualização do Scout): carrega de novo, com a entrada de novo. Se a imagem já estava pronta
+  // (em cache, ou um endereço data:), o evento de carga passou antes deste efeito: sem conferir `complete`, o retrato
+  // ficaria preso em "carregando" e invisível.
+  useEffect(() => {
+    const el = imgRef.current
+    setLoaded(Boolean(el && el.complete && el.naturalWidth > 0))
+  }, [photo.url])
   useEffect(() => () => cancelAnimationFrame(frame.current), [])
 
   // Paralaxe do ponteiro (até 6 px), só onde existe hover de verdade e sem "reduzir movimento".
@@ -71,6 +81,7 @@ export function BodyStage({
 
   const img = (cls: string, decorative = false) => (
     <img
+      ref={decorative ? undefined : imgRef}
       className={cls}
       src={photo.url}
       srcSet={srcSet}
@@ -122,10 +133,12 @@ export function BodyStage({
           {chips.length > 0 && <span>{chips.join(" · ")}</span>}
         </figcaption>
       </div>
-      <div className="bs-seal">
-        <span className="bs-seal-face"><MemberAvatar member={{ fullName: name, photoUrl: avatarUrl, kind: "membro" }} size={56} ring={GOLD} /></span>
-        {photo.kit && <span className="bs-seal-crest" title={photo.kit.name}><ClubCrest club={photo.kit} size={28} /></span>}
-      </div>
+      {seal && (
+        <div className="bs-seal">
+          <span className="bs-seal-face"><MemberAvatar member={{ fullName: name, photoUrl: avatarUrl, kind: "membro" }} size={56} ring={GOLD} /></span>
+          {photo.kit && <span className="bs-seal-crest" title={photo.kit.name}><ClubCrest club={photo.kit} size={28} /></span>}
+        </div>
+      )}
       {chips.length > 0 && <p className="bs-chips">{chips.map((c) => <span key={c}>{c}</span>)}</p>}
 
       {zoomable && (

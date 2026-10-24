@@ -275,3 +275,11 @@
   .bs *, .bs *::before, .bs *::after { animation-duration: 0.2s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
 }
 @media print { .bs * { animation: none !important; opacity: 1 !important; transform: none !important; } }
+
+/* Ficha do jogador no painel (variant "hero"): o retrato ocupa a coluna do cabeçalho; o nome e o selo ficam por conta dele.
+   O recorte (PNG transparente) fica solto no holofote do cabeçalho; a moldura (foto com fundo) mantém o arco dourado. */
+.bs--hero { --bs-w: 100%; width: 100%; padding-bottom: 0; }
+.bs--hero .bs-ghost, .bs--hero .bs-caption, .bs--hero .bs-chips, .bs--hero .bs-reflection { display: none; }
+.bs--hero.bs--recorte .bs-back { display: none; }
+.bs--hero.bs--recorte .bs-img { filter: brightness(1.04) contrast(1.04) saturate(1.05) drop-shadow(0 28px 34px rgba(0, 0, 0, 0.7)); }
+.bs--hero .bs-floor { bottom: 1%; width: 72%; }

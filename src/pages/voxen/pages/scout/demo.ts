@@ -7,6 +7,7 @@
 import type {
   Club, Conflict, Controls, MemberContext, Opportunity, ScoutApi, StaffSubmission,
 } from "./api"
+import { demoBodySvg } from "@/pages/membros/fixtures"
 import { emptyControls } from "./api"
 import { NO_PROPOSAL } from "../opportunities/proposal"
 
@@ -50,7 +51,12 @@ let opportunities: Opportunity[] = [
 ]
 
 let controls: Controls[] = [
-  { ...emptyControls("m-gabriel"), shortlistedAt: ago(10), kitClubId: "club-br2", updatedAt: ago(2) },
+  // Gabriel escolheu aparecer de corpo inteiro (recorte, como nas páginas dos clubes); Juan tem a foto, mas aparece com a redonda.
+  {
+    ...emptyControls("m-gabriel"), shortlistedAt: ago(10), kitClubId: "club-br2", updatedAt: ago(2),
+    bodyPhotoUrl: demoBodySvg(true, "#0b6b3a"), bodyPhotoStyle: "recorte", bodyPhotoOn: true, photoChoiceBy: "atleta", photoChoiceAt: ago(2),
+  },
+  { ...emptyControls("m-juan"), kitClubId: "club-br10", bodyPhotoUrl: demoBodySvg(false, "#c8102e"), bodyPhotoStyle: "moldura", bodyPhotoOn: false, updatedAt: ago(5) },
   { ...emptyControls("m-arthur"), shortlistedAt: ago(4), locks: { performance: "locked" }, updatedAt: ago(4) },
 ]
 

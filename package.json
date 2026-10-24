@@ -15,7 +15,8 @@
     "test:materiais": "node --test src/pages/voxen/pages/media/model.test.ts",
     "test:oportunidades": "node --test src/pages/voxen/pages/opportunities/proposal.test.ts",
     "test:graficos": "node --test src/pages/voxen/pages/chartedit/model.test.ts",
-    "test:notas": "node --test src/pages/voxen/scores.test.ts"
+    "test:notas": "node --test src/pages/voxen/scores.test.ts",
+    "test:ficha": "node --test src/pages/voxen/pages/hero/model.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.3.0",

@@ -4,8 +4,9 @@
  * Os vídeos são públicos e conhecidos (demonstrações do YouTube e filmes abertos da Blender), só para ver os
  * quadrados preenchidos.
  */
-import { demoBodySvg, demoClub } from "@/pages/membros/fixtures"
-import type { Look, MediaApi, MemberVideos, PhotoChoice } from "./api"
+import { demoScout } from "../scout/demo"
+import { lookFromControls } from "../hero/model"
+import { noLook, type MediaApi, type MemberVideos } from "./api"
 import type { Material } from "./model"
 
 /** Quem está usando a demonstração (para "remover o próprio vídeo") e outra pessoa da equipe. */
@@ -32,16 +33,6 @@ const videos: Record<string, MemberVideos> = {
       { id: "env-g1", videoId: "R6MlUcmOul8", opponent: "Ceilândia Sub-17", playedOn: day(5), status: "em_analise", matchId: null, createdAt: ago(4) },
     ],
   },
-}
-
-const palmeiras = demoClub("br2", "Palmeiras", "Série A", "🟢⚪", "#0b6b3a")
-const joinville = demoClub("sc1", "Joinville", "Série D", "🔴⚫", "#c8102e")
-
-const looks: Record<string, Look> = {
-  // Escolheu aparecer de corpo inteiro (recorte, como nas páginas dos clubes).
-  "m-gabriel": { memberId: "m-gabriel", avatarUrl: null, body: { url: demoBodySvg(true, "#0b6b3a"), smallUrl: null, style: "recorte", kit: palmeiras }, mode: "corpo", choiceBy: "atleta", choiceAt: ago(2) },
-  // Tem a foto de corpo inteiro, mas aparece com a foto de perfil.
-  "m-juan": { memberId: "m-juan", avatarUrl: null, body: { url: demoBodySvg(false, "#c8102e"), smallUrl: null, style: "moldura", kit: joinville }, mode: "perfil", choiceBy: null, choiceAt: null },
 }
 
 const sorted = (list: Material[]) => [...list].sort((a, b) => a.position - b.position || a.createdAt.localeCompare(b.createdAt))
@@ -86,17 +77,18 @@ export const demoMedia: MediaApi = {
     return delay({ matches: [...(v?.matches ?? [])], sent: [...(v?.sent ?? [])] })
   },
 
+  // A foto é a dos controles do Scout (os mesmos que o editor de foto mexe), para a ficha e o editor sempre combinarem.
   async look(memberId) {
-    const found = memberId ? looks[memberId] : undefined
-    return delay(found ? { ...found } : { memberId, avatarUrl: null, body: null, mode: "perfil" as const, choiceBy: null, choiceAt: null })
+    if (!memberId) return delay(noLook(null))
+    const [c, clubs] = await Promise.all([demoScout.controlsFor(memberId), demoScout.clubs()])
+    const kit = clubs.find((x) => x.id === c.kitClubId) ?? null
+    return lookFromControls(noLook(memberId), c, kit)
   },
 
   async setPhotoMode(memberId, mode) {
-    const current = looks[memberId]
-    if (mode === "corpo" && !current?.body) throw new Error("Ainda não há foto de corpo inteiro para este jogador.")
-    if (!current) return delay<PhotoChoice>({ mode: "perfil", choiceBy: null, choiceAt: null })
-    const next = { ...current, mode, choiceBy: "equipe" as const, choiceAt: new Date().toISOString() }
-    looks[memberId] = next
-    return delay<PhotoChoice>({ mode: next.mode, choiceBy: next.choiceBy, choiceAt: next.choiceAt })
+    const c = await demoScout.controlsFor(memberId)
+    if (mode === "corpo" && !c.bodyPhotoUrl) throw new Error("Ainda não há foto de corpo inteiro para este jogador.")
+    const saved = await demoScout.saveControls(memberId, { bodyPhotoOn: mode === "corpo" })
+    return { mode: saved.bodyPhotoOn && saved.bodyPhotoUrl ? "corpo" as const : "perfil" as const, choiceBy: saved.photoChoiceBy, choiceAt: saved.photoChoiceAt }
   },
 }
