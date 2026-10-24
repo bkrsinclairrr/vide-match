@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quiz.aizyron.com/config/payload.schema.json",
+  "title": "Lead do quiz de pré-qualificação (payload v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "leadId", "criadoEm", "enviadoEm", "duracaoSeg", "ficha", "quiz", "contato", "consentimento", "pontuacao", "rastreio", "tecnico"],
+  "properties": {
+    "v": { "const": 1 },
+    "leadId": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$" },
+    "criadoEm": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}$" },
+    "enviadoEm": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}$" },
+    "duracaoSeg": { "type": "integer", "minimum": 0 },
+    "ficha": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nome", "idade", "posicao", "mapaCalor", "peneirasFeitas", "gastoPeneiras", "sonho", "origem"],
+      "properties": {
+        "nome": { "type": "string", "minLength": 2, "maxLength": 80 },
+        "idade": { "type": "integer", "minimum": 6, "maximum": 40 },
+        "posicao": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "mapaCalor": { "enum": ["GOL", "LD", "LE", "ZAG-d", "ZAG-e", "VOL-d", "VOL-e", "MC", "ALE", "ADD", "CA"] },
+        "peneirasFeitas": { "type": "integer", "minimum": 0, "maximum": 200 },
+        "gastoPeneiras": { "type": "integer", "minimum": 0, "maximum": 5000000 },
+        "sonho": { "type": "string", "maxLength": 120 },
+        "temVideo": { "enum": ["sim"] },
+        "origem": { "enum": ["Zyron", "Formulário do Instagram", "Frio, sem vídeo", "Outro"] },
+        "experiencia": { "type": "string", "maxLength": 160 }
+      }
+    },
+    "quiz": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canal", "idadeFaixa", "idadeEstimada", "peneirasFaixa", "peneirasEstimado", "gastoFaixa", "gastoEstimado", "dispensas", "recusado", "jogouBem",
+        "posicaoChave", "posicaoQuem", "viuOlhometro", "video", "sonhoChave", "audio", "quer", "compromisso", "chance", "objetivo", "trava", "epoca"],
+      "properties": {
+        "canal": { "const": "Quiz Zyron" },
+        "idadeFaixa": { "enum": ["12_14", "15_17", "18_21", "22_mais"] },
+        "idadeEstimada": { "const": true },
+        "peneirasFaixa": { "enum": ["0", "1_2", "3_5", "6_mais"] },
+        "peneirasEstimado": { "type": "boolean" },
+        "gastoFaixa": { "type": ["string", "null"] },
+        "gastoEstimado": { "type": "boolean" },
+        "dispensas": { "enum": ["0", "1_2", "3_5", "6_mais", null] },
+        "recusado": { "type": "boolean" },
+        "jogouBem": { "enum": ["sim", "as_vezes", "nao", null] },
+        "posicaoChave": { "enum": ["GOL", "LD", "LE", "ZAG-d", "ZAG-e", "VOL-d", "VOL-e", "MC", "ALE", "ADD", "CA"] },
+        "posicaoQuem": { "type": "string", "minLength": 3 },
+        "viuOlhometro": { "type": "boolean" },
+        "video": { "enum": ["jogos", "lances", "nada"] },
+        "sonhoChave": { "enum": ["brasil", "europa", "chance", "selecao"] },
+        "audio": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["estado", "pct"],
+          "properties": {
+            "estado": { "enum": ["ate_o_fim", "mais_da_metade", "menos", "nao_tocou", "erro", "desligado"] },
+            "pct": { "type": "integer", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "quer": { "enum": ["sim", "receio", "nao_sei"] },
+        "compromisso": { "type": "boolean" },
+        "chance": { "enum": ["pronto", "familia", "entender", "nao_sei"] },
+        "objetivo": { "enum": ["hobby", "chance", "profissional", null] },
+        "trava": { "enum": ["ninguem_viu", "sem_contato", "gastei", "qual_clube", "recursos", "nivel", null] },
+        "epoca": { "enum": ["jan_mar", "abr_jun", "jul_set", "out_dez", "nao_dizer", null] }
+      }
+    },
+    "contato": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["responsavelNome", "whatsapp"],
+      "properties": {
+        "responsavelNome": { "type": ["string", "null"], "maxLength": 80 },
+        "whatsapp": { "type": "string", "pattern": "^\\+55[1-9][0-9]9?[0-9]{8}$" }
+      }
+    },
+    "consentimento": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["aceite", "texto", "textoVersao", "politicaVersao", "em"],
+      "properties": {
+        "aceite": { "const": true },
+        "texto": { "type": "string", "minLength": 20 },
+        "textoVersao": { "type": "string" },
+        "politicaVersao": { "type": "string" },
+        "em": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}[+-]\\d{2}:\\d{2}$" }
+      }
+    },
+    "pontuacao": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "porRegra", "tier", "maximo"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "maximo": { "enum": [94, 100] },
+        "tier": { "enum": ["A", "B", "C"] },
+        "porRegra": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["quer", "compromisso", "chance", "video", "dor", "audio"],
+          "properties": {
+            "quer": { "type": "integer", "minimum": 0 },
+            "compromisso": { "type": "integer", "minimum": 0 },
+            "chance": { "type": "integer", "minimum": 0 },
+            "video": { "type": "integer", "minimum": 0 },
+            "dor": { "type": "integer", "minimum": 0, "maximum": 12 },
+            "audio": { "type": "integer", "minimum": 0, "maximum": 6 }
+          }
+        }
+      }
+    },
+    "rastreio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid", "referrer", "plataforma", "inApp"],
+      "properties": {
+        "utm_source": { "type": ["string", "null"], "maxLength": 200 },
+        "utm_medium": { "type": ["string", "null"], "maxLength": 200 },
+        "utm_campaign": { "type": ["string", "null"], "maxLength": 200 },
+        "utm_content": { "type": ["string", "null"], "maxLength": 200 },
+        "utm_term": { "type": ["string", "null"], "maxLength": 200 },
+        "fbclid": { "type": ["string", "null"], "maxLength": 500 },
+        "gclid": { "type": ["string", "null"], "maxLength": 500 },
+        "referrer": { "type": "string", "maxLength": 200 },
+        "plataforma": { "enum": ["ios", "android", "desktop"] },
+        "inApp": { "enum": ["instagram", "facebook", null] }
+      }
+    },
+    "tecnico": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["versaoQuiz", "viewport", "idioma", "caminho", "sessaoId", "suspeito", "modoEnsaio"],
+      "properties": {
+        "versaoQuiz": { "type": "string" },
+        "viewport": { "type": "string", "pattern": "^\\d+x\\d+$" },
+        "idioma": { "type": "string", "maxLength": 20 },
+        "caminho": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "sessaoId": { "type": ["string", "null"] },
+        "suspeito": { "type": "boolean" },
+        "modoEnsaio": { "type": "boolean" }
+      }
+    }
+  }
+}

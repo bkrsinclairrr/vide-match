@@ -1,0 +1,19 @@
+{
+  "versao": "1.0.0",
+  "nota": "Regra simples sobre as respostas. Não é IA, e a idade, a condição de menor e a época de nascimento nunca entram na conta.",
+  "regras": {
+    "quer": { "sim": 28, "receio": 17, "nao_sei": 5 },
+    "compromisso": { "sim": 12, "nao": 0 },
+    "chance": { "pronto": 30, "familia": 22, "entender": 12, "nao_sei": 0 },
+    "video": { "jogos": 12, "lances": 8, "nada": 2 },
+    "dor": { "porItem": 4, "itens": ["jaFezPeneira", "jaFoiDispensado", "familiaInvestiu500"] },
+    "audio": { "ate_o_fim": 6, "mais_da_metade": 3, "menos": 0, "nao_tocou": 0, "erro": 0 }
+  },
+  "tiers": {
+    "A": { "minimo": 70, "chance": ["pronto", "familia"], "querDiferenteDe": "nao_sei" },
+    "B": { "minimo": 45 },
+    "C": { "abaixoDe": 45, "objetivo": ["hobby"] }
+  },
+  "maximo": 100,
+  "maximoSemAudio": 94
+}

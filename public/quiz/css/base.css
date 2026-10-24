@@ -1,0 +1,164 @@
+/* Base: reset, coluna única, cabeçalho com progresso, barra fixa da ação e tipografia. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--bg); }
+body {
+  margin: 0; min-height: 100vh; min-height: 100svh;
+  background: var(--bg); color: var(--text);
+  font: 400 17px/1.5 var(--f-texto);
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+img, svg { display: block; max-width: 100%; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; }
+:focus { outline: none; }
+:focus-visible { outline: 3px solid var(--gold-soft); outline-offset: 2px; border-radius: 6px; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* o ambiente: brilho dourado no topo e os pontos de campo, parados */
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(60% 38% at 50% 0%, rgba(245, 158, 11, .13), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .055) 1px, transparent 1.6px) 0 0 / 22px 22px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .55) 55%, rgba(0, 0, 0, .25) 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, .55) 55%, rgba(0, 0, 0, .25) 100%);
+}
+@media (min-width: 720px) {
+  body::before {
+    background:
+      radial-gradient(42% 46% at 50% 8%, rgba(245, 158, 11, .14), transparent 70%),
+      radial-gradient(28% 40% at 50% 100%, rgba(245, 158, 11, .06), transparent 70%),
+      radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .05) 1px, transparent 1.6px) 0 0 / 24px 24px;
+  }
+}
+
+.app {
+  position: relative; z-index: 1;
+  width: 100%; max-width: var(--coluna); margin: 0 auto;
+  min-height: 100vh; min-height: 100svh;
+  display: flex; flex-direction: column;
+}
+@media (min-width: 720px) {
+  .app { border-left: 1px solid rgba(255, 255, 255, .04); border-right: 1px solid rgba(255, 255, 255, .04); background: rgba(10, 10, 10, .55); }
+}
+
+/* ---------- cabeçalho ---------- */
+.topo {
+  position: sticky; top: 0; z-index: 20;
+  padding-top: var(--seguro-topo);
+  background: linear-gradient(to bottom, rgba(10, 10, 10, .97) 70%, rgba(10, 10, 10, .88));
+}
+.topo-linha {
+  height: var(--topo); display: grid; grid-template-columns: 48px 1fr auto; align-items: center;
+  padding: 0 calc(var(--margem) - 6px) 0 6px;
+}
+.voltar {
+  width: 44px; height: 44px; display: grid; place-items: center;
+  background: none; border: 0; border-radius: 12px; color: var(--text-2);
+  transition: opacity .2s, background .2s;
+}
+.voltar:active { background: rgba(255, 255, 255, .06); }
+.voltar[hidden] { display: grid; visibility: hidden; }
+.voltar svg { width: 22px; height: 22px; }
+.marca { display: inline-flex; align-items: center; gap: 9px; justify-self: start; text-decoration: none; }
+.marca-z {
+  width: 26px; height: 26px; border-radius: 28%; display: grid; place-items: center;
+  background: var(--grad-marca); box-shadow: 0 0 18px -4px rgba(251, 191, 36, .7);
+}
+.marca-z svg { width: 19px; height: 19px; }
+.marca-nome { font-weight: 800; font-size: 14.5px; letter-spacing: .18em; color: #fff; }
+.ato { display: inline-flex; align-items: center; gap: 8px; font: 600 11.5px/1 var(--f-texto); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+.ato-num { font-family: var(--f-enfase); font-style: italic; font-weight: 600; font-size: 14px; letter-spacing: 0; }
+.ato-fio { width: 18px; height: 1px; background: currentColor; opacity: .6; }
+.ato-nome { transition: opacity .3s; }
+.progresso { height: 3px; background: rgba(255, 255, 255, .06); overflow: hidden; }
+.progresso i {
+  display: block; height: 100%; width: 100%; background: var(--grad-gold);
+  transform-origin: left; transform: scaleX(var(--p, 0)); transition: transform .5s var(--ease);
+  box-shadow: 0 0 10px rgba(251, 191, 36, .6);
+}
+
+/* ---------- palco (onde as telas entram) ---------- */
+.palco { position: relative; flex: 1; padding: 6px var(--margem) calc(var(--barra-h, 24px) + 24px); }
+.palco:focus { outline: none; }
+.tela { position: relative; }
+.tela.entrando { animation: tela-entra .24s var(--ease) both; }
+.tela.saindo { animation: tela-sai .16s ease both; pointer-events: none; }
+@keyframes tela-entra { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes tela-sai { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+
+/* entrada do texto narrativo, escalonada */
+.entra > * { animation: entra .6s var(--ease) both; animation-delay: calc(var(--i, 0) * 90ms); }
+@keyframes entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* a primeira tela da visita pinta direto: é ela que mede o LCP, e no celular lento cada quadro de animação atrasa a primeira pintura */
+.tela.primeira .entra > * { animation: none; }
+/* o topo da capa que vem no index.html some pra quem volta no meio do quiz (js/casca.js): a tela dele monta no lugar */
+.retoma [data-casca] .entra { visibility: hidden; }
+.surge { animation: surge .32s var(--ease) both; }
+@keyframes surge { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- tipografia ---------- */
+.cap-chip {
+  display: inline-flex; align-items: center; gap: 8px; margin: 10px 0 14px;
+  padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(251, 191, 36, .32); background: rgba(251, 191, 36, .07);
+  font: 700 11.5px/1 var(--f-texto); letter-spacing: .14em; color: var(--gold-soft);
+}
+.cap-chip i { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
+.rotulo-cap { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; font: 600 12px/1 var(--f-texto); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+.rotulo-cap::before { content: ''; width: 22px; height: 1px; background: currentColor; opacity: .7; }
+.titulo {
+  margin: 14px 0 10px; font-weight: 800; font-size: clamp(28px, 7.8vw, 40px); line-height: 1.08; letter-spacing: -.02em; color: #fff;
+  text-wrap: balance;
+}
+.titulo:focus { outline: none; }
+.titulo.menor { font-size: clamp(25px, 6.6vw, 32px); line-height: 1.12; text-wrap: pretty; }
+.enf { font-family: var(--f-enfase); font-style: italic; font-weight: 600; color: var(--gold); letter-spacing: -.005em; padding-right: .04em; }
+.enf-p { margin-left: -.1em; }
+.apoio { font-size: 15.5px; line-height: 1.48; color: var(--text-2); }
+.corpo { font-size: 17px; line-height: 1.5; color: var(--text); }
+.corpo + .corpo, .apoio + .corpo, .corpo + .apoio { margin-top: 12px; }
+.pergunta { margin: 22px 0 12px; font-weight: 700; font-size: 17.5px; line-height: 1.35; color: #fff; }
+.legenda { font-size: 13px; line-height: 1.45; color: var(--muted); }
+.destaque {
+  margin: 22px 0 6px; font-weight: 800; font-size: clamp(24px, 6.6vw, 30px); line-height: 1.12; letter-spacing: -.015em; color: #fff;
+  text-wrap: balance;
+}
+.num { font-variant-numeric: tabular-nums; }
+
+/* ---------- barra fixa da ação ---------- */
+.barra {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  width: 100%; max-width: var(--coluna); margin: 0 auto;
+  padding: 26px var(--margem) calc(14px + var(--seguro-baixo));
+  background: linear-gradient(to top, var(--bg) 62%, rgba(10, 10, 10, .9) 80%, rgba(10, 10, 10, 0));
+  transform: translateY(var(--teclado, 0px));
+  transition: opacity .25s, transform .25s;
+}
+.barra:empty { display: none; }
+.barra.escondida { opacity: 0; pointer-events: none; transform: translateY(20px); }
+.barra-nota { margin-top: 10px; text-align: center; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+.barra-acima { margin-bottom: 12px; text-align: center; font-size: 14px; line-height: 1.4; color: var(--text-2); }
+
+/* ---------- rodapé da capa ---------- */
+.rodape { margin: 28px 0 8px; display: grid; gap: 6px; text-align: center; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.rodape a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; color: var(--text-2); text-underline-offset: 3px; }
+
+/* ---------- painel de ensaio (?debug=1) ---------- */
+.debug {
+  position: fixed; right: 8px; top: calc(64px + var(--seguro-topo)); z-index: 90; width: min(360px, calc(100vw - 16px)); max-height: 60vh; overflow: auto;
+  background: rgba(8, 8, 8, .94); border: 1px solid #333; border-radius: 10px; padding: 10px; font: 11px/1.4 ui-monospace, Menlo, Consolas, monospace; color: #9fe;
+}
+.debug pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; }
+.debug button { font-size: 11px; background: #222; border: 1px solid #444; border-radius: 6px; padding: 4px 8px; margin-right: 6px; color: #ddd; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .tela.entrando { animation: tela-fade .12s linear both !important; }
+  @keyframes tela-fade { from { opacity: 0; } to { opacity: 1; } }
+}

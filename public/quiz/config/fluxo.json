@@ -1,0 +1,52 @@
+{
+  "versao": "1.0.0",
+  "capitulos": {
+    "I": "VOCÊ",
+    "II": "O PROBLEMA",
+    "III": "A SOLUÇÃO",
+    "IV": "O SEU FUTURO",
+    "V": "O DIAGNÓSTICO"
+  },
+  "passos": [
+    { "id": "posicao", "n": 1, "capitulo": "I", "tipo": "capa-campo", "ativo": true, "se": null,
+      "grava": ["ficha.posicao", "quiz.posicaoChave", "quiz.posicaoQuem"] },
+    { "id": "idade", "n": 2, "capitulo": "I", "tipo": "chips", "ativo": true, "se": null,
+      "grava": ["ficha.idade", "quiz.idadeFaixa", "quiz.idadeEstimada"] },
+    { "id": "experiencia", "n": null, "capitulo": "I", "tipo": "chips", "ativo": false, "opcional": true, "se": null,
+      "grava": ["ficha.experiencia"] },
+    { "id": "epoca", "n": null, "capitulo": "I", "tipo": "chips", "ativo": false, "opcional": true, "se": null,
+      "grava": ["quiz.epoca"] },
+    { "id": "objetivo", "n": null, "capitulo": "I", "tipo": "chips", "ativo": false, "opcional": true, "se": null,
+      "grava": ["quiz.objetivo"] },
+    { "id": "peneiras", "n": 3, "capitulo": "I", "tipo": "chips-duas-perguntas", "ativo": true, "se": null,
+      "grava": ["ficha.peneirasFeitas", "ficha.gastoPeneiras", "quiz.peneirasFaixa", "quiz.peneirasEstimado", "quiz.gastoFaixa", "quiz.gastoEstimado"] },
+    { "id": "trava", "n": null, "capitulo": "I", "tipo": "chips", "ativo": false, "opcional": true, "se": null,
+      "grava": ["quiz.trava"] },
+    { "id": "dispensas", "n": 4, "capitulo": "I", "tipo": "chips-duas-perguntas", "ativo": true,
+      "se": { "todos": [{ "chave": "quiz.peneirasFaixa", "op": "!=", "valor": "0" }] },
+      "grava": ["quiz.dispensas", "quiz.recusado", "quiz.jogouBem"] },
+    { "id": "inimigo", "n": 5, "capitulo": "II", "tipo": "narrativa-campo", "ativo": true, "se": null,
+      "variantes": [
+        { "id": "A", "se": { "todos": [{ "chave": "quiz.recusado", "op": "=", "valor": true }] } },
+        { "id": "B", "se": { "todos": [{ "chave": "quiz.peneirasFaixa", "op": "!=", "valor": "0" }, { "chave": "quiz.recusado", "op": "!=", "valor": true }] } },
+        { "id": "C", "se": null }
+      ],
+      "grava": ["quiz.viuOlhometro"] },
+    { "id": "zyron", "n": 6, "capitulo": "III", "tipo": "narrativa-radar-pergunta", "ativo": true, "se": null,
+      "grava": ["quiz.video", "ficha.temVideo"] },
+    { "id": "mundo", "n": 7, "capitulo": "III", "tipo": "recortes-escudos", "ativo": true, "se": null, "grava": [] },
+    { "id": "historico", "n": 8, "capitulo": "III", "tipo": "provas-depoimentos", "ativo": true, "se": null, "grava": [] },
+    { "id": "sonho", "n": 9, "capitulo": "IV", "tipo": "chips", "ativo": true, "se": null, "grava": ["ficha.sonho"] },
+    { "id": "audio", "n": 10, "capitulo": "IV", "tipo": "audio", "ativo": true,
+      "se": { "todos": [{ "chave": "config.audio.ativo", "op": "=", "valor": true }] },
+      "grava": ["quiz.audio"] },
+    { "id": "quer", "n": 11, "capitulo": "IV", "tipo": "chips-segurar", "ativo": true, "se": null,
+      "grava": ["quiz.quer", "quiz.compromisso"] },
+    { "id": "chance", "n": 12, "capitulo": "V", "tipo": "chips", "ativo": true, "se": null,
+      "grava": ["quiz.chance"] },
+    { "id": "contato", "n": 13, "capitulo": "V", "tipo": "formulario", "ativo": true, "se": null,
+      "grava": ["ficha.nome", "contato.whatsapp", "contato.responsavelNome", "consentimento.aceite"] },
+    { "id": "resultado", "n": 14, "capitulo": "V", "tipo": "resultado", "ativo": true, "se": null,
+      "grava": ["pontuacao.total", "pontuacao.tier"] }
+  ]
+}
