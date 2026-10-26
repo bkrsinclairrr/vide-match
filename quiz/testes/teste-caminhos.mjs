@@ -71,7 +71,8 @@ try {
     const p = await ultimo();
     ok(p && p.pontuacao.tier === 'A' && p.quiz.audio.estado === 'ate_o_fim' && p.pontuacao.porRegra.audio === 6, 'caminho 1: tier A, áudio até o fim (6 pontos)');
     ok(p && p.quiz.recusado === true && p.quiz.jogouBem === 'sim' && p.ficha.peneirasFeitas === 8, 'caminho 1: recusado, jogou bem, 8 peneiras estimadas');
-    ok((await c.avalia(`document.querySelector('.t-resultado .selo') !== null && !!document.querySelector('#barra .btn')?.dataset.url`)), 'caminho 1: selo e botão da landing no resultado');
+    ok((await c.avalia(`document.querySelector('.t-resultado .selo') !== null && (document.querySelector('#barra .btn')?.dataset.url || '').startsWith('https://wa.me/5551982690162?text=')`)), 'caminho 1: selo e o botão final abre o WhatsApp da equipe');
+    ok((await c.avalia(`document.querySelector('#barra .btn')?.textContent || ''`)).includes('Continuar no WhatsApp'), 'caminho 1: o botão diz que continua no WhatsApp');
   });
 
   /* (2) adulto sem peneira: 14 telas, pula a T04, T05 variante C */
@@ -137,7 +138,7 @@ try {
     ok((await c.avalia(`JSON.parse(localStorage.getItem('qz:estado') || '{}').respostas?.posicao`)) === 'ALE', 'caminho 6: "Escolhi errado" volta pra T02 com a posição');
   });
 
-  /* (7) tier B */
+  /* (7) tier B, com o botão final na landing (sem o WhatsApp no geral.json) */
   await caminho(7, 'tier B', async ({ c, q }) => {
     await q.posicao('LE'); await q.idade('18_21'); await q.peneiras('6_mais', '500_2000'); await q.dispensas('3_5', 'nao');
     await q.inimigo(); await q.zyron(); await q.video('lances'); await q.mundo(); await q.historico(); await q.sonho('selecao');
@@ -146,7 +147,7 @@ try {
     ok(p && p.pontuacao.tier === 'B', `caminho 7: tier B (${p && p.pontuacao.total} pontos)`);
     ok((await c.avalia(`document.querySelector('#barra .barra-acima')?.textContent || ''`)).startsWith('Se puder, assista com a sua família'), 'caminho 7: o B ganha a linha "se puder, assista com a sua família"');
     ok((await c.avalia(`document.querySelector('#barra .btn')?.dataset.url || ''`)).includes('t=B'), 'caminho 7: a landing recebe t=B');
-  });
+  }, { config: { whatsappFinal: '' } });
 
   /* (8) tier C com saída */
   await caminho(8, 'tier C, saída', async ({ c, q }) => {
@@ -168,7 +169,7 @@ try {
     ok(p && p.pontuacao.tier === 'C', 'caminho 9: tier C no payload');
     const url = await c.avalia(`document.querySelector('#barra .btn')?.dataset.url || ''`);
     ok(url.includes('t=C') && (await c.avalia(`!!document.querySelector('.t-resultado .selo')`)), 'caminho 9: com "landing", a tela do B (selo e botão) e a landing recebe t=C');
-  }, { config: { roteamento: { tierC: 'landing' } } });
+  }, { config: { roteamento: { tierC: 'landing' }, whatsappFinal: '' } });
 
   /* (10) "ainda não sei" na T11: sem o segurar */
   await caminho(10, 'ainda não sei', async ({ c, q }) => {

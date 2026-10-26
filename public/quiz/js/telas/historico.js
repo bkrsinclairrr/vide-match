@@ -59,7 +59,7 @@ export function render(ctx) {
   if (depos.length) {
     const t = trilho({ itens: depos, rotulo: c.depoimentosAria, auto: 4800, dica: c.arraste });
     ctx.aoSair(() => t.destroi());
-    el.append(h('p', { class: 'mini-rotulo' }, h('span', { text: c.depoimentosRotulo }), h('span', { text: '' })), t.el, t.pontos);
+    el.append(h('p', { class: 'chamada-depos' }, h('span', { text: c.depoimentosRotulo }), h('span', { class: 'chamada-dedo', 'aria-hidden': 'true', text: '👇' })), t.el, t.pontos);
     t.liga();
   }
 

@@ -1,8 +1,10 @@
-// T14 · o diagnóstico: só o que o atleta respondeu, três linhas por regra e o botão pra landing (VSL). Tier C sai com respeito.
-// Nada de "aprovado": o selo diz "Pronto para o próximo passo". Sem rodapé de ressalva.
+// T14 · o diagnóstico: só o que o atleta respondeu, três linhas por regra e o botão final. Com `whatsappFinal` no geral.json, o botão
+// abre a conversa com a equipe comercial já com a mensagem pronta (quem é, o que respondeu e o código do diagnóstico); sem ele, vai pra
+// landing (VSL). Tier C sai com respeito. Nada de "aprovado": o selo diz "Pronto para o próximo passo". Sem rodapé de ressalva.
 import { h, vibra } from '../motor/util.js';
 import { icone } from '../componentes/icones.js';
 import { urlLanding } from '../dados/payload.js';
+import { linkWhatsapp, mensagemEquipe } from '../dados/mensagem.js';
 
 export function render(ctx) {
   const c = ctx.copy;
@@ -67,11 +69,18 @@ export function render(ctx) {
     el.append(h('a', { class: 'link-btn', style: { marginTop: '14px' }, href: `https://wa.me/${num}`, target: '_blank', rel: 'noopener noreferrer', html: icone.conversa + `<span>${c.whatsapp}</span>` }));
   }
 
-  const url = urlLanding({ cfg: ctx.cfg, rastreio: app.rastreio, tier: res.tier, leadId: s.leadId || 'sem-id' });
+  const zap = String(ctx.cfg.whatsappFinal || '').replace(/\D/g, '');
+  const url = zap
+    // depois do envio, nome e responsável só existem na memória da aba (o aparelho não guarda contato)
+    ? linkWhatsapp(zap, mensagemEquipe({
+        copy: ctx.todaCopy, textos: ctx.textos, menor: ctx.d.menor, leadId: s.leadId, pont: res,
+        r: Object.assign({}, ctx.r, { nome, responsavelNome: ctx.estado.memoria.responsavelNome || ctx.r.responsavelNome || '' })
+      }))
+    : urlLanding({ cfg: ctx.cfg, rastreio: app.rastreio, tier: res.tier, leadId: s.leadId || 'sem-id' });
   const b = ctx.barra.botao({
-    texto: c.botao, brilha: true, seta: true,
-    acima: tier === 'B' ? c.tierB : null,
-    nota: c.botaoSub,
+    texto: zap ? c.botaoWhatsapp : c.botao, brilha: true, seta: true,
+    acima: tier === 'B' ? (zap ? c.tierBWhatsapp : c.tierB) : null,
+    nota: zap ? c.botaoWhatsappSub : c.botaoSub,
     aoClicar: () => {
       ctx.evento('cta_click', { tier: res.tier });
       app.eventos.descarrega(true);

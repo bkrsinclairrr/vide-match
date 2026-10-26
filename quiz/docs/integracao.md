@@ -10,6 +10,7 @@ Tudo se liga em `config/geral.json`, sem mexer em código. Depois de editar, pub
 | `pixel.meta` | vazio | o ID do pixel da Meta |
 | `pixel.utmify` | vazio | o ID do pixel da Utmify (o aizyron.com usa `6aa46c5bfa49cab73a6e0817` no /avaliacao) |
 | `whatsappEquipe` | vazio | o número da equipe, com DDI e DDD (aparece um link "Falar com a equipe no WhatsApp" na T14) |
+| `whatsappFinal` | `"5551982690162"` (o botão da T14 abre o WhatsApp da equipe comercial com a mensagem pronta) | vazio volta o botão pra landing; outro número, com DDI e DDD, troca o destino |
 | `vagas`, `proximaTurma` | nulos | só com número e data reais da semana (regra 7); aparecem na T14 |
 | `roteamento.tierC` | `"saida"` (tier C sai pro Instagram) | `"landing"` manda o tier C pra landing também (a tela fica igual à do B; a URL leva `t=C`) |
 | `escudos.modo` | `"escudos"` | `"texto"` troca todos os escudos da T07 por selo de texto |
@@ -108,9 +109,11 @@ Abra o quiz com `?debug=1` (na prévia funciona): o painel de ensaio mostra o es
 - No Gerenciador de Eventos da Meta, desligue a "Correspondência avançada automática": ela pode ler campos de formulário por conta própria. O quiz já carrega o pixel com a configuração automática desligada.
 - No anúncio, nada de "Você tem X anos?" no texto (política da Meta de atributos pessoais). Pra público de menor, a Meta não permite público personalizado, semelhante nem interesses.
 
-## A landing com a VSL
+## O botão final: WhatsApp da equipe ou landing com a VSL
 
-O botão da T14 abre, na mesma aba, a `landingUrl` com: as UTMs que vieram no anúncio, `qz=1` (veio do quiz), `t=A`, `B` ou `C` (o tier) e `lid=<leadId>` (o id opaco do lead, pra cruzar a visita e a compra com a linha da planilha). Nunca nome, telefone nem a pontuação detalhada.
+Com `whatsappFinal` preenchido (o padrão desde 26/10/2026), o botão da T14 ("Continuar no WhatsApp") abre a conversa com esse número e a mensagem pronta: quem escreve (o atleta adulto ou o responsável), as respostas do quiz e o código do diagnóstico (começo do `leadId` e a pontuação, ex.: `3F2A9C1E · A82`). A pessoa só aperta "enviar". O telefone digitado, as UTMs e os identificadores de clique não vão no texto. Textos em `copy.pt-BR.json`, `resultado.mensagem`; montagem em `js/dados/mensagem.js`; teste em `testes/teste-mensagem.mjs`.
+
+Com `whatsappFinal` vazio, o botão da T14 abre, na mesma aba, a `landingUrl` com: as UTMs que vieram no anúncio, `qz=1` (veio do quiz), `t=A`, `B` ou `C` (o tier) e `lid=<leadId>` (o id opaco do lead, pra cruzar a visita e a compra com a linha da planilha). Nunca nome, telefone nem a pontuação detalhada.
 
 ## Publicar
 

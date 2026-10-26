@@ -67,9 +67,13 @@ try {
       const achados = confereEventos(todos, { nome: 'João', telefone: '11912345678', leadId: p.leadId });
       ok(todos.length > 20 && !achados.length, `${todos.length} eventos sem nome, telefone, e-mail, idade nem leadId` + (achados.length ? ': ' + achados.slice(0, 3).join(' | ') : ''));
       ok(lotes().length > 0 && lotes().every(l => !('leadId' in l) && l.sessaoId), 'os lotes de eventos chegam com sessaoId e sem leadId');
+      // o botão final abre o WhatsApp da equipe com a mensagem pronta; quem envia é a própria pessoa, do WhatsApp dela
       const href = await c.avalia(`document.querySelector('#barra .btn')?.dataset.url || ''`);
-      ok(/[?&]qz=1/.test(href) && /[?&]t=A/.test(href) && href.includes('lid=' + p.leadId) && /utm_source=instagram/.test(href), 'a landing recebe qz, tier, lid e as UTMs');
-      ok(!/Jo%C3%A3o|João|912345678|whatsapp|nome=|fbclid|gclid/i.test(href), 'a landing não recebe nome, telefone nem identificador de clique');
+      const texto = href.startsWith('https://wa.me/5551982690162?text=') ? decodeURIComponent(href.split('?text=')[1]) : '';
+      const codigo = p.leadId.replace(/-/g, '').slice(0, 8).toUpperCase() + ' · A' + p.pontuacao.total;
+      const msgOk = texto.startsWith('Olá! Sou João.') && texto.includes('• Posição: Lateral direito') && texto.includes('Código do diagnóstico: ' + codigo);
+      ok(msgOk, 'o WhatsApp da equipe recebe quem é, as respostas e o código do diagnóstico' + (msgOk ? '' : ': ' + JSON.stringify(texto || href).slice(0, 400)));
+      ok(!/912345678|fbclid|gclid|utm_|FB123|GC456/i.test(href), 'a mensagem não leva o telefone digitado, as UTMs nem identificador de clique');
       // depois do envio, o contato some do aparelho
       const guardado = await c.avalia(`localStorage.getItem('qz:estado') || ''`);
       ok(!/João|912345678/.test(guardado), 'depois do envio, nome e telefone não ficam no aparelho');
@@ -97,6 +101,9 @@ try {
       const achados = confereEventos((await q.eventos()).concat(...lotes().map(l => l.eventos)), { nome: 'Pedro', telefone: '21987654321', leadId: p.leadId });
       const achados2 = confereEventos((await q.eventos()), { nome: 'Maria' });
       ok(!achados.length && !achados2.length, 'eventos do menor sem nome dele, do responsável, telefone nem leadId');
+      const href = await c.avalia(`document.querySelector('#barra .btn')?.dataset.url || ''`);
+      const texto = href.includes('?text=') ? decodeURIComponent(href.split('?text=')[1]) : '';
+      ok(texto.startsWith('Olá! Sou Maria Souza, responsável por Pedro.') && !texto.includes('21987654321'), 'menor: a mensagem do WhatsApp sai em nome do responsável, sem o telefone' + (texto.startsWith('Olá! Sou Maria') ? '' : ': ' + JSON.stringify(texto.slice(0, 120))));
     }
     await c.fecha();
   }

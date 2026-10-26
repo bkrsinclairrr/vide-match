@@ -67,7 +67,7 @@ export const TRAVESSAO = new RegExp('[' + String.fromCharCode(0x2013, 0x2014) + 
 // regras 1 a 3 e 5 do briefing, mais o pedido do dono: nada de "fictício", "ilustrativo" e parecidos
 export const PROIBIDAS = [
   [TRAVESSAO, 'travessão (U+2013 ou U+2014)'],
-  [/\boverall\b/iu, '"overall"'], [/\bSEAL\b/u, '"SEAL"'], [/scouting\s+pro/iu, '"Scouting PRO"'], [/\bscout(?:er)?s?\b/iu, '"scout" ou "scouter"'],
+  [/\boverall\b/iu, '"overall"'], [/\bSEAL\b/u, '"SEAL"'], [/scouting\s+pro/iu, '"Scouting PRO"'], [/\bscout(?:er)?s?\b(?! - Fernando)/iu, '"scout" ou "scouter" (só o nome da conta "Scout - Fernando", a mesma do site, a pedido do dono)'],
   [/mentoria/iu, '"mentoria"'], [/\bprograma\b/iu, '"programa"'], [/\bpacote/iu, '"pacote"'],
   [/ilustrativ/iu, '"ilustrativo"'], [/fict[íi]ci/iu, '"fictício"'], [/meramente/iu, '"meramente"'], [/simula[çc][ãa]o/iu, '"simulação"'],
   [/\bN[º°]/u, '"Nº"'], [/pr[ée]-?qualificad/iu, '"pré-qualificado"'], [/\baprovad[oa]s?\b/iu, '"aprovado"'], [/\bescolhid[oa]s?\b/iu, '"escolhido"'],

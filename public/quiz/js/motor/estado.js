@@ -21,7 +21,7 @@ export function criaEstado({ dias = 7 } = {}) {
   // quem já respondeu a idade e parou depois da capa pode seguir de onde parou: a tela onde parou vale até ele sair da capa
   // (o motor grava o passo antes de desenhar a tela, então a capa não pode ler isso do s.passo)
   let retomada = s.respostas.idade && s.respostas.idade !== 'menos12' && s.passo && s.passo !== 'posicao' ? s.passo : null;
-  // o que só vive nesta aba (o nome pra tela do resultado depois do envio)
+  // o que só vive nesta aba (o nome pra tela do resultado e, com o do responsável, pra mensagem do WhatsApp depois do envio)
   const memoria = {};
 
   function salva() {
@@ -44,6 +44,7 @@ export function criaEstado({ dias = 7 } = {}) {
     passo(id) { if (id === 'posicao' && retomada) return; retomada = null; s.passo = id; salva(); },
     marcaEnviado({ leadId, resultado }) {
       memoria.nome = s.respostas.nome;
+      memoria.responsavelNome = s.respostas.responsavelNome;
       s.enviado = true; s.leadId = leadId; s.resultado = resultado;
       CONTATO.forEach(k => delete s.respostas[k]);
       salva();

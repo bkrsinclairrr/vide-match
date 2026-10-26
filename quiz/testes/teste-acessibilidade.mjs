@@ -128,7 +128,7 @@ try {
     await tabAte('#barra .btn'); await c.aperta('Enter');
     await chega('resultado');
     await tabAte('#barra .btn');
-    ok(true, `o quiz inteiro só no teclado, das 15 telas até o botão da landing (${paradas} paradas de Tab)`);
+    ok(true, `o quiz inteiro só no teclado, das 15 telas até o botão final (${paradas} paradas de Tab)`);
     ok(!semTitulo.length, 'a cada troca de tela, o foco vai pro título' + (semTitulo.length ? ' (não foi em: ' + semTitulo.join(', ') + ')' : ''));
     ok(!semFoco.size, `o foco aparece em toda parada (${paradas})` + (semFoco.size ? ': sem marca em ' + [...semFoco].join(', ') : ''));
     ok(!foraDeOrdem.length, 'o Tab anda de cima pra baixo' + (foraDeOrdem.length ? ': ' + foraDeOrdem.slice(0, 4).join(' | ') : ''));

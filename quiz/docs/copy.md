@@ -12,7 +12,7 @@ Todo texto de tela mora em `config/copy.pt-BR.json`, por id de tela. Nenhuma fra
 
 ## As regras da casa que valem pra copy
 
-- "Assessoria", nunca "mentoria", "programa" ou "pacote". "O Zyron" (masculino), "a Voxen". "Encaminhamos", "conectamos", "o seu perfil encontra o clube". Os 326 são "enviados". A pessoa da equipe é "o estrategista de carreiras" ou "a gente", nunca "scout".
+- "Assessoria", nunca "mentoria", "programa" ou "pacote". "O Zyron" (masculino), "a Voxen". "Encaminhamos", "conectamos", "o seu perfil encontra o clube". Os 326 são "enviados". A pessoa da equipe é "o estrategista de carreiras" ou "a gente", nunca "scout" (a exceção é o nome da conta "Scout - Fernando" na T07, a mesma do site, a pedido do dono: decisão 65).
 - Nunca: "overall", "SEAL", "Scouting PRO", "ilustrativo", "fictício", "Nº", "aprovado", "escolhido", "pré-qualificado". Sem travessão.
 - Sem nota legal, sem "sem garantia", sem rodapé de ressalva: a frase já diz de quem é o número ("atletas nossos, acompanhados por nós").
 - Título de tela narrativa: até 9 palavras (o da T06 foi conferido com as 11 posições). Frase de tela: até 18 palavras. Sem preço.

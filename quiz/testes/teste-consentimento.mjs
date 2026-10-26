@@ -103,7 +103,7 @@ try {
   /* adulto que aceita: as tags carregam e disparam só os eventos mapeados */
   {
     s.coleta.corpos.length = 0;
-    const { c, q, terceiros } = await abre({ pixel: PIXEL, landingUrl: s.url + '/robots.txt' });
+    const { c, q, terceiros } = await abre({ pixel: PIXEL, landingUrl: s.url + '/robots.txt', whatsappFinal: '' });
     await q.abre(s.url + '/?fbclid=FB123&gclid=GC456');
     await q.posicao('LD'); await q.idade('22_mais');
     await q.esperaTela('peneiras');
