@@ -44,7 +44,7 @@ const NAV: { to: string; label: string; icon: typeof Home; end: boolean; open: (
   { to: CLIENT_BASE, label: "Início", icon: Home, end: true, open: null },
   { to: `${CLIENT_BASE}/oportunidades`, label: "Oportunidades", icon: Compass, end: false, open: (g) => g.opportunities, hint: "Libera quando você completar o perfil" },
   { to: `${CLIENT_BASE}/conquistas`, label: "Conquistas", icon: Trophy, end: false, open: null },
-  { to: `${CLIENT_BASE}/comparativo`, label: "Comparativo", icon: GitCompareArrows, end: false, open: (g) => g.compare, hint: "Libera quando você criar o perfil" },
+  { to: `${CLIENT_BASE}/comparativo`, label: "Comparativo", icon: GitCompareArrows, end: false, open: (g) => g.compare, hint: "Libera depois que você enviar o vídeo de um jogo" },
   // Partidas abre já para enviar o primeiro jogo; a análise aparece quando a equipe terminar.
   { to: `${CLIENT_BASE}/partidas`, label: "Partidas", icon: Clapperboard, end: false, open: (g) => g.matches || g.analysis, hint: "Libera quando você completar o perfil" },
   { to: `${CLIENT_BASE}/desempenho`, label: "Desempenho", icon: BarChart3, end: false, open: (g) => g.performance, hint: "Libera com a análise dos seus jogos" },
@@ -53,7 +53,7 @@ const NAV: { to: string; label: string; icon: typeof Home; end: boolean; open: (
 
 /** Itens do menu que uma missão recém-cumprida acabou de abrir (ganham o selo "Novo" até a pessoa visitar). */
 const OPENS: Record<string, string[]> = {
-  perfil: [`${CLIENT_BASE}/oportunidades`, `${CLIENT_BASE}/comparativo`, `${CLIENT_BASE}/partidas`],
+  perfil: [`${CLIENT_BASE}/oportunidades`, `${CLIENT_BASE}/partidas`],
   analise: [`${CLIENT_BASE}/partidas`, `${CLIENT_BASE}/desempenho`],
 }
 

@@ -301,7 +301,7 @@ export type Gates = {
   matches: boolean
   /** Desempenho aberto (mesma regra das partidas, mas a equipe pode trancar à parte). */
   performance: boolean
-  /** Comparativo (precisa do relatório, que nasce com o perfil). */
+  /** Comparativo: o relatório nasce com o perfil, mas só abre depois que a pessoa mandou o vídeo de um jogo. */
   compare: boolean
 }
 
@@ -367,6 +367,8 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, 
   const avg = summary?.avgRating ?? 0
   const profile = comp.done === comp.total
   const analyzed = matches > 0
+  // Vídeo de verdade: um envio pela área que a equipe não recusou, ou um jogo que ela já analisou (mandado por fora).
+  const sentVideo = analyzed || layer.submissions.some((s) => s.status !== "recusado")
 
   // A trava é para quem está chegando: quem já tem jogo analisado, foi selecionado pela equipe ou
   // recebeu uma oportunidade real não perde as oportunidades por causa de um dado do perfil.
@@ -377,7 +379,7 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, 
     analyzed,
     matches: analyzed || (Boolean(summary) && profile),
     performance: analyzed || (Boolean(summary) && profile),
-    compare: account.hasProfile,
+    compare: account.hasProfile && sentVideo,
   }
   // O que a equipe abriu ou trancou à mão vale por cima do cálculo.
   for (const key of LOCK_KEYS) {

@@ -434,7 +434,7 @@ let demoCorpo: string | null = null
 /**
  * Camada de teste. O membro principal tem duas oportunidades reais. `?corpo=moldura` ou
  * `?corpo=recorte` dá a foto de corpo inteiro (ligada; `&modo=perfil` começa na foto de perfil);
- * `?trava=matches` tranca uma parte da área.
+ * `?trava=matches` tranca uma parte da área; `?semvideo` tira o envio de exemplo (atleta que ainda não mandou vídeo).
  */
 export function fixtureScoutLayer(memberId: string | null): ScoutLayer {
   const q = new URLSearchParams(window.location.search)
@@ -461,7 +461,7 @@ export function fixtureScoutLayer(memberId: string | null): ScoutLayer {
           { id: "op-2", club: demoClub("br10", "Athletico-PR", "Série A", "🔴⚫", "#c8102e"), compatibility: 88, deadline: daysFrom(16), status: "enviada", athleteNote: "Seu perfil já foi enviado ao coordenador da base.", publishedAt: new Date().toISOString() },
         ]
       : [],
-    submissions: [...demoSubmissions],
+    submissions: q.has("semvideo") ? demoSubmissions.filter((s) => s.id !== "env-1") : [...demoSubmissions],
     available: true,
   }
 }
