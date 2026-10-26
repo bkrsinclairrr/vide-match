@@ -3,8 +3,9 @@ import { Link } from "react-router-dom"
 import { ArrowRight, Check, Globe2, Lock, LockOpen, MapPin, Play } from "lucide-react"
 import { CountUp } from "@/pages/voxen/charts"
 import { useAthlete } from "../ClientArea"
-import { lockedClubs, portfolio } from "../game"
-import { PROFILE_FORM_PATH } from "../paths"
+import { lockedClubs, portfolio, teamMessage, type Cta } from "../game"
+import { CLIENT_BASE, PROFILE_FORM_PATH } from "../paths"
+import { CtaButton } from "./Gamify"
 
 /*
  * O que ainda está trancado na jornada. A tela aparece "preenchida" (clubes, análise,
@@ -212,8 +213,16 @@ function radarPath(values: number[], r = 92, c = 110) {
   }).join(" ") + " Z"
 }
 
-/** O comparativo trancado (sem perfil não existe relatório para comparar). */
+/**
+ * O comparativo trancado: o relatório nasce com o perfil, mas o comparativo só abre depois que a pessoa
+ * manda o vídeo de um jogo. Com o perfil pronto, o botão leva ao envio (ou ao WhatsApp, se o envio pela área não estiver ativo).
+ */
 export function LockedCompare() {
+  const { game, layer, account, category } = useAthlete()
+  const profile = game.gates.profile
+  const send: Cta = layer.available && game.gates.analysis
+    ? { label: "Enviar o vídeo de um jogo", to: `${CLIENT_BASE}/partidas#enviar` }
+    : { label: "Enviar o vídeo de um jogo", whatsapp: teamMessage(account, category, "Quero enviar o vídeo de um jogo para liberar o comparativo.") }
   return (
     <section className="vx-card vx-card--flush lk-analysis">
       <div className="lk-zone lk-zone--analysis">
@@ -231,8 +240,13 @@ export function LockedCompare() {
           big
           kicker={<><Lock /> Comparativo</>}
           title="Veja o seu jogo lado a lado com a referência da sua posição."
-          text="Crie o seu perfil e o comparativo mostra a sua divisão Zyron, os seus pontos fortes e onde subir primeiro."
-          cta={<ProfileCta label="Criar meu perfil" />}
+          text="Libera depois que você enviar o vídeo de um jogo: aí o comparativo mostra a sua divisão Zyron, os seus pontos fortes e onde subir primeiro."
+          steps={[
+            { label: "Complete o seu perfil", state: profile ? "done" : "now" },
+            { label: "Envie o vídeo de um jogo", state: profile ? "now" : "locked" },
+            { label: "Veja o comparativo aqui", state: "locked" },
+          ]}
+          cta={profile ? <CtaButton cta={send} className="vx-btn vx-btn--gold lk-cta" /> : <ProfileCta label="Completar perfil primeiro" />}
         />
       </div>
     </section>
