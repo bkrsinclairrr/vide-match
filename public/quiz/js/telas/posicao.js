@@ -22,7 +22,7 @@ export function render(ctx) {
   }
 
   const pergunta = h('p', { class: 'pergunta', id: 'pergunta-posicao', text: c.pergunta });
-  const selecione = h('p', { class: 'selecione' }, h('i', { 'aria-hidden': 'true' }), c.selecione);
+  const selecione = h('p', { class: 'selecione' }, c.selecione, h('span', { class: 'selecione-dedo', 'aria-hidden': 'true', text: '👇' }));
   const campo = campoEscolha({
     valor: ctx.r.posicao || null,
     abreviacoes: c.abreviacoes,
