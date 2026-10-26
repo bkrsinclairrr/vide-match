@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
-const testes = ['teste-pontuacao', 'teste-mensagem', 'teste-casos', 'teste-dados', 'teste-regras-da-casa', 'teste-caminhos', 'teste-acessibilidade', 'teste-audio', 'teste-segurar',
+const testes = ['teste-pontuacao', 'teste-mensagem', 'teste-casos', 'teste-quer', 'teste-posicoes', 'teste-dados', 'teste-regras-da-casa', 'teste-caminhos', 'teste-acessibilidade', 'teste-audio',
   'teste-consentimento', 'teste-desempenho', 'teste-aparelhos'].map(n => [n, []]);
 if (args.includes('--fontes')) testes.push(['teste-fontes', []]);
 const i = args.indexOf('--publicacao');

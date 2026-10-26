@@ -171,15 +171,14 @@ try {
     ok(url.includes('t=C') && (await c.avalia(`!!document.querySelector('.t-resultado .selo')`)), 'caminho 9: com "landing", a tela do B (selo e botão) e a landing recebe t=C');
   }, { config: { roteamento: { tierC: 'landing' }, whatsappFinal: '' } });
 
-  /* (10) "ainda não sei" na T11: sem o segurar */
+  /* (10) "ainda não sei" na T11: um toque e segue, sem compromisso */
   await caminho(10, 'ainda não sei', async ({ c, q }) => {
     await q.posicao('VOL-d'); await q.idade('22_mais'); await q.peneiras('3_5', 'ate_500'); await q.dispensas('1_2', 'sim');
     await q.inimigo(); await q.zyron(); await q.video('jogos'); await q.mundo(); await q.historico(); await q.sonho('europa');
     await q.audio('pouco');
     await q.esperaTela('quer');
     await q.toca('.t-quer .opcao[data-id="nao_sei"]');
-    await espera(300);
-    ok(!(await c.avalia(`!!document.querySelector('.segurar-botao')`)), 'caminho 10: "ainda não sei" não abre o segurar');
+    await q.esperaTela('chance', 4000);
     await q.chance('familia'); await q.contato(CONTATO); await q.resultado();
     const p = await ultimo();
     ok(p && p.quiz.quer === 'nao_sei' && p.quiz.compromisso === false && p.quiz.audio.estado === 'menos', 'caminho 10: quer "nao_sei", sem compromisso, áudio "menos"');

@@ -33,7 +33,7 @@ Os 35 pares de cor estão medidos em `contraste.md` (texto 4,5 ou mais; traço 3
 - **Recortes (T07).** Papel levemente girado, faixa preta no topo, veículo, data, manchete em serifa, uma linha de resumo e "Ver a matéria". Arrastam de lado (rolagem nativa com encaixe) e andam sozinhos até o primeiro toque.
 - **Números e depoimentos (T08).** O número da renda em cartão dourado; os números contam até o valor quando entram na tela.
 - **Mensagem de voz (T10).** Abertura em preto, uma linha por vez; depois a conversa ("gravando áudio" e a bolha recebida), com a onda real do áudio (48 barras), velocidade e arrastar na onda. Sem marca de aplicativo.
-- **Segurar (T11).** Anel dourado que enche em 1,6 s; completo, fica verde com o check.
+- **T11.** Sem anel nem botão de segurar: o toque na resposta já segue (decisão 69).
 
 ## Movimento
 

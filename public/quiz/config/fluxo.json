@@ -41,7 +41,7 @@
     { "id": "audio", "n": 11, "capitulo": "IV", "tipo": "audio", "ativo": true,
       "se": { "todos": [{ "chave": "config.audio.ativo", "op": "=", "valor": true }] },
       "grava": ["quiz.audio"] },
-    { "id": "quer", "n": 12, "capitulo": "IV", "tipo": "chips-segurar", "ativo": true, "se": null,
+    { "id": "quer", "n": 12, "capitulo": "IV", "tipo": "chips", "ativo": true, "se": null,
       "grava": ["quiz.quer", "quiz.compromisso"] },
     { "id": "chance", "n": 13, "capitulo": "V", "tipo": "chips", "ativo": true, "se": null,
       "grava": ["quiz.chance"] },

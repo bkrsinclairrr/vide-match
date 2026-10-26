@@ -41,7 +41,8 @@ O `teste-dados.mjs` confere a ficha contra as regras do Painel do Closer, que mo
 | `teste-caminhos.mjs` | Os 12 caminhos do aceite, ponta a ponta, com a sequência de telas, o payload e a varredura de texto e de eventos; o caminho 1 toca a cada 3 s e ouve o áudio inteiro; os caminhos 13 e 14 são de quem volta pela capa (seguir de onde parou e recomeçar) |
 | `teste-acessibilidade.mjs` | O quiz inteiro só no teclado, foco visível e em ordem, foco no título, espelhos anunciados, alvos de 44 px, 320 px e zoom de 200%, reduzir movimento e o contraste |
 | `teste-audio.mjs` | Os 5 estados do áudio com evento e pontuação, seek, velocidade, `play()` recusado, arquivo ausente e o Continuar em 8 s |
-| `teste-segurar.mjs` | Soltar antes, completar, Enter, Espaço e "Confirmar sem segurar" |
+| `teste-quer.mjs` | A T11 sem segurar: um toque e a T12 abre (sim, receio e ainda não sei), com a mesma pontuação de antes, e o estado gravado no formato antigo |
+| `teste-posicoes.mjs` | As 11 posições tocadas no campo da T01: cada uma lê a conversa do atleta dela na T07 (nome, cartão, o que o clube procura e a conta do Fernando) |
 | `teste-consentimento.mjs` | Nenhuma tag antes da idade nem pra menor, a folha só pra adulto e com ID, botões iguais, rejeitar e aceitar |
 | `teste-desempenho.mjs` | Com 4G lento e CPU 4 vezes mais lenta, em HTTP/2: carga, LCP e CLS (mediana de 3 visitas), JavaScript comprimido e nenhum terceiro; a capa antes do JavaScript, sem piscar pra quem volta no meio e sem pular quando a T01 monta |
 | `teste-aparelhos.mjs` | As telas em 360, 390, 412, 768 e 1440 px (capturas em `capturas/`) e o navegador do Instagram (Android e iOS) |

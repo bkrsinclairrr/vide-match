@@ -12,13 +12,13 @@ const { pontuacao: regras, geral } = contratos();
 const cfg = Object.assign({}, geral, { audio: { ativo: true }, telasOpcionais: {} });
 const P = (r, c = cfg) => pontua(r, regras, c);
 
-// todas as combinações de resposta que o fluxo deixa existir (sem compromisso no "ainda não sei", que não tem o segurar)
+// todas as combinações de resposta que o fluxo deixa existir (sem compromisso no "ainda não sei"; "quero" e "receio" valem o compromisso no toque)
 const PENEIRAS = [['0', null, null], ['1_2', '0', 'nada'], ['1_2', '1_2', 'ate_500'], ['3_5', '3_5', '500_2000'], ['6_mais', '0', 'mais_2000'], ['6_mais', '6_mais', '500_2000']];
 const combinacoes = [];
 for (const quer of ['sim', 'receio', 'nao_sei']) for (const compromisso of [true, false]) for (const chance of ['pronto', 'familia', 'entender', 'nao_sei'])
   for (const video of ['jogos', 'lances', 'nada']) for (const [peneiras, dispensas, gasto] of PENEIRAS) for (const estado of ['ate_o_fim', 'mais_da_metade', 'menos', 'nao_tocou', 'erro']) {
     if (quer === 'nao_sei' && compromisso) continue;
-    if (quer !== 'nao_sei' && !compromisso) continue; // o segurar sempre confirma (ou "Confirmar sem segurar")
+    if (quer !== 'nao_sei' && !compromisso) continue; // o toque em "quero" ou "receio" já vale o compromisso
     combinacoes.push({ quer, compromisso, chance, video, peneiras, dispensas, gasto, audio: { estado, pct: 0 } });
   }
 const acha = (cond) => combinacoes.find(r => cond(r, P(r)));
@@ -40,7 +40,7 @@ ok(P(naoSeiChance).tier === 'B' && P(naoSeiChance).total >= 45, `"ainda não sei
 // "quero entender" com 70 ou mais é B
 const entender = acha((r, p) => r.chance === 'entender' && p.total >= 70);
 ok(entender && P(entender).tier === 'B', `"quero entender como funciona" com ${entender ? P(entender).total : '?'} pontos fica B`);
-// "ainda não sei" na T11 com 70 ou mais: no fluxo não chega a 70 (não tem o segurar); a regra vale assim mesmo
+// "ainda não sei" na T11 com 70 ou mais: no fluxo não chega a 70 (não vale compromisso); a regra vale assim mesmo
 const naoSeiMax = Math.max(...combinacoes.filter(r => r.quer === 'nao_sei').map(r => P(r).total));
 ok(naoSeiMax < 70, `"ainda não sei" na T11 chega no máximo a ${naoSeiMax} pontos no fluxo (menos de 70)`);
 const naoSeiForcado = { quer: 'nao_sei', compromisso: true, chance: 'pronto', video: 'jogos', peneiras: '6_mais', dispensas: '6_mais', gasto: 'mais_2000', audio: { estado: 'ate_o_fim' } };
