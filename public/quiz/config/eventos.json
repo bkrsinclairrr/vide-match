@@ -20,7 +20,6 @@
     "audio_seek": ["pct"],
     "audio_error": ["estado"],
     "audio_skip": ["estado"],
-    "compromisso": ["ms"],
     "contact_submit": ["tier", "total", "adulto", "duracaoSeg"],
     "lead_enviado": ["tentativa"],
     "lead_fila": ["tentativa"],

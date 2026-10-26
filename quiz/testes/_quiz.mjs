@@ -113,17 +113,8 @@ export function quiz(c) {
       await c.ate(`!!document.querySelector('#barra .btn')`, 13000);
       await continua();
     },
-    async quer(q, { segura = true } = {}) {
-      await esperaTela('quer');
-      await responde(`.t-quer .opcao[data-id="${q}"]`);
-      if (q !== 'nao_sei') {
-        await c.ate(`!!document.querySelector('.segurar-botao')`, 4000);
-        await espera(400);
-        await colhe();
-        if (segura) await toca('.segurar-botao', { segura: 1900 });
-        else await toca('.segurar .link-btn');
-      }
-    },
+    // um toque responde e a tela já segue (sem segurar nada)
+    async quer(q) { await esperaTela('quer'); await responde(`.t-quer .opcao[data-id="${q}"]`); },
     async chance(i) { await esperaTela('chance'); await responde(`.t-chance .opcao[data-id="${i}"]`); },
     async contato({ nome = 'João', zap = '11912345678', responsavel = null, aceite = true } = {}) {
       await esperaTela('contato');
@@ -152,7 +143,7 @@ export async function caminhoCompleto(q, op = {}) {
   await q.historico();
   await q.sonho(op.sonho || 'europa');
   if (op.audio !== false) await q.audio(op.ouvir || 'fim');
-  await q.quer(op.quer || 'sim', { segura: op.segura !== false });
+  await q.quer(op.quer || 'sim');
   await q.chance(op.chance || 'familia');
   await q.contato(op.contato || {});
   await q.resultado();

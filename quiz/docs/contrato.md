@@ -28,7 +28,7 @@ Os ids, as chaves e as convenções que todo arquivo do quiz segue. Mudou um id 
 | `js/app.js` | A entrada: carrega os contratos e liga estado, eventos, rastreio, envio e o motor. |
 | `js/motor/` | `navegacao.js` (o motor das telas e do histórico), `estado.js` (respostas e derivação da ficha), `fluxo.js` (o caminho e as condições), `barra.js` (a barra fixa), `util.js`. |
 | `js/telas/` | Uma tela por arquivo (`posicao.js` até `resultado.js`, e `opcionais.js` pras quatro opcionais). |
-| `js/componentes/` | `campo.js` (o campo da T01 e o olhômetro contra a IA da T05), `radar.js` (T06), `trilho.js` (cartões que se arrastam), `audio-voz.js` (T10), `segurar.js` (T11), `opcoes.js`, `folha.js`, `fontes.js`, `icones.js`. |
+| `js/componentes/` | `campo.js` (o campo da T01 e o olhômetro contra a IA da T05), `radar.js` (T06), `trilho.js` (cartões que se arrastam), `audio-voz.js` (T10), `conversa.js` (T07, o chat do Fernando), `opcoes.js`, `folha.js`, `fontes.js`, `icones.js`. |
 | `js/dados/` | `pontuacao.js`, `payload.js`, `eventos.js`, `envio.js` (fila), `rastreio.js` (UTMs, cookies e pixel), `debug.js` (`?debug=1`). |
 | `js/vendor/mapa-calor.js` | Cópia do `mapa-calor.js` do Painel do Closer (os nomes das 11 posições). |
 | `assets/` | Fontes (Inter e Playfair itálico, latin e latin-ext), o áudio da mãe (original e a versão de 64 kbps) e a onda, escudos 96 por 96, fotos dos depoimentos, o favicon. |
@@ -54,7 +54,7 @@ Os ids, as chaves e as convenções que todo arquivo do quiz segue. Mudou um id 
 | `historico` | 9 | III | provas-depoimentos | sempre | |
 | `sonho` | 10 | IV | chips | sempre | `ficha.sonho` |
 | `audio` | 11 | IV | audio | `config.audio.ativo = true` | `quiz.audio` |
-| `quer` | 12 | IV | chips-segurar | sempre | `quiz.quer`, `quiz.compromisso` |
+| `quer` | 12 | IV | chips | sempre | `quiz.quer`, `quiz.compromisso` |
 | `chance` | 13 | V | chips | sempre | `quiz.chance` |
 | `contato` | 14 | V | formulario | sempre | `ficha.nome`, `contato.whatsapp`, `contato.responsavelNome`, `consentimento.aceite` |
 | `resultado` | 15 | V | resultado | sempre | `pontuacao.total`, `pontuacao.tier` |

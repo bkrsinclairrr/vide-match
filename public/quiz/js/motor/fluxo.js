@@ -54,7 +54,7 @@ export const COMPLETO = {
   historico: r => !!r.viuHistorico,
   sonho: r => !!r.sonho,
   audio: r => !!r.audio,
-  quer: r => !!r.quer && (r.quer === 'nao_sei' || r.compromisso === true),
+  quer: r => !!r.quer,
   chance: r => !!r.chance,
   contato: (r, s) => !!s.enviado,
   resultado: () => true

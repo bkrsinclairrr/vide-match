@@ -47,10 +47,8 @@ export async function percorre({ c, q, url, aoTela }) {
   await para('audio-fim', { pausa: 600 });
   await q.continua();
   await q.esperaTela('quer');
+  await para('quer', { pausa: 500 });
   await q.toca('.t-quer .opcao[data-id="receio"]');
-  await c.ate(`!!document.querySelector('.segurar-botao')`, 4000);
-  await para('quer', { pausa: 700 });
-  await q.toca('.segurar-botao', { segura: 1900 });
   await q.esperaTela('chance'); await para('chance');
   await q.toca('.t-chance .opcao[data-id="familia"]');
   await q.esperaTela('contato'); await para('contato-vazio');

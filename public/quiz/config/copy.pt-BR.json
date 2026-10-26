@@ -342,13 +342,7 @@
     ],
     "espelhoNaoSei": "Sem pressa. O diagnóstico ajuda a decidir.",
     "receioComAudio": "Normal. A mãe do áudio também tentou muito antes. O que mudou foi o método.",
-    "receioSemAudio": "Normal. Quem já tentou muito sabe o valor de um caminho novo. O que muda é o método.",
-    "segurarTitulo": "Segure para confirmar.",
-    "segurarTexto": "Eu quero isso de verdade e vou fazer a minha parte: treinar, me cuidar e seguir um plano.",
-    "segurarBotao": "Segure",
-    "segurarAria": "Segure para confirmar o seu compromisso",
-    "confirmarSemSegurar": "Confirmar sem segurar",
-    "confirmado": "Combinado. Bora."
+    "receioSemAudio": "Normal. Quem já tentou muito sabe o valor de um caminho novo. O que muda é o método."
   },
   "chance": {
     "titulo": "Uma última pergunta.",

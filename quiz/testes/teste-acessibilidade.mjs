@@ -116,8 +116,6 @@ try {
     await tabAte('#barra .btn'); await c.aperta('Enter');
     await chega('quer');
     await tabAte('.t-quer .opcao'); await setaAte('sim'); await c.aperta('Enter');
-    await c.ate(`!!document.querySelector('.segurar-botao')`, 4000); await espera(500);
-    await tabAte('.segurar-botao'); await c.aperta('Enter');
     await chega('chance');
     await tabAte('.t-chance .opcao'); await setaAte('familia'); await c.aperta('Enter');
     await chega('contato');

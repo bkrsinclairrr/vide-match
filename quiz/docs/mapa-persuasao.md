@@ -17,7 +17,7 @@ A história: o atleta é o protagonista, o inimigo é o olhômetro (o método), 
 | T08 histórico | B5 ("alguém como eu já saiu do lugar") | "E se não der certo?" | Esperança | Não: o universo vai dentro da frase ("atletas nossos, acompanhados por nós") |
 | T09 sonho | B6 ("eu consigo me ver lá") | | Vontade | Não |
 | T10 áudio | B5 e B6: a mãe real, e a pergunta "e se fosse a sua?" | | Emoção, o pico | Não: sem prazo, sem preço, Continuar neutro |
-| T11 quer | B7 ("eu quero e vou fazer a minha parte"): o segurar é o compromisso | "Já me decepcionei" (a mãe do áudio também tentou antes) | Decisão | Não: "Ainda não sei" passa sem segurar |
+| T11 quer | B7 ("eu quero e vou fazer a minha parte"): o toque no "quero" é o compromisso | "Já me decepcionei" (a mãe do áudio também tentou antes) | Decisão | Não: "Ainda não sei" passa sem compromisso |
 | T12 a chance | B8 ("essa chance é pra mim"): a avaliação gratuita do perfil pode abrir a porta pra oportunidade da vida dele, e ele mesmo diz que está pronto (compromisso e coerência) | "Não sei se é pra mim" ("ainda não sei" passa sem peso) | Esperança e decisão | Não: não vende nada, não fala de preço nem de pagamento |
 | T13 contato | | "O que vão fazer com os meus dados?" (sem spam, a Política a um toque) | Clareza | Não |
 | T14 diagnóstico | B8: só o que ele respondeu, três linhas e o botão "Continuar" pra VSL | "Quem decide é a família" (tier B: "se puder, assista com a sua família") | Clareza e vontade | Não: "Pronto para o próximo passo", nunca "aprovado" |

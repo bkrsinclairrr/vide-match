@@ -1,55 +1,34 @@
-// T11 · a escada do sim numa tela só: "você quer viver isso de verdade?" e, pra quem quer, o compromisso de segurar pra confirmar.
+// T11 · a escada do sim numa tela só: "você quer viver isso de verdade?". Um toque responde e a tela já vai pra próxima parte (nada de
+// segurar nem de confirmar). Dizer que quer ("sim" ou "receio") vale o compromisso: a pontuação e o payload ficam como antes.
 import { h } from '../motor/util.js';
 import { opcoes } from '../componentes/opcoes.js';
-import { segurar } from '../componentes/segurar.js';
 
 export function render(ctx) {
   const c = ctx.copy;
+  const audioOn = ctx.cfg.audio?.ativo !== false;
+  // a frase de uma linha que aparece embaixo da resposta antes de seguir (o toque em qualquer lugar pula); o "sim" não tem
+  const espelhos = {
+    sim: null, // o "sim" segue direto
+    receio: { texto: audioOn ? c.receioComAudio : c.receioSemAudio, ms: 1800 },
+    nao_sei: { texto: c.espelhoNaoSei, ms: 1000 }
+  };
   const el = h('section', { class: 't-quer' });
   el.append(h('div', { class: 'entra' }, h('h1', { class: 'titulo', style: '--i:0', html: ctx.t(c.titulo) })));
-  const area = h('div');
   const g = opcoes({ lista: c.opcoes, valor: ctx.r.quer, rotulo: c.titulo, aoEscolher: escolhe });
-  el.append(g.el, area);
-  let seg = null;
-
-  function blocoSegurar(id) {
-    area.replaceChildren();
-    if (id === 'receio') {
-      const audioOn = ctx.cfg.audio?.ativo !== false;
-      area.append(h('p', { class: 'receio', text: audioOn ? c.receioComAudio : c.receioSemAudio }));
-    }
-    seg?.destroi();
-    seg = segurar({
-      textos: c,
-      aoConfirmar: ({ ms }) => {
-        ctx.responde('compromisso', true, { evento: false });
-        ctx.evento('compromisso', { ms });
-        g.el.classList.add('travada');
-        ctx.depois(500, () => ctx.avanca());
-      }
-    });
-    ctx.aoSair(() => seg?.destroi());
-    area.append(seg.el);
-    requestAnimationFrame(() => seg.el.scrollIntoView({ behavior: ctx.reduz ? 'auto' : 'smooth', block: 'center' }));
-  }
+  el.append(g.el);
 
   function escolhe(id) {
     ctx.responde('quer', id);
-    if (id === 'nao_sei') {
-      ctx.responde('compromisso', false, { evento: false });
-      area.replaceChildren();
-      ctx.avancaCom({ espelho: c.espelhoNaoSei, alvo: g.el });
-      return;
-    }
-    // trocou de ideia depois de segurar: o compromisso é refeito
-    if (ctx.r.compromisso) ctx.responde('compromisso', false, { evento: false });
-    g.destrava();
-    blocoSegurar(id);
+    ctx.responde('compromisso', id !== 'nao_sei', { evento: false });
+    const e = espelhos[id];
+    if (e) ctx.avancaCom({ espelho: e.texto, alvo: g.el, atraso: e.ms });
+    else ctx.avancaCom({ atraso: 320 });
   }
 
-  if (ctx.r.quer && ctx.r.quer !== 'nao_sei') {
-    if (ctx.r.compromisso) ctx.continuarSeCompleto();
-    else blocoSegurar(ctx.r.quer);
-  } else if (ctx.r.quer === 'nao_sei') ctx.continuarSeCompleto();
+  // quem volta com a resposta já dada (e a gravada no formato antigo, em que o compromisso vinha do segurar) segue com ela
+  if (ctx.r.quer) {
+    if (ctx.r.quer !== 'nao_sei' && !ctx.r.compromisso) ctx.responde('compromisso', true, { evento: false });
+    ctx.continuarSeCompleto();
+  }
   return el;
 }

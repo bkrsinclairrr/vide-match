@@ -468,28 +468,6 @@
 .dica-tocar { margin-top: 12px; font-size: 13.5px; color: var(--gold-soft); text-align: center; animation: surge .3s var(--ease) both; }
 .depois { margin-top: 18px; font: 600 italic 24px/1.25 var(--f-enfase); color: var(--gold); text-align: center; animation: surge .4s var(--ease) both; }
 
-/* ---------- segurar pra confirmar (T11) ---------- */
-.segurar { margin-top: 18px; padding: 22px 18px 18px; border-radius: var(--r-lg); border: 1px solid rgba(251, 191, 36, .3); background: linear-gradient(180deg, rgba(251, 191, 36, .07), rgba(251, 191, 36, .015)); text-align: center; animation: surge .3s var(--ease) both; }
-.segurar-titulo { font-size: 18px; font-weight: 800; color: #fff; }
-.segurar-texto { margin-top: 8px; font-size: 15.5px; line-height: 1.5; color: var(--text-2); }
-.segurar-botao {
-  position: relative; width: 116px; height: 116px; margin: 18px auto 8px; border-radius: 50%; border: 0; display: grid; place-items: center;
-  background: radial-gradient(circle at 50% 40%, #1d1d1d, #0e0e0e); color: var(--gold);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06), 0 18px 40px -18px rgba(0, 0, 0, .9);
-  touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
-  transition: transform .2s var(--ease);
-}
-.segurar-botao.segurando { transform: scale(.96); }
-.segurar-anel { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-.segurar-anel circle { fill: none; stroke-width: 6; }
-.segurar-anel .trilho-anel { stroke: rgba(255, 255, 255, .08); }
-.segurar-anel .enche { stroke: var(--gold); stroke-linecap: round; stroke-dasharray: 339.3; stroke-dashoffset: 339.3; filter: drop-shadow(0 0 6px rgba(251, 191, 36, .7)); }
-.segurar-botao.ok .enche { stroke: var(--ai); filter: drop-shadow(0 0 8px rgba(52, 211, 153, .8)); }
-.segurar-icone svg { width: 42px; height: 42px; }
-.segurar-botao.ok .segurar-icone { color: var(--ai); }
-.segurar-dica { font-size: 13px; color: var(--muted); }
-.receio { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, .04); color: var(--text-2); font-size: 15px; line-height: 1.45; animation: surge .3s var(--ease) both; }
-
 /* ---------- transição honesta (montando) ---------- */
 .montando { position: fixed; inset: 0; z-index: 55; display: grid; place-items: center; background: rgba(10, 10, 10, .96); animation: fade .2s ease both; }
 .montando-in { display: grid; gap: 18px; justify-items: center; font-size: 16px; font-weight: 600; color: var(--text-2); }
