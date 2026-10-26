@@ -4,6 +4,13 @@
  */
 export const CLIENT_BASE = "/minha-area"
 
+/**
+ * Onde se completa o perfil: o passo a passo do /avaliacao/perfil (foto, dados, posição e cidade) dentro da
+ * área do atleta. Fica aqui, e não em /avaliacao, para a Utmify não contar quem já tem conta e para nenhum
+ * lead novo nascer de quem já é do Zyron. Termina salvando e voltando ao Início, sem vídeos nem relatório.
+ */
+export const PROFILE_FORM_PATH = `${CLIENT_BASE}/completar-perfil`
+
 const AS_MEMBER_KEY = "zyron:cliente:como"
 
 /**
