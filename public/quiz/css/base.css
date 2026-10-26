@@ -161,7 +161,7 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .tela.entrando { animation: tela-fade .12s linear both !important; }
-  .trilho-mao, .trilho-dica, .barra .btn::before, .selecione-dedo, .chamada-dedo, .pratica-dedo, .adversario-rotulo i { animation: none !important; }
+  .trilho-mao, .trilho-dica, .rolar, .rolar svg, .barra .btn::before, .selecione-dedo, .chamada-dedo, .pratica-dedo, .adversario-rotulo i { animation: none !important; }
   .barra .btn::before { display: none; }
   @keyframes tela-fade { from { opacity: 0; } to { opacity: 1; } }
 }

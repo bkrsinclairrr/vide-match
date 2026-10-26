@@ -3,7 +3,8 @@ import { h } from './util.js';
 import { icone } from '../componentes/icones.js';
 
 export function criaBarra(el, palco) {
-  const ajustaAltura = () => palco.style.setProperty('--barra-h', (el.childElementCount ? el.offsetHeight : 0) + 'px');
+  // no .app (e não só no palco): a dica de rolar (componentes/rolar.js) também senta em cima da barra
+  const ajustaAltura = () => (palco.parentElement || palco).style.setProperty('--barra-h', (el.childElementCount ? el.offsetHeight : 0) + 'px');
   if ('ResizeObserver' in window) new ResizeObserver(ajustaAltura).observe(el);
 
   // teclado no iPhone: a barra fixa ficaria atrás dele

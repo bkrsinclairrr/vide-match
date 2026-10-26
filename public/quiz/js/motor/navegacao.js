@@ -6,6 +6,7 @@ import { deriva } from './estado.js';
 import { abreFolha, fechaFolha } from '../componentes/folha.js';
 import { espelho as linhaEspelho } from '../componentes/opcoes.js';
 import { abreFontes } from '../componentes/fontes.js';
+import { criaRolar } from '../componentes/rolar.js';
 
 const PRIVADO = new Set(['nome', 'whatsapp', 'responsavelNome', 'aceite', 'isca']);
 
@@ -46,6 +47,7 @@ export function criaMotor(app) {
   let tVista = performance.now();
   let trocando = false;
   let nivel = 0;          // quantas telas nossas existem antes desta no histórico do navegador
+  const rolar = criaRolar({ desde: 'inimigo', ordem: fluxo.passos.map(p => p.id) });
 
   const ctxCond = () => {
     const d = deriva(estado.r, { copy, mapa, cfg });
@@ -206,6 +208,7 @@ export function criaMotor(app) {
     el.dataset.direcao = direcao;
     palco.replaceChildren(el);
     window.scrollTo(0, 0);
+    rolar.tela(el, id);
     atual = { id, el, limpeza };
     const cam = caminhoAtual();
     cabecalho(id, cam);
@@ -229,6 +232,7 @@ export function criaMotor(app) {
   function erroDeCarga(id, historico, direcao) {
     trocando = false;
     barra.limpa();
+    rolar.tela(null);
     const el = h('section', { class: 'tela' },
       h('h1', { class: 'titulo menor', tabindex: '-1', text: copy.geral.erroGeral }),
       h('button', { type: 'button', class: 'btn', style: { marginTop: '18px' }, onclick: () => mostra(id, { historico, direcao }) }, copy.geral.tentarDeNovo));
