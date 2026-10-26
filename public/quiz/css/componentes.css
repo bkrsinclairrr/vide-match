@@ -194,9 +194,9 @@
 .campo.tem-escolha .pos.acesa:not(.escolhida) .pos-nome { opacity: 0; }
 
 /* "Selecione" e a legenda das siglas (T01) */
-.selecione { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 7px 13px 7px 11px; border-radius: 999px; border: 1px solid rgba(251, 191, 36, .45); background: rgba(251, 191, 36, .08); font-weight: 700; font-size: 14px; line-height: 1; color: var(--gold-soft); }
-.selecione i { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); animation: chama 1.8s ease-out infinite; }
-@keyframes chama { 0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, .55); } 70%, 100% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0); } }
+.selecione { display: flex; width: fit-content; align-items: center; justify-content: center; gap: 9px; margin: 12px auto 6px; padding: 9px 20px 9px 22px; border-radius: 999px; border: 1px solid rgba(251, 191, 36, .45); background: rgba(251, 191, 36, .08); font-weight: 800; font-size: 13.5px; line-height: 1; letter-spacing: .16em; text-transform: uppercase; color: var(--gold-soft); }
+.selecione-dedo { display: inline-block; font-size: 18px; letter-spacing: 0; text-transform: none; animation: dedo 1.4s ease-in-out infinite; }
+@keyframes dedo { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
 .siglas .mini-rotulo { margin: 14px 0 8px; }
 .siglas dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 10px; margin: 0; }
 .siglas dl > div { display: flex; align-items: center; gap: 7px; min-width: 0; }
