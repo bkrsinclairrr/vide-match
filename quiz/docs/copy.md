@@ -24,7 +24,7 @@ Todo texto de tela mora em `config/copy.pt-BR.json`, por id de tela. Nenhuma fra
 | --- | --- |
 | "Ele não reprovou por ser ruim, mas porque enganaram ele" | T05, variante A: "Você não foi reprovado por ser ruim. Foi *enganado*." E no resultado: "Pelo que você contou, você não foi reprovado por ser ruim. Foi avaliado a olho, sem nenhum dado." |
 | "Em algum lugar do mundo, com as informações dele, um clube precisa exatamente de um jogador como ele" | T06: "Um clube procura exatamente {um lateral direito} como você." e "Em algum lugar do mundo, um clube precisa do seu perfil. O difícil nunca foi jogar bem. É ser encontrado por ele." No resultado: "Em algum lugar do mundo, um clube procura {um lateral direito} com o seu perfil." |
-| Autoridade da IA no futebol, como as manchetes | T07: os recortes (ESPN Brasil, Cambridge United e mais quatro), "Clubes já usam *IA* pra encontrar jogadores." e "Não é promessa de internet. Está nos jornais." |
+| Autoridade da IA no futebol, como as manchetes | T07: os recortes (ESPN Brasil, Cambridge United e mais quatro), "Clubes já usam *IA* pra encontrar jogadores." e "📰 Está nos jornais!" (chamada centralizada em destaque) |
 | Viés de confirmação | T04: "E nessas vezes, você sentiu que jogou bem?"; os espelhos depois de cada resposta; a linha pessoal da T05 com os números dele |
 | Sem "fictício", "ilustrativo" e parecidos | Nenhum, em lugar nenhum (o teste de regras da casa procura) |
 | Curto, pra levar à VSL | 15 telas no caminho mais longo, quase tudo de um toque até o contato |
