@@ -364,7 +364,7 @@
       "ativo": true,
       "confirmadoPeloDono": false,
       "clube": "Chelsea",
-      "escudo": null,
+      "escudo": "chelsea",
       "selo": "CFC",
       "texto": "Em 2024, o Chelsea apresentou o Future Blues, projeto de recrutamento da base: jovens de qualquer lugar do mundo fazem testes pelo celular e uma IA analisa e pontua o desempenho. A IA ajuda olheiros e treinadores a decidir.",
       "fonte": {
@@ -401,7 +401,7 @@
       "ativo": true,
       "confirmadoPeloDono": false,
       "clube": "Liverpool",
-      "escudo": null,
+      "escudo": "liverpool",
       "selo": "LFC",
       "texto": "Usou modelos estatísticos próprios pra apoiar contratações, segundo o ex-diretor de pesquisa do clube.",
       "fonte": {
@@ -420,7 +420,7 @@
       "ativo": true,
       "confirmadoPeloDono": false,
       "clube": "Bayer Leverkusen",
-      "escudo": null,
+      "escudo": "leverkusen",
       "selo": "B04",
       "texto": "O diretor esportivo disse, em 2021, que o clube analisa milhões de dados com inteligência artificial pra pré-selecionar jogadores.",
       "fonte": {
@@ -457,7 +457,7 @@
       "ativo": true,
       "confirmadoPeloDono": false,
       "clube": "Brentford",
-      "escudo": null,
+      "escudo": "brentford",
       "selo": "BFC",
       "texto": "Usa dados pra filtrar cerca de 85 mil jogadores, posição por posição, antes de os olheiros e o treinador decidirem.",
       "fonte": {
@@ -559,6 +559,26 @@
       "confianca": "media",
       "conferidoEm": "2026-10-23",
       "notaLegal": null
+    },
+    {
+      "id": "caso-lucas",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Lucas Matheus",
+      "posicao": null,
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": "Caso contado pelo dono em 26/10/2026 (T07, 'Como funciona na prática'). Falta o dono dizer a posição real do Lucas (o nome dela como aparece no quiz, ex.: 'Zagueiro'): com ela, quem joga na mesma posição lê 'Já fizemos isso com o Lucas Matheus, um zagueiro como você'. Sem ela (ou outra posição), a abertura diz que a conversa é a dele, contada pra posição de quem responde. A compatibilidade de 94% é a do painel do site; troque pela do Lucas, se for outra."
     },
     {
       "id": "lucas-silva",
@@ -679,7 +699,7 @@
       "ativo": true,
       "confirmadoPeloDono": false,
       "numero": "1.113",
-      "texto": "transferências saíram de clubes brasileiros pro exterior em 2024. O Brasil liderou o mundo em número de transferências.",
+      "texto": "transferências de clubes brasileiros pro exterior em 2024. O Brasil liderou o mundo em número de transferências.",
       "fonte": {
         "veiculo": "FIFA",
         "data": "2025-01-30",

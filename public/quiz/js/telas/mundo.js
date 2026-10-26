@@ -1,8 +1,10 @@
-// T07 · a autoridade: a IA no futebol já está nos jornais. Recortes de imprensa (cada um com veículo, data e a matéria original),
+// T07 · a autoridade: a IA no futebol já está nos jornais. Logo depois do título, "Como funciona na prática" (a conversa do caso do
+// Lucas Matheus, contada com a posição de quem responde). Recortes de imprensa (cada um com veículo, data e a matéria original),
 // os clubes que já escolhem com dados e o fecho do inimigo: quem lucra com a peneira cheia não quer que você saiba do outro caminho.
 import { h, dataBr } from '../motor/util.js';
 import { trilho } from '../componentes/trilho.js';
 import { icone } from '../componentes/icones.js';
+import { conversa } from '../componentes/conversa.js';
 
 const CLUBES = ['IA-00', 'IA-01', 'IA-02', 'IA-03', 'IA-04', 'IA-05', 'IA-06', 'IA-07', 'IA-08', 'IA-09', 'IA-10'];
 
@@ -11,8 +13,31 @@ export function render(ctx) {
   const el = h('section', { class: 't-mundo' });
   el.append(h('div', { class: 'entra' },
     h('p', { class: 'rotulo-cap', style: '--i:0', text: c.rotulo }),
-    h('h1', { class: 'titulo', style: '--i:1', html: ctx.t(c.titulo) }),
-    h('p', { class: 'apoio', style: '--i:2', text: c.apoio })));
+    h('h1', { class: 'titulo', style: '--i:1', html: ctx.t(c.titulo) })));
+
+  // "Como funciona na prática": a conversa do caso do Lucas Matheus, contada com a posição de quem responde. Só diz "como você" sem
+  // ressalva quando a posição real dele (provas.json) é a mesma; senão, a abertura avisa que é a conversa dele, contada pra essa posição.
+  const caso = ctx.provas['caso-lucas'];
+  if (caso && caso.ativo !== false) {
+    const p = c.pratica, T = ctx.textos;
+    const mesma = !!caso.posicao && caso.posicao.toLowerCase() === String(T.posicao || '').toLowerCase();
+    const vars = { casoNome: caso.nome, compatibilidade: caso.compatibilidade };
+    const peneiras = ctx.r.peneiras === '0' ? p.peneirasNenhuma : (T.peneirasTexto || '').replace(/\s*peneiras?$/i, '');
+    const papo = conversa({
+      titulo: p.titulo,
+      abertura: ctx.tx(mesma ? p.aberturaMesmaPosicao : p.aberturaOutraPosicao, vars),
+      perfil: {
+        rotulo: p.perfilRotulo, posicao: T.posicao || '',
+        dados: [[p.idade, T.faixa], [p.peneiras, peneiras], [p.video, T.videoTexto]].filter(([, v]) => v)
+      },
+      scout: { nome: p.scoutNome, foto: 'assets/depoimentos/scout-fernando.webp', online: p.online },
+      mensagens: p.mensagens.map(m => Object.assign({}, m, { texto: ctx.tx(m.texto, vars) })),
+      rotuloDigitando: p.digitando, placeholder: p.placeholder, reduz: ctx.reduz
+    });
+    ctx.aoSair(() => papo.destroi());
+    el.append(papo.el);
+  }
+  el.append(h('p', { class: 'apoio apoio-imprensa', text: c.apoio }));
 
   const recortes = Object.values(ctx.provas).filter(p => p.tipo === 'recorte_de_imprensa' && p.ativo !== false).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
   const idsRecortes = recortes.map(p => p.id);
@@ -27,10 +52,10 @@ export function render(ctx) {
   });
   const conta = h('span', { text: ctx.tx(c.contador, { i: 1, n: cartoes.length }) });
   const t = trilho({
-    itens: cartoes, rotulo: c.recortesAria, auto: 4000,
+    itens: cartoes, rotulo: c.recortesAria, auto: 4000, dica: c.arraste,
     aoVer: i => { conta.textContent = ctx.tx(c.contador, { i: i + 1, n: cartoes.length }); ctx.evento('recorte_view', { id: idsRecortes[i] }); }
   });
-  t.el.addEventListener('scroll', () => { conta.textContent = ctx.tx(c.contador, { i: t.atual + 1, n: cartoes.length }); }, { passive: true });
+  t.pista.addEventListener('scroll', () => { conta.textContent = ctx.tx(c.contador, { i: t.atual + 1, n: cartoes.length }); }, { passive: true });
   ctx.aoSair(() => t.destroi());
   el.append(h('p', { class: 'mini-rotulo' }, h('span', { text: c.recortesRotulo }), conta), t.el, t.pontos);
   t.liga();

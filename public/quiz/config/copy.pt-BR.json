@@ -164,7 +164,7 @@
   "inimigo": {
     "A": {
       "titulo": "Você não foi reprovado por ser ruim. Foi *enganado*.",
-      "p1Sim": "Você jogou bem e mesmo assim saiu sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você.",
+      "p1Sim": "Você jogou bem e saiu sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você.",
       "p1": "Você saiu dispensado ou sem resposta em {dispensasTexto} peneiras. E ainda te fizeram acreditar que o problema era você."
     },
     "B": {
@@ -178,21 +178,21 @@
     "adversario": {
       "rotulo": "O adversário que ninguém te mostrou",
       "nome": "O *olhômetro*.",
-      "texto": "Centenas de garotos, jogos de 20 minutos e um avaliador seguindo a bola. É assim que decidem o futuro de um atleta.",
+      "texto": "Centenas de garotos, 20 minutos de jogo e um avaliador seguindo a bola. Assim decidem o seu futuro.",
       "fatos": ["PEN-05"]
     },
     "campoRotulo": "Toque pra comparar",
     "abas": { "olho": "Olhômetro", "ia": "IA (Zyron)" },
     "contadorOlho": "Observados agora: {n} de 22",
     "contadorIa": "Observados agora: 22 de 22",
-    "legendaOlho": "Numa peneira com centenas de garotos, o avaliador segue a bola e decide em poucos minutos. Quase sempre, procura uma posição só, pra uma vaga só.",
+    "legendaOlho": "O olho segue a bola. Quem está longe dela não é visto.",
     "legendaIa": "Com o Zyron, os 22 são acompanhados o jogo inteiro. Inclusive você.",
     "voce": "Você",
     "iaVoce": "O Zyron vê você",
     "dica": "Toque em Olhômetro pra comparar",
     "campoAria": "Campo com 22 jogadores. No olhômetro, só os perto da bola são vistos; com IA, todos são acompanhados.",
-    "p3": "No olhômetro, quem está longe da bola não é visto. Foi o método que falhou com você, não o seu jogo.",
-    "p3C": "No olhômetro, quem está longe da bola não é visto. Quando um garoto não passa, quase sempre foi o método que falhou, não o jogo dele.",
+    "p3": "Foi o método que falhou com você, não o seu jogo.",
+    "p3C": "Quando um garoto não passa, quase sempre foi o método que falhou, não o jogo dele.",
     "destaque": "O problema nunca foi o talento. Sempre foi o *método*.",
     "pessoalComGasto": "Você disse que fez {peneirasTexto} e que a família investiu {gastoTexto}. Em quantas delas alguém mediu o seu jogo de verdade?",
     "pessoalSemGasto": "Você disse que fez {peneirasTexto}. Em quantas delas alguém mediu o seu jogo de verdade?",
@@ -214,17 +214,20 @@
     "match": "Um clube procura esse perfil",
     "radarAria": "Radar: o seu perfil cruzado com os clubes da nossa rede, até achar um que procura esse perfil.",
     "passos": [
-      { "titulo": "O Zyron lê o seu jogo.", "texto": "Você envia os vídeos das suas partidas. Ele identifica você em campo e mede o seu jogo." },
-      { "titulo": "O seu perfil encontra o clube.", "texto": "As suas características são cruzadas com o que cada clube da nossa rede procura." },
+      { "titulo": "O Zyron lê o seu jogo.", "texto": "Você manda o vídeo. Ele acha você em campo e mede o seu jogo." },
+      { "titulo": "O seu perfil encontra o clube.", "texto": "As suas características são cruzadas com o que cada clube procura." },
       { "titulo": "A gente conecta.", "texto": "Um estrategista de carreiras conduz cada passo com você, até o clube." }
-    ],
-    "videoPergunta": "Você tem vídeo dos seus jogos?",
-    "videoOpcoes": [
+    ]
+  },
+  "video": {
+    "titulo": "Você tem vídeo dos seus jogos?",
+    "apoio": "É com vídeo que o Zyron lê o seu jogo.",
+    "opcoes": [
       { "id": "jogos", "texto": "Jogos inteiros" },
       { "id": "lances", "texto": "Só alguns lances" },
       { "id": "nada", "texto": "Ainda não" }
     ],
-    "videoEspelhos": {
+    "espelhos": {
       "jogos": "Ótimo. É com vídeo que o Zyron trabalha.",
       "lances": "Já ajuda. O ideal é jogo inteiro, e a gente mostra como.",
       "nada": "Sem problema. O primeiro passo é gravar, e a gente explica como."
@@ -233,15 +236,44 @@
   "mundo": {
     "rotulo": "O MUNDO JÁ JOGA ASSIM",
     "titulo": "Clubes já usam *IA* pra encontrar jogadores.",
+    "pratica": {
+      "titulo": "Como funciona na prática",
+      "aberturaMesmaPosicao": "Já fizemos isso com o {casoNome}, {quem} como você. Essa foi a conversa:",
+      "aberturaOutraPosicao": "Já fizemos isso com o {casoNome}. Esta é a conversa dele, contada pra {quem} como você:",
+      "perfilRotulo": "Atleta",
+      "idade": "Idade",
+      "peneiras": "Peneiras",
+      "peneirasNenhuma": "Nenhuma ainda",
+      "video": "Vídeo",
+      "scoutNome": "Scout - Fernando",
+      "online": "Online agora",
+      "digitando": "digitando",
+      "placeholder": "Escreva uma mensagem...",
+      "mensagens": [
+        { "de": "equipe", "texto": "Fala, atleta! Aqui é o Fernando, da Voxen. Tenho uma notícia boa pra você." },
+        { "de": "equipe", "texto": "Um clube da Europa está procurando {quem}. E o seu perfil apareceu no topo da lista deles." },
+        { "de": "atleta", "texto": "Sério?! Qual clube? Na Europa mesmo?" },
+        { "de": "equipe", "texto": "Na Europa mesmo. A compatibilidade do seu jogo com o que eles procuram deu {compatibilidade}%." },
+        { "de": "equipe", "texto": "E o interesse é alto: o coordenador da base viu os seus vídeos e pediu prioridade no seu nome." },
+        { "de": "atleta", "texto": "Eu nem acredito. O que eu preciso fazer?" },
+        { "de": "equipe", "texto": "Me manda hoje um jogo inteiro seu. Eu levo o seu relatório direto pra eles." },
+        { "de": "atleta", "texto": "Mandei agora. Tô tremendo aqui." },
+        { "separador": true, "texto": "3 dias depois" },
+        { "de": "equipe", "texto": "Atleta, o seu relatório convenceu. Eles querem você." },
+        { "de": "atleta", "texto": "Para tudo. É sério isso?" },
+        { "de": "equipe", "texto": "Conversei com o Diretor Executivo do time. E resolvemos tudo. Você está contratado!" },
+        { "de": "atleta", "texto": "Obrigado, Fernando! A minha família tá chorando aqui. 🙏" }
+      ]
+    },
     "apoio": "Não é promessa de internet. Está nos jornais.",
     "recortesRotulo": "Na imprensa",
     "contador": "{i} de {n}",
     "recortesAria": "Manchetes da imprensa sobre inteligência artificial no futebol. Arraste pro lado pra ver as outras.",
-    "arraste": "Arraste pro lado",
+    "arraste": "Arraste",
     "verMateria": "Ver a matéria",
     "escudosRotulo": "Clubes que já escolhem com dados",
-    "ponte": "Análise por vídeo com IA, agora do lado do atleta. É o que o Zyron faz por você.",
-    "fecho": "Há peneiras com centenas de vagas e inscrição paga. A maior parte dos garotos não passa da primeira etapa. Quem lucra com a peneira cheia não quer que você saiba que existe outro caminho.",
+    "ponte": "Análise por vídeo com IA, agora do lado do atleta: é o Zyron.",
+    "fecho": "Há peneiras com centenas de vagas e inscrição paga. Quem lucra com a peneira cheia não quer que você saiba que existe outro caminho.",
     "destaque": "Agora esse caminho chegou até você."
   },
   "historico": {
@@ -249,6 +281,7 @@
     "numeros": ["casa-326", "casa-renda", "casa-prazo"],
     "depoimentosRotulo": "Quem já viveu isso",
     "depoimentosAria": "Depoimentos de atletas e famílias. Arraste pro lado pra ver os outros.",
+    "arraste": "Arraste",
     "depoimentos": ["lucas-silva", "cecilia", "marcos-oliveira", "cleiton", "catia-silva"]
   },
   "sonho": {
@@ -322,9 +355,8 @@
   "contato": {
     "titulo": "Quase lá. Pra onde enviamos o seu diagnóstico?",
     "apoioAdulto": "O seu nome e o seu WhatsApp. É por lá que a equipe fala com você.",
-    "apoioMenor": "O nome do responsável e o WhatsApp dele. É por lá que a equipe fala com a família.",
     "nome": "Seu primeiro nome",
-    "responsavelNome": "Nome do responsável",
+    "responsavelNome": "Nome de um responsável",
     "whatsapp": "WhatsApp com DDD",
     "whatsappMenor": "Número do WhatsApp",
     "whatsappExemplo": "(11) 91234-5678",
@@ -338,7 +370,7 @@
     "comoUsamos": "Como usamos seus dados",
     "erros": {
       "nome": "Escreva o seu primeiro nome.",
-      "responsavelNome": "Escreva o nome do responsável.",
+      "responsavelNome": "Escreva o nome de um responsável.",
       "whatsapp": "Confira o número: DDD e mais 8 ou 9 dígitos.",
       "aceite": "Marque a caixa pra receber o diagnóstico."
     },
@@ -369,6 +401,26 @@
     "tierCTexto": "Ainda não é o melhor momento, e tudo bem. Guardamos o seu diagnóstico.",
     "tierCBotao": "Seguir @assessoria.voxen",
     "whatsapp": "Falar com a equipe no WhatsApp",
+    "botaoWhatsapp": "Continuar no WhatsApp",
+    "botaoWhatsappSub": "A mensagem já vai pronta com o seu diagnóstico. É só enviar.",
+    "tierBWhatsapp": "Se puder, converse com a gente junto com a sua família.",
+    "mensagem": {
+      "aberturaAdulto": "Olá! Sou {nome}. Acabei de fazer o diagnóstico do atleta no quiz da Voxen | Zyron e quero entender o próximo passo.",
+      "aberturaMenor": "Olá! Sou {responsavel}, responsável por {nome}. Acabamos de fazer o diagnóstico do atleta no quiz da Voxen | Zyron e quero entender o próximo passo.",
+      "aberturaSemNome": "Olá! Acabei de fazer o diagnóstico do atleta no quiz da Voxen | Zyron e quero entender o próximo passo.",
+      "respostas": "O que respondemos no quiz:",
+      "posicao": "Posição: {posicao}",
+      "idade": "Idade: {faixa}",
+      "peneiras": "Peneiras: {peneirasTexto}",
+      "semPeneira": "Peneiras: nenhuma ainda",
+      "dispensas": "Sem resposta ou dispensado: {dispensasTexto}",
+      "gasto": "Gasto com peneiras: {gastoTexto}",
+      "sonho": "Onde quer jogar: {sonho}",
+      "video": "Vídeo dos jogos: {videoTexto}",
+      "quer": "Quer isso: {quer}",
+      "chance": "Momento: {chance}",
+      "codigo": "Código do diagnóstico: {codigo}"
+    },
     "vagas": "{vagas} vagas de avaliação abertas esta semana.",
     "proximaTurma": "Próximas avaliações: {data}."
   },

@@ -25,7 +25,7 @@ export function render(ctx) {
         ctx.responde('compromisso', true, { evento: false });
         ctx.evento('compromisso', { ms });
         g.el.classList.add('travada');
-        ctx.depois(700, () => ctx.avanca());
+        ctx.depois(500, () => ctx.avanca());
       }
     });
     ctx.aoSair(() => seg?.destroi());

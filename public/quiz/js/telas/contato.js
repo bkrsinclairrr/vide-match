@@ -27,9 +27,11 @@ export function render(ctx) {
   const c = ctx.copy;
   const menor = ctx.d.menor;
   const el = h('section', { class: 't-contato' });
+  // no menor, o título basta (pedido do dono): os campos já dizem que é o nome e o WhatsApp de um responsável
+  const apoio = menor ? '' : c.apoioAdulto;
   el.append(h('div', { class: 'entra' },
     h('h1', { class: 'titulo menor', style: '--i:0', text: c.titulo }),
-    h('p', { class: 'apoio', style: '--i:1', text: menor ? c.apoioMenor : c.apoioAdulto })));
+    apoio ? h('p', { class: 'apoio', style: '--i:1', text: apoio }) : null));
 
   const erros = {};
   function campo({ id, rotulo, valor, attrs }) {
@@ -125,7 +127,7 @@ export function render(ctx) {
     // transição honesta: não finge análise nenhuma
     const montando = h('div', { class: 'montando', role: 'status' }, h('div', { class: 'montando-in' }, h('span', { class: 'montando-roda', 'aria-hidden': 'true' }), h('span', { text: c.montando })));
     document.body.append(montando);
-    await espera(ctx.reduz ? 600 : 1500);
+    await espera(ctx.reduz ? 600 : 1100);
     ctx.estado.marcaEnviado({ leadId, resultado: { tier: pont.tier, total: pont.total } });
     montando.remove();
     ctx.vaiPara('resultado', { historico: 'push' });

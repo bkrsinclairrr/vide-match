@@ -11,7 +11,7 @@ const s = (tag, a) => { const e = document.createElementNS(NS, tag); for (const 
 const LUGARES = [[18, .84], [52, .6], [86, .88], [150, .64], [186, .86], [218, .58], [250, .84], [286, .62], [318, .86], [345, .56]];
 // o clube que acende fica no alto, à direita: em celular pequeno a metade de baixo do radar fica atrás da barra da pergunta
 const ALVO = [40, .84];
-const VOLTA_MS = 2600;
+const VOLTA_MS = 2200;
 
 export function radar({ escudos, textos, aoTempo }) {
   const reduz = reduzMovimento();
