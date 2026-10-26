@@ -561,14 +561,20 @@
       "notaLegal": null
     },
     {
-      "id": "caso-lucas",
+      "id": "caso-rafael",
       "tipo": "declarado_pelo_dono",
       "ativo": true,
       "confirmadoPeloDono": true,
-      "nome": "Lucas Matheus",
-      "posicao": null,
+      "nome": "Rafael Souza",
+      "posicao": "Zagueiro",
+      "quem": "um zagueiro",
+      "posicoes": [
+        "ZAG-d",
+        "ZAG-e"
+      ],
+      "reserva": true,
       "compatibilidade": 94,
-      "texto": "Atleta da Voxen contratado por um clube da Europa depois da conversa com o Fernando.",
+      "texto": "Atleta da Voxen, zagueiro, contratado por um clube da Europa depois da conversa com o Fernando.",
       "fonte": {
         "veiculo": "Voxen",
         "data": "2026-10-26",
@@ -578,7 +584,244 @@
       "confianca": "declarado",
       "conferidoEm": "2026-10-26",
       "notaLegal": null,
-      "observacao": "Caso contado pelo dono em 26/10/2026 (T07, 'Como funciona na prática'). Falta o dono dizer a posição real do Lucas (o nome dela como aparece no quiz, ex.: 'Zagueiro'): com ela, quem joga na mesma posição lê 'Já fizemos isso com o Lucas Matheus, um zagueiro como você'. Sem ela (ou outra posição), a abertura diz que a conversa é a dele, contada pra posição de quem responde. A compatibilidade de 94% é a do painel do site; troque pela do Lucas, se for outra."
+      "observacao": "Casos da T07 (\"Como funciona na prática\"), na ordem que o dono mandou em 26/10/2026. `posicoes` diz quais posições do quiz leem a conversa deste atleta; `reserva` marca o caso de quem marcar uma posição sem atleta (hoje as 11 posições têm o seu): a abertura avisa que a conversa é dele, contada pra posição de quem respondeu. A compatibilidade de 94% é a do painel do site, igual nos casos: troque caso a caso, se forem outras."
+    },
+    {
+      "id": "caso-thiago",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Thiago Lima",
+      "posicao": "Lateral direito",
+      "quem": "um lateral direito",
+      "posicoes": [
+        "LD"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, lateral direito, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": null
+    },
+    {
+      "id": "caso-bruno",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Bruno Santos",
+      "posicao": "Lateral esquerdo",
+      "quem": "um lateral esquerdo",
+      "posicoes": [
+        "LE"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, lateral esquerdo, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": null
+    },
+    {
+      "id": "caso-matheus",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Matheus Costa",
+      "posicao": "Volante",
+      "quem": "um volante",
+      "posicoes": [
+        "VOL-d",
+        "VOL-e"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, volante, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": null
+    },
+    {
+      "id": "caso-gabriel",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Gabriel Pereira",
+      "posicao": "Meio-campista",
+      "quem": "um meio-campista",
+      "posicoes": [],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, meio-campista, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": "Meio-campista não é uma posição do quiz (o dono escolheu o Gustavo Silva pra meia central): fica guardado pro dia em que a posição entrar."
+    },
+    {
+      "id": "caso-felipe",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Felipe Almeida",
+      "posicao": "Meia-atacante",
+      "quem": "um meia-atacante",
+      "posicoes": [],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, meia-atacante, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": "Meia-atacante não é uma posição do quiz (só há meia central, que usa o Gustavo Silva): fica guardado pro dia em que a posição entrar."
+    },
+    {
+      "id": "caso-gustavo",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Gustavo Silva",
+      "posicao": "Meia central",
+      "quem": "um meia central",
+      "posicoes": [
+        "MC"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, meia central, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": "Meia central, escolhido pelo dono em 26/10/2026."
+    },
+    {
+      "id": "caso-breno",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Breno Kaio",
+      "posicao": "Goleiro",
+      "quem": "um goleiro",
+      "posicoes": [
+        "GOL"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, goleiro, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": "Goleiro, informado pelo dono em 26/10/2026 (a primeira lista vinha sem goleiro)."
+    },
+    {
+      "id": "caso-diego",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Diego Ribeiro",
+      "posicao": "Ponta direita",
+      "quem": "um ponta direita",
+      "posicoes": [
+        "ADD"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, ponta direita, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": null
+    },
+    {
+      "id": "caso-vinicius",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "Vinícius Carvalho",
+      "posicao": "Ponta esquerda",
+      "quem": "um ponta esquerda",
+      "posicoes": [
+        "ALE"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, ponta esquerda, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": null
+    },
+    {
+      "id": "caso-andre",
+      "tipo": "declarado_pelo_dono",
+      "ativo": true,
+      "confirmadoPeloDono": true,
+      "nome": "André Martins",
+      "posicao": "Centroavante",
+      "quem": "um centroavante",
+      "posicoes": [
+        "CA"
+      ],
+      "compatibilidade": 94,
+      "texto": "Atleta da Voxen, centroavante, contratado por um clube da Europa depois da conversa com o Fernando.",
+      "fonte": {
+        "veiculo": "Voxen",
+        "data": "2026-10-26",
+        "url": "https://aizyron.com/institucional",
+        "titulo": null
+      },
+      "confianca": "declarado",
+      "conferidoEm": "2026-10-26",
+      "notaLegal": null,
+      "observacao": null
     },
     {
       "id": "lucas-silva",
