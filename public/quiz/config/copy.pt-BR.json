@@ -266,7 +266,7 @@
       "mensagens": [
         { "de": "equipe", "texto": "Olá, {casoPrimeiro}, tudo bem? Aqui é o Fernando, estrategista esportivo da Voxen. Tenho uma notícia importante sobre a sua carreira." },
         { "de": "equipe", "texto": "Um clube da Europa está em busca de {quem}. O que eles procuram: {procura}. O seu perfil apareceu no topo da lista de candidatos." },
-        { "de": "atleta", "texto": "Na Europa?? 😳 Qual clube, mano?" },
+        { "de": "atleta", "texto": "Na Europa?? 😳 Qual clube, Fernando?" },
         { "de": "equipe", "texto": "Isso mesmo, na Europa. A análise do seu jogo deu {compatibilidade}% de compatibilidade com o que eles procuram." },
         { "de": "equipe", "texto": "O interesse é alto: o coordenador da base analisou o seu relatório e pediu prioridade no seu nome." },
         { "de": "atleta", "texto": "Caraca, nem acredito 🤯 O que eu preciso fazer?" },
@@ -274,7 +274,7 @@
         { "de": "atleta", "texto": "Mandei agora!! Tô tremendo aqui 😅" },
         { "separador": true, "texto": "3 dias depois" },
         { "de": "equipe", "texto": "{casoPrimeiro}, o seu relatório convenceu o clube. Eles querem você." },
-        { "de": "atleta", "texto": "Sério? Me belisca, isso é real? 😭" },
+        { "de": "atleta", "texto": "Sério? Tô até sem palavras 😭" },
         { "de": "equipe", "texto": "É real, sim. Conversei com o Diretor Executivo do clube e resolvemos todos os detalhes. Você está contratado!" },
         { "de": "atleta", "texto": "Obrigadooo, Fernando!! Minha família tá chorando aqui 🙏😭" }
       ],
