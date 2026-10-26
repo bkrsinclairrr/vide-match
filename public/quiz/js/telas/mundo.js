@@ -42,7 +42,7 @@ export function render(ctx) {
     ctx.aoSair(() => papo.destroi());
     el.append(papo.el);
   }
-  el.append(h('p', { class: 'apoio apoio-imprensa', text: c.apoio }));
+  el.append(h('p', { class: 'chamada-imprensa' }, h('span', { class: 'chamada-imprensa-e', 'aria-hidden': 'true', text: c.apoioEmoji }), h('span', { text: c.apoio })));
 
   const recortes = Object.values(ctx.provas).filter(p => p.tipo === 'recorte_de_imprensa' && p.ativo !== false).sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
   const idsRecortes = recortes.map(p => p.id);
