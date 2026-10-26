@@ -3,7 +3,7 @@ import { Camera, ClipboardList, Lock, Pencil, UserRound } from "lucide-react"
 import { Meter } from "@/pages/voxen/charts"
 import { CardHead } from "@/pages/voxen/ui"
 import { useAthlete } from "../ClientArea"
-import { profileLink } from "../game"
+import { PROFILE_FORM_PATH } from "../paths"
 import { PhotoButton, UnlockCard } from "../components/Gamify"
 import { LockTag } from "../components/Locks"
 import { PhotoChoice } from "../components/PhotoChoice"
@@ -37,7 +37,7 @@ export default function AthleteProfilePage() {
             <p>Faltam <strong>{c.missing.join(", ").toLowerCase()}</strong> no seu perfil. Perfil completo vale XP e libera a próxima etapa da jornada.</p>
             {adminPreview
               ? <button type="button" className="vx-btn vx-btn--gold" disabled>Completar perfil</button>
-              : <Link to={profileLink(account)} className="vx-btn vx-btn--gold">Completar perfil</Link>}
+              : <Link to={PROFILE_FORM_PATH} className="vx-btn vx-btn--gold">Completar perfil</Link>}
           </section>
         )}
         <ProfilePage />
@@ -68,7 +68,7 @@ export default function AthleteProfilePage() {
           </dl>
           {adminPreview
             ? <button type="button" className="vx-btn vx-btn--gold mt-5" disabled><Pencil /> {editLabel}</button>
-            : <Link to={profileLink(account)} className="vx-btn vx-btn--gold mt-5"><Pencil /> {editLabel}</Link>}
+            : <Link to={PROFILE_FORM_PATH} className="vx-btn vx-btn--gold mt-5"><Pencil /> {editLabel}</Link>}
         </section>
 
         <div className="flex flex-col gap-[18px]">

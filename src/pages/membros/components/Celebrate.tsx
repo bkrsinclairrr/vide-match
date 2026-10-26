@@ -12,7 +12,7 @@ import type { News } from "../news"
 
 /** O que cada missão abre na área, para o aviso dizer e levar até lá. */
 const OPENS: Record<string, { text: string; to?: string; label?: string }> = {
-  perfil: { text: "as oportunidades, o comparativo e a análise dos seus jogos.", to: "/oportunidades", label: "Ver oportunidades" },
+  perfil: { text: "as oportunidades e o envio dos seus jogos para a análise.", to: "/oportunidades", label: "Ver oportunidades" },
   analise: { text: "Partidas e Desempenho, com cada lance seu.", to: "/partidas", label: "Ver a análise" },
   tres: { text: "a seleção para a assessoria da Zyron.", to: "/conquistas", label: "Ver a jornada" },
   selecionado: { text: "o encaminhamento para um clube.", to: "/conquistas", label: "Ver a jornada" },

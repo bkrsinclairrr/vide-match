@@ -14,7 +14,8 @@ export default function AthleteComparePage() {
   const { account, report, member, category, game } = useAthlete()
   const analyzed = Boolean(member) && game.gates.matches
 
-  if (!report) return <LockedCompare />
+  // A equipe também pode abrir ou trancar o comparativo à mão: o que vale é a trava da jornada, não só o relatório.
+  if (!report || !game.gates.compare) return <LockedCompare />
 
   const tier = tierOf(report.overall)
   const ref = referenceFor(account.position)

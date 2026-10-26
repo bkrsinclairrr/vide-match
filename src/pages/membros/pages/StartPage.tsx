@@ -4,8 +4,8 @@ import { ArrowRight, Compass, MapPin, PersonStanding, Signpost, Sparkles, Trophy
 import { CountUp, Ring } from "@/pages/voxen/charts"
 import { CardHead } from "@/pages/voxen/ui"
 import { useAthlete } from "../ClientArea"
-import { CLIENT_BASE } from "../paths"
-import { opportunitiesFor, profileLink, tierOf } from "../game"
+import { CLIENT_BASE, PROFILE_FORM_PATH } from "../paths"
+import { opportunitiesFor, tierOf } from "../game"
 import { MemberAvatar, SectionTitle } from "../components/bits"
 import { useJustUnlocked } from "../news"
 import { LevelChip, MissionList, TeamCta, UnlockCard, XpBar } from "../components/Gamify"
@@ -154,7 +154,7 @@ export default function StartPage() {
             <div className="gm-noreport">
               <Sparkles className="h-5 w-5 text-amber-300" />
               <p>Crie o perfil e receba a sua análise.</p>
-              <Link to={profileLink(account)} className="vx-btn vx-btn--gold">Criar meu perfil <ArrowRight /></Link>
+              <Link to={PROFILE_FORM_PATH} className="vx-btn vx-btn--gold">Criar meu perfil <ArrowRight /></Link>
               <small>Leva uns 2 minutos e já libera as oportunidades.</small>
             </div>
           )}
