@@ -3,7 +3,8 @@ import { Link } from "react-router-dom"
 import { ArrowRight, Check, Globe2, Lock, LockOpen, MapPin, Play } from "lucide-react"
 import { CountUp } from "@/pages/voxen/charts"
 import { useAthlete } from "../ClientArea"
-import { lockedClubs, portfolio, profileLink } from "../game"
+import { lockedClubs, portfolio } from "../game"
+import { PROFILE_FORM_PATH } from "../paths"
 
 /*
  * O que ainda está trancado na jornada. A tela aparece "preenchida" (clubes, análise,
@@ -66,9 +67,9 @@ export function LockPanel({ kicker, title, text, cta, steps, big = false }: {
 
 /** "Completar perfil": o passo que libera quase tudo. No "ver como" da equipe, desligado. */
 export function ProfileCta({ label = "Completar perfil" }: { label?: string }) {
-  const { account, adminPreview } = useAthlete()
+  const { adminPreview } = useAthlete()
   if (adminPreview) return <button type="button" className="vx-btn vx-btn--gold lk-cta" disabled title="Só o atleta faz isso na conta dele">{label}</button>
-  return <Link to={profileLink(account)} className="vx-btn vx-btn--gold lk-cta">{label} <ArrowRight /></Link>
+  return <Link to={PROFILE_FORM_PATH} className="vx-btn vx-btn--gold lk-cta">{label} <ArrowRight /></Link>
 }
 
 /** Texto borrado (para nomes e funções de clube). */

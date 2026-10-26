@@ -22,7 +22,7 @@ import { loadScoutLayer, setMyPhotoMode, type PhotoMode, type ScoutLayer } from 
 import { categoryOf, gameOf, reportOf, type Career, type Game, type Gates, type Report } from "./game"
 import { summarizeProfile, type ProfileSummary } from "./metrics"
 import type { Bundle, Member } from "./model"
-import { CLIENT_BASE, clearAsMember } from "./paths"
+import { CLIENT_BASE, PROFILE_FORM_PATH, clearAsMember } from "./paths"
 import { saveOwnPhoto, squarePhoto } from "./photo"
 import { MemberAvatar } from "./components/bits"
 import { JourneyToast } from "./components/Celebrate"
@@ -37,6 +37,7 @@ const MatchesPage = lazy(() => import("./pages/MatchesPage"))
 const MatchPage = lazy(() => import("./pages/MatchPage"))
 const PerformancePage = lazy(() => import("./pages/PerformancePage"))
 const Locked = lazy(() => import("./pages/Locked"))
+const CompleteProfilePage = lazy(() => import("./pages/CompleteProfilePage"))
 
 /** `open`: quando o item fica aberto; sem isso, o item mostra o cadeado (e a página explica como liberar). */
 const NAV: { to: string; label: string; icon: typeof Home; end: boolean; open: ((g: Gates) => boolean) | null; hint?: string }[] = [
@@ -228,6 +229,8 @@ async function loadBase(opts: LoadOpts): Promise<Omit<Loaded, "career" | "layer"
 export default function ClientArea({ preview, asMember, isAdmin }: { preview: boolean; asMember: string | null; isAdmin: boolean }) {
   const { user } = useAuth()
   const { toast } = useToast()
+  // O formulário do perfil ocupa a tela inteira, sem o menu da área (e sem o aviso de missão cumprida por cima).
+  const onProfileForm = useLocation().pathname.replace(/\/$/, "") === PROFILE_FORM_PATH
   const userRef = useRef(user)
   userRef.current = user
   const [state, setState] = useState<LoadState>({ status: "loading" })
@@ -379,8 +382,10 @@ export default function ClientArea({ preview, asMember, isAdmin }: { preview: bo
   return (
     <AthleteContext.Provider value={athlete}>
       <MemberContext.Provider value={value.member}>
-        <Shell asMember={asMember} previewing={value.source.preview} />
-        {news.current && <JourneyToast news={news.current} game={value.game} onClose={news.dismiss} />}
+        {onProfileForm
+          ? <Suspense fallback={<Splash />}><CompleteProfilePage /></Suspense>
+          : <Shell asMember={asMember} previewing={value.source.preview} />}
+        {news.current && !onProfileForm && <JourneyToast news={news.current} game={value.game} onClose={news.dismiss} />}
         <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp,image/*" className="hidden" onChange={(e) => void onPhoto(e)} aria-hidden="true" tabIndex={-1} />
       </MemberContext.Provider>
     </AthleteContext.Provider>

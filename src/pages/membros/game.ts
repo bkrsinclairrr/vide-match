@@ -17,7 +17,7 @@ import { STAT_KEYS, WHATSAPP_NUMBER, buildStats, overallFrom, type StatResult } 
 import { getAllClubs, getBrazilianClubBySeed, getClubBySeed, type Club } from "@/data/clubs"
 import type { AthleteAccount } from "./account"
 import type { ProfileSummary } from "./metrics"
-import { CLIENT_BASE } from "./paths"
+import { CLIENT_BASE, PROFILE_FORM_PATH } from "./paths"
 import { EMPTY_LAYER, LOCK_KEYS, type ScoutLayer } from "./scoutLayer"
 
 /* ------------------------------------------------------------------ */
@@ -342,14 +342,6 @@ export type Game = {
 /** "2026-10-15" → "15/10/2026" (data do calendário, sem fuso). */
 const dayLabel = (day: string | null) => (day ? day.split("-").reverse().join("/") : "")
 
-/**
- * Onde completar o perfil. Quem ainda não tem perfil segue o passo a passo do site
- * (dados, vídeos e o primeiro relatório); quem só está completando ou atualizando volta
- * direto para a área depois de salvar.
- */
-export const profileLink = (account: AthleteAccount) =>
-  account.hasProfile ? `/onboarding?voltar=${encodeURIComponent(CLIENT_BASE)}` : "/onboarding"
-
 /** Maior sequência de jogos seguidos com nota 7 ou mais (do mais antigo ao mais recente). */
 function bestStreak(summary: ProfileSummary | null) {
   if (!summary) return 0
@@ -432,11 +424,12 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, 
 
   type Draft = Omit<Mission, "locked" | "after" | "step">
   const drafts: Record<JourneyKey, Draft> = {
+    // A foto é o primeiro passo do formulário do perfil (e vale 50 XP), então não é mais uma missão à parte.
     perfil: {
       key: "perfil", title: "Complete o seu perfil",
-      desc: comp.missing.length ? `Faltam: ${comp.missing.join(", ").toLowerCase()}.` : "Perfil completo.",
-      progress: comp.done, target: comp.total, done: profile, xp: (comp.total - comp.done) * 30,
-      cta: { label: account.hasProfile ? "Completar perfil" : "Criar perfil", to: profileLink(account) },
+      desc: profile ? "Perfil completo." : `Faltam: ${[...(account.avatarUrl ? [] : ["foto"]), ...comp.missing].join(", ").toLowerCase()}.`,
+      progress: comp.done, target: comp.total, done: profile, xp: profile ? 0 : (comp.total - comp.done) * 30 + (account.avatarUrl ? 0 : 50),
+      cta: { label: account.hasProfile ? "Completar perfil" : "Criar perfil", to: PROFILE_FORM_PATH },
     },
     analise: {
       key: "analise", title: "Libere a análise dos seus jogos",
@@ -484,18 +477,12 @@ export function gameOf(account: AthleteAccount, summary: ProfileSummary | null, 
   })
 
   const afterAnalysis = (m: Draft): Mission => ({ ...m, locked: !m.done && !analyzed, after: !m.done && !analyzed ? drafts.analise.title : undefined })
-  const photo: Mission = {
-    key: "foto", title: "Coloque a sua foto", desc: "Quem vê o seu perfil guarda mais quem tem rosto.",
-    progress: account.avatarUrl ? 1 : 0, target: 1, done: Boolean(account.avatarUrl), xp: 50,
-    cta: { label: "Adicionar foto", action: "foto" }, locked: false,
-  }
   const extras: Mission[] = [
     afterAnalysis({ key: "nota", title: "Suba a nota média para 7,0", desc: "A nota vem das suas ações marcadas em cada jogo.", progress: Math.min(Math.round(avg * 10), 70), target: 70, done: avg >= 7, xp: 0 }),
     afterAnalysis({ key: "streak", title: "Faça 3 jogos seguidos com nota 7+", desc: "Constância é o que o clube procura.", progress: Math.min(streak, 3), target: 3, done: streak >= 3, xp: 60 }),
   ]
 
-  // A foto entra logo depois do perfil: é rápida e vale XP desde o primeiro dia.
-  const missions = [journey[0], photo, ...journey.slice(1), ...extras]
+  const missions = [...journey, ...extras]
 
   return {
     xp, level: idx + 1, title: LEVELS[idx].title, next, into, span, pct: next ? Math.round((into / span) * 100) : 100,

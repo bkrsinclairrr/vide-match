@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 import { ArrowRight, Camera, Check, Loader2, Lock, MapPin, Sparkles, type LucideIcon } from "lucide-react"
 import WhatsAppIcon from "@/components/WhatsAppIcon"
 import { CountUp, Meter } from "@/pages/voxen/charts"
-import { CLIENT_BASE } from "../paths"
+import { CLIENT_BASE, PROFILE_FORM_PATH } from "../paths"
 import { useAthlete } from "../ClientArea"
 import { whatsappLink, teamMessage, type Badge, type BadgeGroup, type ClubFit, type Cta, type Game, type Mission } from "../game"
 import { MemberAvatar } from "./bits"
@@ -39,7 +39,8 @@ export function XpBar({ game }: { game: Game }) {
  */
 export function CtaButton({ cta, className = "vx-btn" }: { cta: Cta; className?: string }) {
   const { adminPreview, pickPhoto, photoBusy } = useAthlete()
-  const internal = cta.to?.startsWith(CLIENT_BASE)
+  // Navegar pela área é livre; o formulário do perfil grava na conta de quem está logado, então fica só com o atleta.
+  const internal = cta.to?.startsWith(CLIENT_BASE) && cta.to !== PROFILE_FORM_PATH
   if (adminPreview && !internal) {
     return <button type="button" className={className} disabled title="Só o atleta faz isso na conta dele">{cta.label}</button>
   }

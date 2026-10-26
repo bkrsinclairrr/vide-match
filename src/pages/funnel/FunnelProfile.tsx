@@ -8,10 +8,11 @@ import { useStepTransition } from "@/hooks/useScrollAnimations"
 import { useToast } from "@/hooks/use-toast"
 import { CATEGORIES, POSITIONS, STATES, COUNTRIES } from "@/data/football"
 import {
-  FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead,
+  EMPTY_PLAYER, FUNNEL_ROUTES, loadPlayerData, savePlayerData, syncFunnelLead,
   formatPhoneBR, isValidEmail, isValidPhone, type PlayerData,
 } from "@/lib/funnel"
 import { nameSchema } from "@/lib/security"
+import { squarePhoto } from "@/pages/membros/photo"
 import FunnelCaptureStatus from "@/components/FunnelCaptureStatus"
 import FunnelLegalMenu from "./FunnelLegalMenu"
 import { ZyronLogo } from "@/pages/site/ZyronMark"
@@ -60,14 +61,31 @@ const PillBtn = ({ active, onClick, children }: { active: boolean; onClick: () =
   </button>
 )
 
-const TOTAL_STEPS = 6
 const CONTACT_STEP = 2
 
-export default function FunnelProfile() {
+/**
+ * A mesma tela a serviço de quem já tem conta (missão "Complete o seu perfil" da área do atleta): começa com o que a
+ * conta já sabe, pula o contato (o e-mail já é da conta), não cria lead nem mexe nos dados do funil público e, no
+ * último passo, salva e volta para a área em vez de seguir para os vídeos.
+ */
+export type ContaFlow = {
+  initial: Partial<PlayerData>
+  /** Salva tudo e leva de volta à área. Se lançar, a mensagem aparece para a pessoa e ela segue neste passo. */
+  onFinish: (data: PlayerData) => Promise<void>
+  /** Voltar no primeiro passo. */
+  onExit: () => void
+}
+
+export default function FunnelProfile({ conta }: { conta?: ContaFlow }) {
   const navigate = useNavigate()
   const { toast } = useToast()
+  const isConta = Boolean(conta)
+  // Os passos que a pessoa de fato percorre (o contato fica de fora na conta); `step` segue o número de cada tela.
+  const flow = isConta ? [1, 3, 4, 5, 6] : [1, 2, 3, 4, 5, 6]
+  const total = flow.length
   const [step, setStep] = useState(1)
-  const [playerData, setPlayerData] = useState<PlayerData>(() => loadPlayerData())
+  const position = flow.indexOf(step) + 1
+  const [playerData, setPlayerData] = useState<PlayerData>(() => (conta ? { ...EMPTY_PLAYER, ...conta.initial } : loadPlayerData()))
   const [isSyncing, setIsSyncing] = useState(false)
   const [captureError, setCaptureError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -83,10 +101,10 @@ export default function FunnelProfile() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [step])
 
-  // Persistência a cada tecla: se a pessoa fechar e voltar, nada se perde.
+  // Persistência a cada tecla: se a pessoa fechar e voltar, nada se perde. (Na conta, os dados do funil público ficam como estão.)
   useEffect(() => {
-    savePlayerData(playerData)
-  }, [playerData])
+    if (!isConta) savePlayerData(playerData)
+  }, [playerData, isConta])
 
   // Um lead só existe depois do contato: grava assim que ele é informado,
   // sem esperar o fim do funil. Uma falha de rede não trava a pessoa — a
@@ -110,14 +128,29 @@ export default function FunnelProfile() {
   }
 
   const handleNext = async () => {
-    if (step === CONTACT_STEP) {
+    if (!isConta && step === CONTACT_STEP) {
       setIsSyncing(true)
       await pushLead()
       setIsSyncing(false)
     }
 
-    if (step < TOTAL_STEPS) {
-      setStep(step + 1)
+    if (position < total) {
+      setStep(flow[position])
+      return
+    }
+
+    if (conta) {
+      setIsSyncing(true)
+      try {
+        await conta.onFinish(playerData)
+      } catch (err) {
+        toast({
+          title: "Não conseguimos salvar o seu perfil",
+          description: err instanceof Error && err.message ? err.message : "Tente de novo em instantes.",
+          variant: "destructive",
+        })
+        setIsSyncing(false)
+      }
       return
     }
 
@@ -132,12 +165,25 @@ export default function FunnelProfile() {
   }
 
   const handleBack = () => {
-    if (step > 1) setStep(step - 1)
+    if (position > 1) setStep(flow[position - 2])
+    else if (conta) conta.onExit()
     else navigate(FUNNEL_ROUTES.home)
   }
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    if (conta) {
+      // Vira o quadrado de 256 px que a conta guarda como foto do perfil (o funil público só mostra a imagem).
+      e.target.value = ""
+      if (!file) return
+      try {
+        const photo = await squarePhoto(file)
+        setPlayerData((p) => ({ ...p, photo }))
+      } catch (err) {
+        toast({ title: "Não foi possível usar essa foto", description: err instanceof Error ? err.message : "Tente outra imagem.", variant: "destructive" })
+      }
+      return
+    }
     if (!file) return
     const reader = new FileReader()
     reader.onload = (ev) => setPlayerData({ ...playerData, photo: ev.target?.result as string })
@@ -157,7 +203,7 @@ export default function FunnelProfile() {
   }
 
   const StepIcon = STEPS[step - 1].icon
-  const completedSteps = step - 1
+  const completedSteps = position - 1
 
   return (
     <div className="text-white font-sans antialiased" style={{ background: "#0D0D0F", minHeight: "100svh" }}>
@@ -173,11 +219,11 @@ export default function FunnelProfile() {
 
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              {Array.from({ length: total }).map((_, i) => (
                 <div key={i} className={[
                   "rounded-full transition-all duration-500",
                   i < completedSteps ? "w-2 h-2 bg-emerald-400" :
-                    i === step - 1 ? "w-2 h-2 bg-amber-400" :
+                    i === position - 1 ? "w-2 h-2 bg-amber-400" :
                       "w-1.5 h-1.5 bg-white/30",
                 ].join(" ")} />
               ))}
@@ -190,8 +236,8 @@ export default function FunnelProfile() {
           <div
             className="h-full transition-all duration-700 ease-out"
             style={{
-              width: `${(step / TOTAL_STEPS) * 100}%`,
-              background: step === TOTAL_STEPS
+              width: `${(position / total) * 100}%`,
+              background: position === total
                 ? "linear-gradient(to right, #FBBF24, #34D399)"
                 : "linear-gradient(to right, #FBBF24, #FB923C)",
             }}
@@ -213,7 +259,7 @@ export default function FunnelProfile() {
             <div className="ml-auto flex items-center gap-1.5 border rounded-full px-2.5 py-1"
               style={{ background: "rgba(52,211,153,0.08)", borderColor: "rgba(52,211,153,0.25)" }}>
               <Check className="w-3 h-3 text-emerald-400" />
-              <span className="text-[11px] font-semibold text-emerald-400">{completedSteps}/{TOTAL_STEPS}</span>
+              <span className="text-[11px] font-semibold text-emerald-400">{completedSteps}/{total}</span>
             </div>
           )}
         </div>
@@ -254,7 +300,7 @@ export default function FunnelProfile() {
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                 <p className="text-xs mt-3 font-medium" style={{ color: "rgba(255,255,255,0.55)" }}>
-                  {playerData.photo ? "Toque para trocar" : "Foto de perfil — opcional"}
+                  {playerData.photo ? "Toque para trocar" : conta ? "Coloque a sua foto de perfil · +50 XP" : "Foto de perfil — opcional"}
                 </p>
               </div>
 
@@ -546,7 +592,7 @@ export default function FunnelProfile() {
         </div>
 
         <div className="mt-4 pb-4 space-y-2">
-          <FunnelCaptureStatus />
+          {!isConta && <FunnelCaptureStatus />}
           {captureError && <p role="alert" className="text-sm text-amber-300">{captureError}</p>}
           <button
             onClick={handleNext}
@@ -565,19 +611,23 @@ export default function FunnelProfile() {
             {isSyncing ? (
               <>
                 <div className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin" />
-                Salvando contato...
+                {isConta ? "Salvando o perfil..." : "Salvando contato..."}
               </>
             ) : (
               <>
-                {step === TOTAL_STEPS ? "Enviar meu vídeo" : "Continuar"}
+                {position === total ? (isConta ? "Salvar perfil" : "Enviar meu vídeo") : "Continuar"}
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
           </button>
 
-          {step < TOTAL_STEPS ? (
+          {position < total ? (
             <p className="text-center text-[11px] text-white/55 font-medium">
-              {TOTAL_STEPS - step} etapa{TOTAL_STEPS - step !== 1 ? "s" : ""} restante{TOTAL_STEPS - step !== 1 ? "s" : ""}
+              {total - position} etapa{total - position !== 1 ? "s" : ""} restante{total - position !== 1 ? "s" : ""}
+            </p>
+          ) : isConta ? (
+            <p className="text-center text-[11px] font-semibold" style={{ color: "rgba(52,211,153,0.9)" }}>
+              ✓ Tudo preenchido — é só salvar
             </p>
           ) : (
             <p className="text-center text-[11px] font-semibold text-white/55">
