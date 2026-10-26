@@ -1,10 +1,11 @@
-// T07 · a autoridade: a IA no futebol já está nos jornais. Logo depois do título, "Como funciona na prática" (a conversa do caso do
-// Lucas Matheus, contada com a posição de quem responde). Recortes de imprensa (cada um com veículo, data e a matéria original),
+// T07 · a autoridade: a IA no futebol já está nos jornais. Logo depois do título, "Como funciona na prática" (a conversa de um atleta da
+// Voxen que joga na posição de quem responde). Recortes de imprensa (cada um com veículo, data e a matéria original),
 // os clubes que já escolhem com dados e o fecho do inimigo: quem lucra com a peneira cheia não quer que você saiba do outro caminho.
 import { h, dataBr } from '../motor/util.js';
 import { trilho } from '../componentes/trilho.js';
 import { icone } from '../componentes/icones.js';
 import { conversa } from '../componentes/conversa.js';
+import { casoDaPosicao, primeiroNome } from '../dados/casos.js';
 
 const CLUBES = ['IA-00', 'IA-01', 'IA-02', 'IA-03', 'IA-04', 'IA-05', 'IA-06', 'IA-07', 'IA-08', 'IA-09', 'IA-10'];
 
@@ -15,14 +16,17 @@ export function render(ctx) {
     h('p', { class: 'rotulo-cap', style: '--i:0', text: c.rotulo }),
     h('h1', { class: 'titulo', style: '--i:1', html: ctx.t(c.titulo) })));
 
-  // "Como funciona na prática": a conversa do caso do Lucas Matheus, contada com a posição de quem responde. Só diz "como você" sem
-  // ressalva quando a posição real dele (provas.json) é a mesma; senão, a abertura avisa que é a conversa dele, contada pra essa posição.
-  const caso = ctx.provas['caso-lucas'];
-  if (caso && caso.ativo !== false) {
+  // "Como funciona na prática": a conversa de um atleta da Voxen que joga na posição que a pessoa marcou (js/dados/casos.js). Quando
+  // não há atleta pra posição (o goleiro), a abertura avisa que a conversa é dele, contada pra posição de quem respondeu.
+  const achado = casoDaPosicao(ctx.provas, ctx.r.posicao);
+  if (achado) {
+    const { caso, mesma } = achado;
     const p = c.pratica, T = ctx.textos;
-    const mesma = !!caso.posicao && caso.posicao.toLowerCase() === String(T.posicao || '').toLowerCase();
-    const vars = { casoNome: caso.nome, compatibilidade: caso.compatibilidade };
-    const peneiras = ctx.r.peneiras === '0' ? p.peneirasNenhuma : (T.peneirasTexto || '').replace(/\s*peneiras?$/i, '');
+    const vars = {
+      casoNome: caso.nome, casoPrimeiro: primeiroNome(caso.nome), casoQuem: caso.quem, compatibilidade: caso.compatibilidade,
+      procura: p.procura[ctx.r.posicao] || p.procura.padrao
+    };
+    const peneiras = ctx.r.peneiras === '0' ? p.peneirasNenhuma : (T.peneirasTexto || '').replace(/s*peneiras?$/i, '');
     const papo = conversa({
       titulo: p.titulo,
       abertura: ctx.tx(mesma ? p.aberturaMesmaPosicao : p.aberturaOutraPosicao, vars),
@@ -30,8 +34,9 @@ export function render(ctx) {
         rotulo: p.perfilRotulo, posicao: T.posicao || '',
         dados: [[p.idade, T.faixa], [p.peneiras, peneiras], [p.video, T.videoTexto]].filter(([, v]) => v)
       },
-      scout: { nome: p.scoutNome, foto: 'assets/depoimentos/scout-fernando.webp', online: p.online },
+      estrategista: { nome: p.estrategistaNome, foto: 'assets/depoimentos/fernando.webp', online: p.online },
       mensagens: p.mensagens.map(m => Object.assign({}, m, { texto: ctx.tx(m.texto, vars) })),
+      fecho: ctx.tx(p.fecho, vars),
       rotuloDigitando: p.digitando, placeholder: p.placeholder, reduz: ctx.reduz
     });
     ctx.aoSair(() => papo.destroi());
