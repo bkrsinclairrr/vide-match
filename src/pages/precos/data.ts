@@ -31,7 +31,7 @@ export interface ProductLine {
 }
 
 /** Data da última revisão dos preços — atualize junto com os valores. */
-export const PRICES_UPDATED_AT = "17/10/2026"
+export const PRICES_UPDATED_AT = "03/11/2026"
 
 export const PRODUCT_LINES: ProductLine[] = [
   {
@@ -78,8 +78,8 @@ export const PRODUCT_LINES: ProductLine[] = [
         name: "Scouting",
         tier: "PRO",
         label: "Scouting PRO",
-        cents: 99700,
-        url: "https://pay.sinnu.com.br/jPZI1KEk",
+        cents: 6790,
+        url: "https://pay.sinnu.com.br/H8ups0dI",
         icon: "radar",
       },
       {
