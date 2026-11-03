@@ -80,8 +80,8 @@ export default function Terms() {
                     <p>Esta garantia vale para <strong className="text-white">todos os produtos, planos e serviços pagos</strong> oferecidos pela Zyron e pela Voxen, em qualquer canal de venda. Ela não se limita a um produto específico.</p>
                     <p><strong className="text-white">Reembolso total, sem prazo.</strong> Se o usuário comprovar que aplicou o método, todo o valor pago é devolvido integralmente, sem burocracia e sem prazo máximo para fazer o pedido.</p>
                     <p><strong className="text-white">O que é aplicar o método:</strong> usar o serviço contratado conforme as orientações recebidas, como enviar os vídeos solicitados e seguir o plano e os relatórios entregues. A comprovação pode ser feita pelos registros da própria plataforma e pelo histórico de atendimento.</p>
-                    <p><strong className="text-white">Como pedir:</strong> por e-mail, em contato@aizyron.com, informando o nome e o WhatsApp usados na compra. Em compra de menor de idade, o pedido é feito pelo responsável legal. A Zyron responde por escrito.</p>
-                    <p><strong className="text-white">Como é devolvido:</strong> pelo mesmo meio de pagamento usado na compra.</p>
+                    <p><strong className="text-white">Como pedir:</strong> por e-mail, em contato@aizyron.com, informando o nome e o WhatsApp usados na compra. Em compra de menor de idade, o pedido é feito pelo responsável legal. A Zyron responde por escrito em até 7 dias corridos.</p>
+                    <p><strong className="text-white">Como é devolvido:</strong> pelo mesmo meio de pagamento usado na compra, em até 10 dias corridos depois da resposta. No cartão, o valor volta conforme o fechamento da fatura da operadora.</p>
                     <p>Esta é uma garantia de devolução do valor pago. Não é garantia de resultado, de contrato, de teste nem de interesse de clube (seção 2).</p>
                     <p>A garantia soma-se aos direitos do consumidor previstos em lei, inclusive o direito de arrependimento em até 7 dias nas compras feitas fora do estabelecimento, e não os substitui.</p>
                 </Section>

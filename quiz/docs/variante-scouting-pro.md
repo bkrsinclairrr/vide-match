@@ -10,7 +10,9 @@ Executado na branch `feat/quiz-variante-scouting-pro` (a partir da `main` 15cc79
 
 - Feito: a variante por `?v=pro` (atalho `/quiz/pro`), a T16 (oferta), o resultado seguindo pra oferta, a T13 e o aceite da variante, a ida ao checkout pelo canal do lead, a página de obrigado (`/quiz/obrigado/`), os eventos `oferta_view` e `checkout_click`, o Apps Script com `variante` e `checkoutEm` (simulado nas duas ordens de chegada), o CSP com o Apps Script e o `teste-variante.mjs` (53 verificações) na suíte.
 - Diferença do plano: o apoio do adulto na T14 continua o de sempre (decisão 77), e a página de obrigado não promete prazo do primeiro relatório.
-- Falta do dono: configurar na Sinnu o redirecionamento pra `https://aizyron.com/quiz/obrigado/` (pendência 1); criar o webhook e passar o `/exec` (pendência 2, o CSP já aceita o Apps Script); mergear os Termos (PR #58) antes de subir tráfego pra variante (pendência 5); o prazo do primeiro relatório (pendência 6); os IDs de pixel (pendência 7); decidir a linha "O encaminhamento a clubes faz parte dos planos de assessoria, não deste." (seção 12).
+- No ar desde 03/11/2026: PR #58 (Termos) e PR #59 (variante) mergeados; o dono configurou na Sinnu o redirecionamento pro obrigado.
+- Resolvido depois, no PR das pendências: os Termos ganharam prazo (resposta em até 7 dias corridos, devolução em até 10 dias corridos depois da resposta) e o `/precos` mostra o Scouting PRO a R$ 67,90 com o link novo. A linha "O encaminhamento a clubes faz parte dos planos de assessoria, não deste." fica (seção 12). Sem pixel: o site só usa a Utmify, o botão já repassa as UTMs pro checkout e o prazo do primeiro relatório segue sem número (a página de obrigado não promete).
+- Falta do dono: o webhook (pendência 2). Sem navegador conectado e sem credencial do Supabase, não dá pra criar daqui; o código do Apps Script está em `integracao.md`, e o CSP já aceita o Google. Com o `/exec`, entra em `endpoint` no `geral.json` da variante.
 
 ## 1. Objetivo
 
