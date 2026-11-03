@@ -556,6 +556,7 @@ function Destinations() {
                 style={{ ["--d" as string]: `${(i % 4) * 60}ms` }}
                 onClick={() => lightbox(ATHLETE_GALLERY, i)} aria-label="Ampliar foto">
                 <Img photo={p} sizes={SIZES.athlete} />
+                {p.title && <span className="vx-athlete-cap"><strong>{p.title}</strong><em>{p.note}</em></span>}
               </button>
             ))}
             <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="vx-athletes-more" data-reveal
