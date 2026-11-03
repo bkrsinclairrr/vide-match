@@ -31,7 +31,7 @@ Métrica de decisão: conversão do quiz até a compra, e a receita por lead com
 | Contato | Mantém nome + WhatsApp na T14 e liga o webhook de leads. É o que permite recuperar quem não pagou. |
 | Depois do pagamento | Página de obrigado nossa, com o passo do vídeo e o botão pro WhatsApp da equipe com mensagem pronta. |
 | Gatilhos novos | Só a garantia. **Sem escassez, sem relógio, sem "últimas vagas"** (o dono não escolheu prazo ou vaga real). |
-| Link de pagamento | `https://pay.sinnu.com.br/H8ups0dI` (recebido em 03/11/2026). Vai em `checkoutUrl` no `geral.json` da variante. |
+| Link de pagamento | `https://pay.sinnu.com.br/H8upsOdI` (recebido em 03/11/2026). Vai em `checkoutUrl` no `geral.json` da variante. |
 
 ## 3. Premissas minhas (reverter em um lugar)
 
@@ -49,7 +49,7 @@ Cada uma vira uma chave em `config/variantes/scouting-pro/geral.json`.
 
 | # | O que falta | O que bloqueia |
 | --- | --- | --- |
-| 1 | Configurar o link `pay.sinnu.com.br/H8ups0dI` na Sinnu: preço R$ 67,90, Pix e cartão, **URL de redirecionamento pós-pagamento = `https://aizyron.com/quiz/obrigado/`** (conferir se a Sinnu permite) e repasse dos parâmetros UTM pra Utmify. O link em si já temos. | A página de obrigado só funciona depois disso. Nunca pagar de verdade no teste. |
+| 1 | Configurar o link `pay.sinnu.com.br/H8upsOdI` na Sinnu: preço R$ 67,90, Pix e cartão, **URL de redirecionamento pós-pagamento = `https://aizyron.com/quiz/obrigado/`** (conferir se a Sinnu permite) e repasse dos parâmetros UTM pra Utmify. O link em si já temos. | A página de obrigado só funciona depois disso. Nunca pagar de verdade no teste. |
 | 2 | Webhook de leads: criar o Apps Script de `quiz/docs/integracao.md`, implantar e passar o endereço `/exec`. Hoje `endpoint` está vazio (modo de ensaio) e **sem ele não existe recuperação**. | Recuperar quem não pagou. |
 | 3 | ~~Âncora~~ Resolvida: **R$ 247,90**, por ordem do dono. A copy mostra "de R$ 247,90 por R$ 67,90", sem motivo da queda. | Nada. |
 | 4 | Nome do produto na tela: ficou **"Scouting PRO"**, como o dono escreveu (o deck R2 diz "Scout PRO"). O `PROIBIDAS` continua proibindo `scouting pro` e `scout` na base; a exceção vale só na copy da variante e na página de obrigado (`confereTextoVenda`). | Nada. |

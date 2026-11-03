@@ -139,7 +139,7 @@ Com `whatsappFinal` vazio, o botão da T14 abre, na mesma aba, a `landingUrl` co
 
 | Campo (no `geral.json` da variante) | Hoje | O que faz |
 | --- | --- | --- |
-| `checkout.url` | `https://pay.sinnu.com.br/H8ups0dI` | O link de pagamento. O botão da oferta abre com as UTMs do anúncio e nada mais (nem nome, nem telefone, nem `leadId`). |
+| `checkout.url` | `https://pay.sinnu.com.br/H8upsOdI` | O link de pagamento. O botão da oferta abre com as UTMs do anúncio e nada mais (nem nome, nem telefone, nem `leadId`). |
 | `checkout.produto` | `scouting-pro` | Vai no evento `checkout_click` e na ida ao checkout. |
 | `aceiteVersao` | `2026-11-03-scouting-pro` | A versão do texto do aceite da variante (troque junto com o texto). |
 | `roteamento.tierC` | `oferta` | O tier C vê a tela do B e a oferta (o evento leva o tier real). |
