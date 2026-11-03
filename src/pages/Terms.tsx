@@ -27,7 +27,7 @@ export default function Terms() {
             <main className="max-w-2xl mx-auto px-4 py-10 space-y-8">
                 <div className="rounded-2xl border border-amber-400/10 bg-amber-400/5 p-4">
                     <p className="text-xs text-amber-400/80 leading-relaxed">
-                        <strong className="text-amber-400">Última atualização:</strong> 03 de março de 2026. Ao acessar ou usar a plataforma Zyron, você declara ter lido, compreendido e concordado integralmente com estes Termos de Uso.
+                        <strong className="text-amber-400">Última atualização:</strong> 03 de novembro de 2026. Ao acessar ou usar a plataforma Zyron, você declara ter lido, compreendido e concordado integralmente com estes Termos de Uso.
                     </p>
                 </div>
 
@@ -50,6 +50,7 @@ export default function Terms() {
                     </ul>
                     <p className="mt-2">Os relatórios e as recomendações de clube gerados pela plataforma têm caráter <strong className="text-white">exclusivamente informativo e algorítmico</strong>. Não constituem avaliação técnica oficial, laudo profissional ou qualquer garantia de resultado.</p>
                     <p>A Zyron não se responsabiliza por decisões tomadas pelo usuário com base nas análises fornecidas.</p>
+                    <p>A única garantia oferecida é a de reembolso da seção 5, que devolve o valor pago e não garante resultado.</p>
                 </Section>
 
                 <Section title="3. Responsabilidade do usuário">
@@ -75,33 +76,43 @@ export default function Terms() {
                     </ul>
                 </Section>
 
-                <Section title="5. Propriedade intelectual">
+                <Section title="5. Garantia de reembolso">
+                    <p>Esta garantia vale para <strong className="text-white">todos os produtos, planos e serviços pagos</strong> oferecidos pela Zyron e pela Voxen, em qualquer canal de venda. Ela não se limita a um produto específico.</p>
+                    <p><strong className="text-white">Reembolso total, sem prazo.</strong> Se o usuário comprovar que aplicou o método, todo o valor pago é devolvido integralmente, sem burocracia e sem prazo máximo para fazer o pedido.</p>
+                    <p><strong className="text-white">O que é aplicar o método:</strong> usar o serviço contratado conforme as orientações recebidas, como enviar os vídeos solicitados e seguir o plano e os relatórios entregues. A comprovação pode ser feita pelos registros da própria plataforma e pelo histórico de atendimento.</p>
+                    <p><strong className="text-white">Como pedir:</strong> por e-mail, em contato@aizyron.com, informando o nome e o WhatsApp usados na compra. Em compra de menor de idade, o pedido é feito pelo responsável legal. A Zyron responde por escrito.</p>
+                    <p><strong className="text-white">Como é devolvido:</strong> pelo mesmo meio de pagamento usado na compra.</p>
+                    <p>Esta é uma garantia de devolução do valor pago. Não é garantia de resultado, de contrato, de teste nem de interesse de clube (seção 2).</p>
+                    <p>A garantia soma-se aos direitos do consumidor previstos em lei, inclusive o direito de arrependimento em até 7 dias nas compras feitas fora do estabelecimento, e não os substitui.</p>
+                </Section>
+
+                <Section title="6. Propriedade intelectual">
                     <p>Todo o conteúdo da plataforma — incluindo algoritmos, interface, textos, logotipos e metodologia — é propriedade exclusiva da Zyron, protegido pela legislação de direitos autorais e propriedade intelectual.</p>
                     <p>É proibido reproduzir, copiar, distribuir ou criar obras derivadas sem autorização expressa e por escrito.</p>
                 </Section>
 
-                <Section title="6. Conteúdo do usuário">
+                <Section title="7. Conteúdo do usuário">
                     <p>Ao enviar vídeos, fotos ou informações, o usuário concede à Zyron uma licença limitada, não exclusiva e revogável para utilizar esses conteúdos <strong className="text-white">exclusivamente para a prestação do serviço contratado</strong>.</p>
                     <p>A Zyron não utilizará seus vídeos ou imagens para publicidade, venda a terceiros ou qualquer fim além do serviço de análise.</p>
                 </Section>
 
-                <Section title="7. Disponibilidade do serviço">
+                <Section title="8. Disponibilidade do serviço">
                     <p>A Zyron envida seus melhores esforços para manter a plataforma disponível 24/7, mas <strong className="text-white">não garante disponibilidade ininterrupta</strong>. Manutenções programadas ou eventos de força maior podem causar interrupções temporárias sem direito a indenização.</p>
                 </Section>
 
-                <Section title="8. Menores de idade">
+                <Section title="9. Menores de idade">
                     <p>Usuários menores de 18 anos devem ter o cadastro realizado e supervisionado por um responsável legal. O responsável legal assume integralmente a responsabilidade pelo uso da plataforma pelo menor e pela veracidade dos dados fornecidos.</p>
                 </Section>
 
-                <Section title="9. Alterações nos termos">
+                <Section title="10. Alterações nos termos">
                     <p>Estes Termos podem ser modificados a qualquer momento. Alterações substanciais serão comunicadas via e-mail ou aviso na plataforma. O uso continuado após a comunicação constitui aceite das modificações.</p>
                 </Section>
 
-                <Section title="10. Lei aplicável e foro">
+                <Section title="11. Lei aplicável e foro">
                     <p>Estes Termos são regidos pela legislação brasileira. Fica eleito o foro da comarca de <strong className="text-white">São Paulo — SP</strong> para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.</p>
                 </Section>
 
-                <Section title="11. Contato">
+                <Section title="12. Contato">
                     <p>Para dúvidas, reclamações ou exercício de direitos, entre em contato: <strong className="text-white">contato@aizyron.com</strong></p>
                 </Section>
 
