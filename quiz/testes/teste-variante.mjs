@@ -29,7 +29,7 @@ const TODAS = ['posicao', 'idade', 'peneiras', 'dispensas', 'inimigo', 'zyron', 
 const CONTATO = { nome: 'Joãozinho', zap: '11955554444' };
 
 /* ---------- 1. os contratos ---------- */
-ok(vg.checkout?.url === 'https://pay.sinnu.com.br/H8ups0dI', 'o checkout é o link do Scouting PRO na Sinnu (pay.sinnu.com.br/H8ups0dI)');
+ok(vg.checkout?.url === 'https://pay.sinnu.com.br/H8upsOdI', 'o checkout é o link do Scouting PRO na Sinnu (pay.sinnu.com.br/H8upsOdI)');
 ok(n(vc.oferta.preco) === 'R$ 67,90' && n(vc.oferta.ancora) === 'R$ 247,90', 'o preço é R$ 67,90 e a âncora, R$ 247,90');
 ok(vc.oferta.itens.length === 6 && vc.oferta.itens.every(t => !/encaminh/i.test(t)), 'as seis entregas do Scout PRO do R2, nenhuma com encaminhamento');
 ok(vg.roteamento?.tierC === 'oferta' && vg.whatsappEquipe === '' && vg.variante === 'scouting-pro' && !!vg.aceiteVersao, 'a variante: tier C na oferta, sem link de WhatsApp da equipe, com nome e versão do aceite');
@@ -137,7 +137,7 @@ try {
       await q.continua(); await q.oferta();
       ok((await textoDe(c, '.oferta-nota')).includes('O pagamento é feito por um responsável.'), 'menor: a oferta diz que o pagamento é feito por um responsável');
       const url = await c.avalia(`document.querySelector('#barra .btn')?.dataset.url || ''`);
-      ok(url.startsWith('https://pay.sinnu.com.br/H8ups0dI') && new URL(url).searchParams.get('utm_source') === 'teste', 'menor: o botão aponta pro link de verdade da Sinnu, com a UTM');
+      ok(url.startsWith('https://pay.sinnu.com.br/H8upsOdI') && new URL(url).searchParams.get('utm_source') === 'teste', 'menor: o botão aponta pro link de verdade da Sinnu, com a UTM');
       varre(q, 'menor');
 
       // recarregar na oferta volta pra oferta; o voltar leva ao resultado

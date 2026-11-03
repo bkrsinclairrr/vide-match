@@ -79,7 +79,7 @@ export const PRODUCT_LINES: ProductLine[] = [
         tier: "PRO",
         label: "Scouting PRO",
         cents: 6790,
-        url: "https://pay.sinnu.com.br/H8ups0dI",
+        url: "https://pay.sinnu.com.br/H8upsOdI",
         icon: "radar",
       },
       {
