@@ -8,6 +8,9 @@ const limpa = s => String(s ?? '').replace(ESPACO_DURO, ' ').replace(JUNTOR, '')
 const preenche = (modelo, vars) => limpa(String(modelo ?? '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] ? String(vars[k]) : m)));
 const textoDe = (opcoes, id) => (opcoes || []).find(o => o.id === id)?.texto || '';
 
+/** O código do diagnóstico: o começo do leadId e a pontuação (ex.: 3F2A9C1E · A82). Também vai na mensagem da página de obrigado. */
+export const codigoDiagnostico = (leadId, pont) => [String(leadId || '').replace(/-/g, '').slice(0, 8).toUpperCase(), pont ? `${pont.tier}${pont.total}` : ''].filter(Boolean).join(' · ');
+
 /**
  * `copy` é a copy inteira; `textos` são os textos derivados das respostas (posição, faixa de idade, peneiras...); `r` são as respostas;
  * `menor` diz quem escreve. Linha sem resposta fica de fora, então a mensagem nunca leva um "{campo}" vazio.
@@ -19,7 +22,7 @@ export function mensagemEquipe({ copy, textos, r, menor, leadId, pont }) {
     responsavel: String(r.responsavelNome || '').trim(),
     quer: textoDe(copy.quer?.opcoes, r.quer),
     chance: textoDe(copy.chance?.opcoes, r.chance),
-    codigo: [String(leadId || '').replace(/-/g, '').slice(0, 8).toUpperCase(), pont ? `${pont.tier}${pont.total}` : ''].filter(Boolean).join(' · ')
+    codigo: codigoDiagnostico(leadId, pont)
   });
   const abertura = !vars.nome ? m.aberturaSemNome : menor && vars.responsavel ? m.aberturaMenor : m.aberturaAdulto;
   const linha = (modelo, ...chaves) => (chaves.every(k => vars[k]) ? preenche(modelo, vars) : null);

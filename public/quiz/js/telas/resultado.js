@@ -1,6 +1,7 @@
 // T14 · o diagnóstico: só o que o atleta respondeu, três linhas por regra e o botão final. Com `whatsappFinal` no geral.json, o botão
 // abre a conversa com a equipe comercial já com a mensagem pronta (quem é, o que respondeu e o código do diagnóstico); sem ele, vai pra
 // landing (VSL). Tier C sai com respeito. Nada de "aprovado": o selo diz "Pronto para o próximo passo". Sem rodapé de ressalva.
+// Na variante de venda (config/variantes/scouting-pro/) existe uma tela depois desta, a oferta: o botão segue pra ela, sem WhatsApp.
 import { h, vibra } from '../motor/util.js';
 import { icone } from '../componentes/icones.js';
 import { urlLanding } from '../dados/payload.js';
@@ -11,9 +12,9 @@ export function render(ctx) {
   const app = ctx.app;
   const s = ctx.estado.s;
   const res = s.resultado || app.pontua(ctx.r);
-  // com roteamento.tierC = "landing", o C vê a tela do B; a landing recebe o tier real (t=C)
+  // com roteamento.tierC = "landing" ou "oferta", o C vê a tela do B; a landing e o evento recebem o tier real (t=C)
   let tier = res.tier;
-  if (tier === 'C' && ctx.cfg.roteamento?.tierC === 'landing') tier = 'B';
+  if (tier === 'C' && ['landing', 'oferta'].includes(ctx.cfg.roteamento?.tierC)) tier = 'B';
   const nome = ctx.estado.memoria.nome || ctx.r.nome || '';
   const el = h('section', { class: 't-resultado' });
   const T = ctx.textos;
@@ -67,6 +68,20 @@ export function render(ctx) {
   if (ctx.cfg.whatsappEquipe) {
     const num = String(ctx.cfg.whatsappEquipe).replace(/\D/g, '');
     el.append(h('a', { class: 'link-btn', style: { marginTop: '14px' }, href: `https://wa.me/${num}`, target: '_blank', rel: 'noopener noreferrer', html: icone.conversa + `<span>${c.whatsapp}</span>` }));
+  }
+
+  // a variante de venda: a oferta vem depois desta tela, e o botão segue pra ela
+  const cam = app.caminho();
+  const proxima = cam[cam.indexOf('resultado') + 1];
+  if (proxima) {
+    const b = ctx.barra.botao({
+      texto: c.botaoOferta, brilha: true, seta: true,
+      acima: tier === 'B' ? c.tierBOferta : null,
+      nota: c.botaoOfertaSub,
+      aoClicar: () => { ctx.evento('cta_click', { tier: res.tier }); ctx.avanca(); }
+    });
+    b.dataset.destino = proxima;
+    return el;
   }
 
   const zap = String(ctx.cfg.whatsappFinal || '').replace(/\D/g, '');

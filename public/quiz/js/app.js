@@ -2,6 +2,7 @@
 import { json, h } from './motor/util.js';
 import { criaEstado } from './motor/estado.js';
 import { criaMotor } from './motor/navegacao.js';
+import { acrescentaPassos } from './motor/fluxo.js';
 import { criaBarra } from './motor/barra.js';
 import { criaEventos } from './dados/eventos.js';
 import { criaEnvio } from './dados/envio.js';
@@ -12,6 +13,12 @@ import './vendor/mapa-calor.js';
 
 const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
 
+// variantes: ?v=<chave> põe config/variantes/<pasta>/ (geral, copy e passos novos) por cima da base e guarda o progresso noutra chave.
+// Sem ?v, ou com chave desconhecida, é o quiz de sempre. A mesma lista mora no js/casca.js, que roda antes dos módulos.
+const VARIANTES = { pro: 'scouting-pro' };
+const pedida = new URLSearchParams(location.search).get('v');
+const VARIANTE = pedida && Object.prototype.hasOwnProperty.call(VARIANTES, pedida) ? pedida : null;
+
 function mescla(a, b) {
   for (const [k, v] of Object.entries(b || {})) {
     if (v && typeof v === 'object' && !Array.isArray(v) && a[k] && typeof a[k] === 'object') mescla(a[k], v);
@@ -21,17 +28,26 @@ function mescla(a, b) {
 }
 
 async function inicia() {
-  const [cfg, fluxo, copy, provasArq, regras, catalogo] = await Promise.all([
-    json('config/geral.json'), json('config/fluxo.json'), json('config/copy.pt-BR.json'),
-    json('config/provas.json'), json('config/pontuacao.json'), json('config/eventos.json')
+  const pasta = VARIANTE ? `config/variantes/${VARIANTES[VARIANTE]}/` : null;
+  const [[cfg, fluxo, copy, provasArq, regras, catalogo], variante] = await Promise.all([
+    Promise.all([
+      json('config/geral.json'), json('config/fluxo.json'), json('config/copy.pt-BR.json'),
+      json('config/provas.json'), json('config/pontuacao.json'), json('config/eventos.json')
+    ]),
+    pasta ? Promise.all([json(pasta + 'geral.json'), json(pasta + 'fluxo.json'), json(pasta + 'copy.pt-BR.json')]) : null
   ]);
+  if (variante) {
+    mescla(cfg, variante[0]);
+    acrescentaPassos(fluxo, variante[1]);
+    mescla(copy, variante[2]);
+  }
   // só nos testes locais: troca de configuração sem mexer nos arquivos
   if (LOCAL && window.QZ_TESTE) {
     mescla(cfg, window.QZ_TESTE.config);
     if (window.QZ_TESTE.audioArquivos) (await import('./componentes/audio-voz.js')).trocaArquivosParaTeste(window.QZ_TESTE.audioArquivos);
   }
   const provas = Object.fromEntries(provasArq.itens.map(p => [p.id, p]));
-  const estado = criaEstado({ dias: cfg.retomadaDias || 7 });
+  const estado = criaEstado({ dias: cfg.retomadaDias || 7, chave: VARIANTE ? 'qz:estado:' + VARIANTE : undefined });
   const eventos = criaEventos({ cfg, catalogo });
   const rastreio = criaRastreio({ cfg });
   const envio = criaEnvio({ cfg, eventos });
@@ -68,7 +84,7 @@ async function inicia() {
   window.addEventListener('error', e => eventos.registra('erro_js', { msg: String(e.message || 'erro').slice(0, 80), id: motor.atual || '' }));
   window.addEventListener('unhandledrejection', e => eventos.registra('erro_js', { msg: String((e.reason && e.reason.message) || e.reason || 'promessa').slice(0, 80), id: motor.atual || '' }));
 
-  eventos.registra('quiz_view', Object.assign({}, rastreio.utm, { plataforma: rastreio.plataforma, inApp: rastreio.inApp, versao: cfg.versao }));
+  eventos.registra('quiz_view', Object.assign({}, rastreio.utm, { plataforma: rastreio.plataforma, inApp: rastreio.inApp, versao: cfg.versao, variante: cfg.variante }));
   motor.inicia();
 
   // painel de ensaio (?debug=1): só em prévia, local ou modo de ensaio; em produção, só com debug: true no config

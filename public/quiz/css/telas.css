@@ -61,3 +61,44 @@
 
 /* T14 */
 .t-resultado .barra-acima strong { color: #fff; }
+
+/* T16 · a oferta (variante de venda): o cartão do produto, o preço e a garantia */
+.t-oferta .titulo { margin-top: 4px; }
+.oferta-cartao { margin-top: 18px; padding: 18px; border-radius: var(--r-lg); background: var(--card); border: 1px solid rgba(251, 191, 36, .45); box-shadow: 0 24px 60px -36px rgba(245, 158, 11, .5); }
+.oferta-produto { font-size: 22px; font-weight: 800; line-height: 1.15; letter-spacing: -.01em; color: #fff; }
+.oferta-produto span { font-weight: 600; color: var(--gold); }
+.oferta-ritmo { margin-top: 4px; font-size: 14.5px; line-height: 1.4; color: var(--text-2); }
+.oferta-itens-t { margin: 16px 0 8px; font: 700 11.5px/1 var(--f-texto); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+.oferta-itens { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.oferta-itens li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: 15.5px; line-height: 1.45; color: var(--text); }
+.oferta-check { width: 22px; height: 22px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center; background: rgba(52, 211, 153, .12); color: var(--ai); }
+.oferta-check svg { width: 14px; height: 14px; }
+.oferta-preco { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); text-align: center; }
+.oferta-ancora { font-size: 15px; color: var(--muted); }
+.oferta-ancora s { text-decoration-thickness: 1.5px; }
+.oferta-valor { margin-top: 2px; color: #fff; }
+.oferta-por { font-size: 16px; font-weight: 600; color: var(--text-2); }
+.oferta-valor strong { font-size: clamp(38px, 11vw, 46px); font-weight: 800; line-height: 1.05; letter-spacing: -.02em; color: var(--gold); font-variant-numeric: tabular-nums; }
+.oferta-preco-nota { margin-top: 4px; font-size: 14px; font-weight: 600; color: var(--text-2); }
+.oferta-garantia { display: grid; grid-template-columns: 40px 1fr; gap: 12px; margin-top: 16px; padding: 16px; border-radius: var(--r); border: 1px solid rgba(52, 211, 153, .4); background: rgba(52, 211, 153, .06); }
+.oferta-garantia-i { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: rgba(52, 211, 153, .12); color: var(--ai); }
+.oferta-garantia-i svg { width: 24px; height: 24px; }
+.oferta-garantia h2 { font-size: 17px; font-weight: 800; line-height: 1.25; color: #fff; }
+.oferta-garantia-texto { margin-top: 4px; font-size: 15.5px; line-height: 1.45; color: var(--text); }
+.oferta-garantia-cond { margin-top: 6px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+.oferta-garantia .link-btn { margin-top: 2px; }
+.oferta-nota { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 15px; line-height: 1.45; color: var(--text); }
+.oferta-nota svg { flex: none; width: 22px; height: 22px; color: var(--gold); }
+.oferta-lado { margin-top: 14px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+
+/* a página de obrigado (quiz/obrigado/): fora do motor, com os mesmos tokens */
+.obrigado .palco { padding-bottom: 32px; }
+.obrigado .passos { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 14px; }
+.obrigado .passos li { display: grid; grid-template-columns: 32px 1fr; gap: 12px; }
+.obrigado .passos li > span { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: rgba(251, 191, 36, .12); color: var(--gold); font-weight: 800; font-size: 14px; }
+.obrigado .passos strong { display: block; font-size: 16.5px; line-height: 1.35; color: #fff; }
+.obrigado .passos p { margin-top: 2px; font-size: 15px; line-height: 1.45; color: var(--text-2); }
+.obrigado .btn { margin-top: 24px; min-height: 62px; font-size: 18px; font-weight: 800; border-radius: 16px; }
+.obrigado .barra-nota { margin-top: 10px; }
+.obrigado .oferta-nota { margin-top: 18px; }
+.obrigado .rodape { margin-top: 22px; }

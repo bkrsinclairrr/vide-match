@@ -22,6 +22,8 @@ Os ids, as chaves e as convenções que todo arquivo do quiz segue. Mudou um id 
 | `config/pontuacao.json` | Os pesos e os limites dos tiers. |
 | `config/eventos.json` | O catálogo de eventos (nome e parâmetros permitidos) e o mapa pro pixel. |
 | `config/payload.schema.json` | O JSON Schema 2020-12 do lead. |
+| `config/variantes/scouting-pro/` | A variante de venda (`?v=pro`): `geral.json`, `copy.pt-BR.json` e `fluxo.json` que entram por cima da base (ver `variante-scouting-pro.md`). |
+| `obrigado/index.html` e `js/obrigado.js` | A página de obrigado do Scouting PRO, pra onde a Sinnu manda depois do pagamento. Fora do motor, com o mesmo CSS. |
 | `css/tokens.css` | Cores, fontes, formas e medidas (fonte única). |
 | `css/base.css`, `css/componentes.css`, `css/telas.css` | Base e cabeçalho; um bloco por componente; ajustes por tela. |
 | `js/casca.js` | Script clássico que roda antes da primeira pintura: esconde o topo da capa pra quem volta no meio do quiz (ver `decisoes.md`, item 29). |
@@ -58,8 +60,9 @@ Os ids, as chaves e as convenções que todo arquivo do quiz segue. Mudou um id 
 | `chance` | 13 | V | chips | sempre | `quiz.chance` |
 | `contato` | 14 | V | formulario | sempre | `ficha.nome`, `contato.whatsapp`, `contato.responsavelNome`, `consentimento.aceite` |
 | `resultado` | 15 | V | resultado | sempre | `pontuacao.total`, `pontuacao.tier` |
+| `oferta` | 16 | V | oferta | só na variante de venda (`?v=pro`) | (nada no lead; a ida ao checkout vai como `tipo: "checkout"`, ver `dados.md`) |
 
-Variantes da T05: A (`quiz.recusado = true`), B (fez peneira e não foi dispensado), C (nunca fez peneira). Caminho mais longo: 15 telas; sem peneira: 14; sem peneira e sem áudio: 13. Nos documentos, a tela do vídeo é a T06b, pra não renumerar as outras.
+Depois do envio do contato, só valem as telas que vêm depois dele: `resultado` e, na variante, `oferta` (recarregar volta pra onde estava; o voltar da oferta leva ao resultado). Variantes da T05: A (`quiz.recusado = true`), B (fez peneira e não foi dispensado), C (nunca fez peneira). Caminho mais longo: 15 telas; sem peneira: 14; sem peneira e sem áudio: 13. Nos documentos, a tela do vídeo é a T06b, pra não renumerar as outras.
 
 ## Respostas (no aparelho: `qz:estado.respostas`)
 
@@ -87,7 +90,8 @@ Variantes da T05: A (`quiz.recusado = true`), B (fez peneira e não foi dispensa
 | Chave | Onde | O que guarda |
 | --- | --- | --- |
 | `qz:estado` | `localStorage` | Versão, respostas, passo atual, datas, `enviado`, `leadId`, tier e total. Vale 7 dias (`retomadaDias`). Sem nome, telefone nem aceite depois do envio. |
-| `qz:fila` | `localStorage` | Leads esperando reenvio (`{ tipo, id, payload, tentativas, proximaEm }`). |
+| `qz:estado:pro` | `localStorage` | O mesmo, da variante de venda (`?v=pro`): quem abre as duas não mistura o progresso. A página de obrigado lê daqui o `leadId` e a faixa de idade. |
+| `qz:fila` | `localStorage` | Leads e idas ao checkout esperando reenvio (`{ tipo, id, payload, tentativas, proximaEm }`; a ida ao checkout tem `id` `checkout:<leadId>`, pra nunca tomar o lugar do lead). |
 | `qz:cookies` | `localStorage` | A escolha da folha de cookies (`aceito` ou `rejeitado`). Só existe pra adulto. |
 | `qz:utm` | `sessionStorage` | As UTMs do primeiro toque da sessão. |
 | `qz:ensaio` | `sessionStorage` | Os últimos 5 payloads no modo de ensaio (sem endpoint). |
@@ -96,7 +100,7 @@ Tudo em `try/catch`: com o armazenamento bloqueado (navegador do Instagram, aba 
 
 ## Eventos (`config/eventos.json`)
 
-`quiz_view` (utm_source, utm_medium, utm_campaign, utm_content, utm_term, plataforma, inApp, versao); `quiz_start`; `step_view` (id, n, ms); `step_answer` (id, valor); `step_back` (id); `menor_declarado` (faixa); `menor12_saida`; `campo_toggle` (modo); `prova_fontes_open` (tela); `recorte_view` (id); `audio_view`; `audio_play` (pct); `audio_pause` (pct); `audio_progress` (pct); `audio_end`; `audio_seek` (pct); `audio_error` (estado); `audio_skip` (estado); `compromisso` (ms); `contact_submit` (tier, total, adulto, duracaoSeg); `lead_enviado` (tentativa); `lead_fila` (tentativa); `quiz_complete` (tier, total); `cta_click` (tier); `tierC_click`; `abandono` (id, n); `erro_js` (msg, id); `cookies_escolha` (aceite).
+`quiz_view` (utm_source, utm_medium, utm_campaign, utm_content, utm_term, plataforma, inApp, versao, variante); `quiz_start`; `step_view` (id, n, ms); `step_answer` (id, valor); `step_back` (id); `menor_declarado` (faixa); `menor12_saida`; `campo_toggle` (modo); `prova_fontes_open` (tela); `recorte_view` (id); `audio_view`; `audio_play` (pct); `audio_pause` (pct); `audio_progress` (pct); `audio_end`; `audio_seek` (pct); `audio_error` (estado); `audio_skip` (estado); `compromisso` (ms); `contact_submit` (tier, total, adulto, duracaoSeg); `lead_enviado` (tentativa); `lead_fila` (tentativa); `quiz_complete` (tier, total); `cta_click` (tier); `tierC_click`; `oferta_view` (tier) e `checkout_click` (tier, produto), só na variante de venda; `abandono` (id, n); `erro_js` (msg, id); `cookies_escolha` (aceite).
 
 Parâmetro fora do catálogo é descartado na origem. Nenhum evento leva nome, telefone, e-mail, texto livre, idade exata nem `leadId`.
 

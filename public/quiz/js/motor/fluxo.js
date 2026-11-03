@@ -37,6 +37,20 @@ export function variante(fluxo, id, ctx) {
   return v ? v.id : null;
 }
 
+// os passos de uma variante (config/variantes/<pasta>/fluxo.json): o que já existe ganha os campos novos; o novo entra logo depois do
+// passo do "depois" (sem "depois", no fim). Os capítulos da variante somam aos da base.
+export function acrescentaPassos(fluxo, extra) {
+  if (extra?.capitulos) Object.assign(fluxo.capitulos, extra.capitulos);
+  for (const p of extra?.passos || []) {
+    const { depois, ...passo } = p;
+    const i = fluxo.passos.findIndex(x => x.id === passo.id);
+    if (i >= 0) { Object.assign(fluxo.passos[i], passo); continue; }
+    const j = fluxo.passos.findIndex(x => x.id === depois);
+    fluxo.passos.splice(j >= 0 ? j + 1 : fluxo.passos.length, 0, passo);
+  }
+  return fluxo;
+}
+
 // o que precisa estar respondido pra o passo contar como feito (e pra liberar o seguinte)
 export const COMPLETO = {
   posicao: r => !!r.posicao,
@@ -57,7 +71,8 @@ export const COMPLETO = {
   quer: r => !!r.quer,
   chance: r => !!r.chance,
   contato: (r, s) => !!s.enviado,
-  resultado: () => true
+  resultado: () => true,
+  oferta: () => true
 };
 
 export function primeiroIncompleto(cam, r, s) {

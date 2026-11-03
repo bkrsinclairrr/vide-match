@@ -2,7 +2,7 @@
   "versao": "1.0.0",
   "nota": "Nenhum evento leva nome, telefone, e-mail, texto livre, idade exata nem leadId. Todo evento leva só o sessaoId, que vive na memória da aba.",
   "eventos": {
-    "quiz_view": ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "plataforma", "inApp", "versao"],
+    "quiz_view": ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "plataforma", "inApp", "versao", "variante"],
     "quiz_start": [],
     "step_view": ["id", "n", "ms"],
     "step_answer": ["id", "valor"],
@@ -26,6 +26,8 @@
     "quiz_complete": ["tier", "total"],
     "cta_click": ["tier"],
     "tierC_click": [],
+    "oferta_view": ["tier"],
+    "checkout_click": ["tier", "produto"],
     "abandono": ["id", "n"],
     "erro_js": ["msg", "id"],
     "cookies_escolha": ["aceite"]
@@ -33,6 +35,7 @@
   "pixel": {
     "contact_submit": { "meta": "Lead", "utmify": "Lead" },
     "quiz_complete": { "meta": "QuizCompleto", "metaPersonalizado": true },
-    "cta_click": { "meta": "CtaClick", "metaPersonalizado": true }
+    "cta_click": { "meta": "CtaClick", "metaPersonalizado": true },
+    "checkout_click": { "meta": "InitiateCheckout" }
   }
 }
