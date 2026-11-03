@@ -120,12 +120,15 @@ export type Destination = { city: string; uf: string; club: string }
 
 /**
  * Galeria "Alguns dos nossos atletas", sem legenda (a pedido da equipe:
- * sem nome de atleta nem de clube na tela). Tirados a pedido do dono: o post do
+ * sem nome de atleta nem de clube na tela, exceto a foto do coordenador de scout do Fluminense). Tirados a pedido do dono: o post do
  * Grêmio Sub-15 e a assinatura no Goiás (os arquivos seguem em public/).
  */
 const uncaptioned = (file: string, w: number, h: number, alt: string) => pic(file, w, h, alt, "")
 
 export const ATHLETE_GALLERY: Photo[] = [
+  pic("fluminense-cintra.webp", 960, 1280,
+    "Integrante da equipe ao lado de Carlos Cintra, coordenador de scout do Fluminense, e de outro profissional do clube, em um campo de treino",
+    "Com Carlos Cintra", "Coordenador de scout do Fluminense"),
   { ...KAIO, title: "", note: undefined,
     alt: "Arte do Internacional anunciando um atleta nas oitavas de final da Copa do Brasil Sub-17" },
   uncaptioned("corinthians.webp", 924, 1400,
@@ -137,6 +140,9 @@ export const ATHLETE_GALLERY: Photo[] = [
   uncaptioned("guilherme-gremio.webp", 484, 655, "Atleta com a camisa do Grêmio fazendo sinal de positivo"),
   uncaptioned("ceara.webp", 842, 1264, "Atleta com a camisa de treino do Ceará, em frente ao muro do clube"),
   uncaptioned("caio-internacional.webp", 523, 637, "Atleta com a camisa do Internacional"),
+  uncaptioned("flamengo-alambrado.webp", 960, 1280, "Atleta com a camisa de treino do Flamengo ao lado de um integrante da equipe, junto ao alambrado do campo"),
+  uncaptioned("juvenil-azul-gol.webp", 960, 1280, "Dois atletas de uniforme azul ao lado de um integrante da equipe, junto ao gol"),
+  uncaptioned("azul-vestiario-visitante.webp", 960, 1280, "Três atletas de uniforme azul e um integrante da equipe em frente ao vestiário visitante"),
 ]
 
 /**
