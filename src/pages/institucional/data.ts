@@ -120,16 +120,14 @@ export type Destination = { city: string; uf: string; club: string }
 
 /**
  * Galeria "Alguns dos nossos atletas", sem legenda (a pedido da equipe:
- * sem nome de atleta nem de clube na tela). São 11 fotos para que, com o
- * cartão "+ centenas", a grade feche certinho em 2, 3 ou 4 colunas.
+ * sem nome de atleta nem de clube na tela). Tirados a pedido do dono: o post do
+ * Grêmio Sub-15 e a assinatura no Goiás (os arquivos seguem em public/).
  */
 const uncaptioned = (file: string, w: number, h: number, alt: string) => pic(file, w, h, alt, "")
 
 export const ATHLETE_GALLERY: Photo[] = [
   { ...KAIO, title: "", note: undefined,
     alt: "Arte do Internacional anunciando um atleta nas oitavas de final da Copa do Brasil Sub-17" },
-  uncaptioned("gremio-base-sub15.webp", 1156, 1400, "Publicação oficial do Grêmio com três atletas da base Sub-15"),
-  uncaptioned("goias-assinatura.webp", 1091, 1300, "Atleta com a camisa do Goiás assinando contrato"),
   uncaptioned("corinthians.webp", 924, 1400,
     "Dois atletas com uniforme do Corinthians ao lado de um integrante da equipe, sob o monumento do escudo do clube"),
   uncaptioned("nautico.webp", 848, 1231, "Atleta com o uniforme completo do Náutico, no gramado"),
