@@ -1,0 +1,57 @@
+{
+  "chance": {
+    "apoio": "O seu *diagnóstico* sai em instantes. Ele mostra por onde começar.",
+    "espelhos": {
+      "nao_sei": "Sem pressa. O seu diagnóstico ajuda a decidir."
+    }
+  },
+  "contato": {
+    "aceiteAdulto": "Aceito receber o meu diagnóstico e mensagens da Voxen no WhatsApp, também sobre o Scouting PRO. Li a {politica}.",
+    "aceiteMenor": "Sou o responsável por {nomeAtleta}. Aceito receber o diagnóstico e mensagens da Voxen no WhatsApp, também sobre o Scouting PRO. Li a {politica}."
+  },
+  "resultado": {
+    "indica2": "Em algum lugar do mundo, um clube procura {quem} com o seu perfil. O primeiro passo é o Zyron ler o seu jogo.",
+    "botaoOferta": "Ver como começar",
+    "botaoOfertaSub": "Em um passo, você vê o que o Zyron faz pelo seu jogo.",
+    "tierBOferta": "Se puder, veja junto com a sua família."
+  },
+  "oferta": {
+    "rotulo": "O seu próximo passo",
+    "titulo": "Faça o Zyron ler o *seu jogo*.",
+    "pessoalComGasto": "A sua família já investiu {gastoTexto} pra você ser visto. Agora o seu jogo é medido por dados.",
+    "pessoalComPeneira": "Você já fez {peneirasTexto}. Agora o seu jogo é medido por dados, não a olho.",
+    "pessoalSemPeneira": "Antes da primeira peneira, tenha o seu jogo medido por dados.",
+    "produto": "Scouting PRO",
+    "marca": "Voxen",
+    "ritmo": "O seu jogo lido por dados, de 15 em 15 dias.",
+    "itensTitulo": "O que você recebe",
+    "itens": [
+      "O Zyron lê cada vídeo seu e aponta os seus pontos fortes e as suas prioridades.",
+      "Um analista de performance manda o relatório da sua evolução a cada 15 dias.",
+      "Relatório de entrada: de onde você parte.",
+      "Histórico de evolução: todos os relatórios num lugar só.",
+      "Guia da peneira: o que o avaliador olha em vinte minutos.",
+      "Sete módulos de formação pra aplicar no seu jogo."
+    ],
+    "ancoraRotulo": "De",
+    "ancora": "R$ 247,90",
+    "porRotulo": "por",
+    "preco": "R$ 67,90",
+    "precoNota": "Pagamento único. Vitalício.",
+    "garantiaTitulo": "Garantia total, sem prazo.",
+    "garantiaTexto": "Todo o valor investido é devolvido. Sem burocracia.",
+    "garantiaCondicao": "Pra acionar, é preciso comprovar que o método foi aplicado, conforme os termos.",
+    "termosLink": "Ler a garantia nos Termos de Uso",
+    "menor": "O pagamento é feito por um responsável.",
+    "lado": "O encaminhamento a clubes faz parte dos planos de assessoria, não deste.",
+    "botao": "Quero o meu Scouting PRO",
+    "botaoNota": "{preco} · pagamento único e seguro"
+  },
+  "obrigado": {
+    "mensagem": {
+      "adulto": "Olá! Acabei de entrar no Scouting PRO da Voxen. Vou mandar o vídeo do meu jogo.",
+      "menor": "Olá! Sou responsável por um atleta e acabamos de entrar no Scouting PRO da Voxen. Vou mandar o vídeo do jogo dele.",
+      "codigo": "Código do diagnóstico: {codigo}"
+    }
+  }
+}

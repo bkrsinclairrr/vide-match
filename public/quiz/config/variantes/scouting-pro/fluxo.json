@@ -1,0 +1,5 @@
+{
+  "passos": [
+    { "id": "oferta", "n": 16, "capitulo": "V", "tipo": "oferta", "ativo": true, "se": null, "grava": [], "depois": "resultado" }
+  ]
+}

@@ -28,7 +28,19 @@ Validado por `config/payload.schema.json` (JSON Schema 2020-12) nos testes. Bloc
 - `consentimento`: `aceite: true`, o `texto` exato que o atleta (ou o responsável) marcou, `textoVersao`, `politicaVersao`, `em`.
 - `pontuacao`: `total`, `porRegra`, `tier`, `maximo`.
 - `rastreio`: UTMs, `fbclid` e `gclid` (só adulto com aceite), `referrer` (só o domínio), `plataforma`, `inApp`.
-- `tecnico`: `versaoQuiz`, `viewport`, `idioma`, `caminho` (as telas do caminho dele), `sessaoId` (só adulto com aceite), `suspeito` (campo-isca preenchido ou menos de 45 s do começo ao envio: o lead segue, marcado), `modoEnsaio`.
+- `tecnico`: `versaoQuiz`, `viewport`, `idioma`, `caminho` (as telas do caminho dele), `sessaoId` (só adulto com aceite), `suspeito` (campo-isca preenchido ou menos de 45 s do começo ao envio: o lead segue, marcado), `modoEnsaio` e, só na variante de venda, `variante: "scouting-pro"`.
+
+Na variante de venda, o `consentimento.texto` cobre as mensagens sobre o Scouting PRO e o `textoVersao` é o da variante (`aceiteVersao` no `geral.json` dela).
+
+### A ida ao checkout (só na variante de venda)
+
+No toque em "Quero o meu Scouting PRO", o quiz manda pelo mesmo canal do lead (mesmo `endpoint`, mesma fila) um aviso curto, sem contato nenhum:
+
+```json
+{ "tipo": "checkout", "v": 1, "leadId": "<o do lead>", "em": "2026-11-03T14:02:11-03:00", "variante": "scouting-pro", "produto": "scouting-pro" }
+```
+
+O destino acha a linha pelo `leadId` e preenche `checkoutEm` (o Apps Script do `integracao.md` já faz). Se o aviso chegar antes do lead (fila), a linha nasce com o `leadId` e o lead completa depois, sem apagar o `checkoutEm`. Com isso a planilha separa três grupos: saiu antes da oferta, clicou no checkout e não pagou, e pagou (a compra vem da Sinnu, cruzada pelo WhatsApp e pelo código do diagnóstico que a página de obrigado manda).
 
 Os espaços especiais da copy (o espaço duro do "R$ 500" e o word joiner do "Voxen | Zyron") saem trocados por espaço comum: o dado fica limpo pra planilha.
 
@@ -51,7 +63,7 @@ Máximo: 100 (94 com o áudio desligado). Tier A: 70 ou mais, com "estou pronto"
 
 Catálogo em `config/eventos.json` (lista em `contrato.md`). Cada evento leva só o nome e valores categóricos; o lote leva o `sessaoId` (aleatório, só na memória da aba, nunca gravado), então a análise de funil é anônima pra qualquer idade. O lote sai no máximo a cada 3 s pro `endpointEventos` (ou pro `endpoint`, com `tipo: "evento"`), por `sendBeacon`.
 
-Ao pixel (Meta e Utmify), só adulto que aceitou os cookies: `contact_submit` vira `Lead`, `quiz_complete` vira `QuizCompleto` e `cta_click` vira `CtaClick`, sem parâmetro nenhum (nem tier, nem pontuação, nem contato). O pixel da Meta carrega com `autoConfig` desligado (não lê botão nem campo de formulário).
+Ao pixel (Meta e Utmify), só adulto que aceitou os cookies: `contact_submit` vira `Lead`, `quiz_complete` vira `QuizCompleto`, `cta_click` vira `CtaClick` e, na variante de venda, `checkout_click` vira `InitiateCheckout`, sem parâmetro nenhum (nem tier, nem pontuação, nem contato). O pixel da Meta carrega com `autoConfig` desligado (não lê botão nem campo de formulário).
 
 ## Envio e fila
 

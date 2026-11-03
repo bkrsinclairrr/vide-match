@@ -36,6 +36,10 @@ Todo texto de tela mora em `config/copy.pt-BR.json`, por id de tela. Nenhuma fra
 - T13: adulto (o próprio WhatsApp) e menor (o nome e o WhatsApp do responsável, e o aceite no nome dele).
 - T14: A e B (selo, resumo, três linhas e o botão da VSL; o B ganha "Assista com a sua família"), C (sai pro Instagram com respeito).
 
+## A variante de venda (`?v=pro`)
+
+A copy dela mora em `config/variantes/scouting-pro/copy.pt-BR.json` e entra por cima desta: só as chaves que mudam (T13 `chance.apoio` e o espelho do "ainda não sei", os dois aceites da T14, a segunda linha do diagnóstico e o botão do resultado), mais a `oferta` (T16) e a mensagem da página de obrigado. É a única copy do quiz com preço (R$ 67,90 e a âncora R$ 247,90) e com o nome do produto (Scouting PRO); o resto das regras da casa vale igual, e o `teste-variante.mjs` confere que a base continua sem preço nem nome de produto. Trocar o preço é mexer em `oferta.preco` (o botão usa o mesmo valor).
+
 ## Legendas do áudio
 
 Ficam em `audio.legendas`, desligadas (`legendas.ativo: false`). O texto veio da transcrição automática; o dono ouve e aprova antes de ligar.

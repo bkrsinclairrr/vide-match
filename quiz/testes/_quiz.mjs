@@ -126,7 +126,9 @@ export function quiz(c) {
       await colhe();
       await toca('#barra .btn');
     },
-    async resultado() { await esperaTela('resultado', 9000); await espera(900); await colhe(); }
+    async resultado() { await esperaTela('resultado', 9000); await espera(900); await colhe(); },
+    // a oferta da variante de venda (?v=pro), depois do "Ver como começar" do resultado
+    async oferta() { await esperaTela('oferta', 9000); await espera(700); await colhe(); }
   };
 }
 

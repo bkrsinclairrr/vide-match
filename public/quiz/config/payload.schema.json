@@ -138,7 +138,8 @@
         "caminho": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
         "sessaoId": { "type": ["string", "null"] },
         "suspeito": { "type": "boolean" },
-        "modoEnsaio": { "type": "boolean" }
+        "modoEnsaio": { "type": "boolean" },
+        "variante": { "enum": ["scouting-pro"] }
       }
     }
   }

@@ -29,7 +29,8 @@ const TELAS = {
   quer: () => import('../telas/quer.js'),
   chance: () => import('../telas/chance.js'),
   contato: () => import('../telas/contato.js'),
-  resultado: () => import('../telas/resultado.js')
+  resultado: () => import('../telas/resultado.js'),
+  oferta: () => import('../telas/oferta.js')
 };
 
 // fração real (etapa / total) pra barra: 6% de saída e curva rápida no começo, lenta no fim; 1 continua 1
@@ -54,6 +55,8 @@ export function criaMotor(app) {
     return { config: cfg, ficha: d.ficha, quiz: d.quiz, r: estado.r };
   };
   const caminhoAtual = () => calculaCaminho(fluxo, ctxCond());
+  // depois do envio do contato só valem as telas que vêm depois dele: o resultado e, na variante de venda, a oferta
+  const depoisDoEnvio = () => { const cam = caminhoAtual(); return cam.slice(cam.indexOf('contato') + 1); };
   const passoDe = id => fluxo.passos.find(p => p.id === id);
   const hashPasso = () => { const m = /^#\/([\w-]+)/.exec(location.hash); return m ? m[1] : null; };
 
@@ -79,7 +82,7 @@ export function criaMotor(app) {
   // o passo pedido pode não valer (ramo que sumiu, resposta que falta): devolve o mais perto que vale
   function resolve(id) {
     const cam = caminhoAtual();
-    if (estado.s.enviado) return 'resultado';
+    if (estado.s.enviado) return depoisDoEnvio().includes(id) ? id : 'resultado';
     if (!cam.includes(id)) {
       const ordem = fluxo.passos.map(p => p.id);
       const i = ordem.indexOf(id);
@@ -243,8 +246,11 @@ export function criaMotor(app) {
   window.addEventListener('popstate', ev => {
     const pedido = (ev.state && ev.state.passo) || hashPasso();
     nivel = (ev.state && typeof ev.state.i === 'number') ? ev.state.i : 0;
-    // depois do envio, o voltar reabre o resultado (sem reenviar: o leadId já existe)
-    if (estado.s.enviado) { mostra('resultado', { historico: 'push', direcao: 'tras' }); return; }
+    // depois do envio, o voltar reabre o resultado (sem reenviar: o leadId já existe); a tela depois dele (a oferta) volta como as outras
+    if (estado.s.enviado) {
+      if (pedido && pedido !== 'resultado' && depoisDoEnvio().includes(pedido)) { mostra(pedido, { historico: 'none', direcao: 'tras' }); return; }
+      mostra('resultado', { historico: 'push', direcao: 'tras' }); return;
+    }
     if (!pedido) return;
     eventos.registra('step_back', { id: atual?.id || '' });
     mostra(pedido, { historico: 'none', direcao: 'tras' });
@@ -279,7 +285,8 @@ export function criaMotor(app) {
       // entrou por um link com passo (#/zyron) ou recarregou no meio: tenta voltar pra lá, se as respostas permitirem
       const pedido = hashPasso();
       let id = 'posicao';
-      if (estado.s.enviado) id = 'resultado';
+      // quem já enviou volta pra tela onde estava depois do envio (o resultado ou a oferta)
+      if (estado.s.enviado) id = depoisDoEnvio().includes(estado.s.passo) ? estado.s.passo : 'resultado';
       else if (pedido && pedido !== 'posicao' && estado.temRetomada()) id = pedido;
       nivel = (history.state && typeof history.state.i === 'number') ? history.state.i : 0;
       mostra(id, { historico: 'replace' });

@@ -86,6 +86,14 @@ export function confereTexto(texto) {
 }
 const trecho = (t, i) => t.slice(Math.max(0, i - 30), i + 30).replace(/\s+/g, ' ');
 
+// a variante de venda (config/variantes/<pasta>/): o nome do produto e os preços dela são o que fica liberado, e só ali; o resto vale igual
+export function confereTextoVenda(texto, { produto, precos = [] }) {
+  const n = s => String(s).replace(new RegExp(String.fromCharCode(0xa0), 'g'), ' ');
+  let t = n(texto);
+  for (const x of [produto, ...precos]) if (x) t = t.split(n(x)).join('');
+  return confereTexto(t);
+}
+
 // todas as strings de um JSON (com o caminho), menos links e caminhos de arquivo
 export function textosDoJson(o, onde = '', saida = []) {
   if (typeof o === 'string') { if (!/(^|\.)(url|link|foto|src|arquivo|href)$/i.test(onde) && !/^https?:\/\//.test(o)) saida.push([onde, o]); }

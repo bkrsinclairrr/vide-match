@@ -74,7 +74,8 @@ export function criaEnvio({ cfg, eventos }) {
 
   return {
     modoEnsaio: !destino,
-    envia(payload) {
+    // id: a ida ao checkout tem o mesmo leadId do lead e não pode tomar o lugar dele na fila (vai como "checkout:<leadId>")
+    envia(payload, { id } = {}) {
       if (!destino) {
         const lista = sessao.ler('qz:ensaio') || [];
         lista.push(payload);
@@ -82,7 +83,7 @@ export function criaEnvio({ cfg, eventos }) {
         window.__qzEnsaio = lista.slice(-5);
         return Promise.resolve({ modo: 'ensaio' });
       }
-      const item = { tipo: 'lead', id: payload.leadId, payload, tentativas: 0, proximaEm: 0 };
+      const item = { tipo: payload.tipo === 'checkout' ? 'checkout' : 'lead', id: id || payload.leadId, payload, tentativas: 0, proximaEm: 0 };
       fila = fila.filter(i => i.id !== item.id).concat(item);
       salva();
       return processa().then(() => ({ modo: 'envio' }));

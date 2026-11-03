@@ -46,6 +46,7 @@ O `teste-dados.mjs` confere a ficha contra as regras do Painel do Closer, que mo
 | `teste-consentimento.mjs` | Nenhuma tag antes da idade nem pra menor, a folha só pra adulto e com ID, botões iguais, rejeitar e aceitar |
 | `teste-desempenho.mjs` | Com 4G lento e CPU 4 vezes mais lenta, em HTTP/2: carga, LCP e CLS (mediana de 3 visitas), JavaScript comprimido e nenhum terceiro; a capa antes do JavaScript, sem piscar pra quem volta no meio e sem pular quando a T01 monta |
 | `teste-aparelhos.mjs` | As telas em 360, 390, 412, 768 e 1440 px (capturas em `capturas/`) e o navegador do Instagram (Android e iOS) |
+| `teste-variante.mjs` | A variante de venda (`?v=pro`): contratos e regras da casa dela, a base sem preço, adulto ponta a ponta até o checkout (UTMs, nada de pessoa na URL, a ida ao checkout no coletor), menor, tier C, recarregar e voltar na oferta, progresso separado e a página de obrigado |
 | `teste-fontes.mjs` | Cada link do `provas.json` (o que não abre vira aviso) |
 | `teste-publicacao.mjs <url>` | A prévia no ar: 200, noindex, MP3, arquivos idênticos aos locais, robots.txt e capturas da T01 e da T14 |
 

@@ -12,12 +12,13 @@ export const GASTO_ESTIMADO = { nada: 0, ate_500: 250, '500_2000': 1250, mais_20
 export const ADULTO = new Set(['18_21', '22_mais']);
 export const MENOR = new Set(['12_14', '15_17']);
 
-export function criaEstado({ dias = 7 } = {}) {
+// chave: a variante (js/app.js) guarda o progresso noutra, pra quem abrir as duas não misturar
+export function criaEstado({ dias = 7, chave = CHAVE } = {}) {
   const novo = () => ({ v: VERSAO, respostas: {}, passo: null, criadoEm: null, atualizadoEm: Date.now(), enviado: false, leadId: null, resultado: null });
   let s = novo();
-  const lido = guarda.ler(CHAVE);
+  const lido = guarda.ler(chave);
   if (lido && lido.v === VERSAO && Date.now() - (lido.atualizadoEm || 0) <= dias * 864e5) s = Object.assign(novo(), lido);
-  else if (lido) guarda.apagar(CHAVE);
+  else if (lido) guarda.apagar(chave);
   // quem já respondeu a idade e parou depois da capa pode seguir de onde parou: a tela onde parou vale até ele sair da capa
   // (o motor grava o passo antes de desenhar a tela, então a capa não pode ler isso do s.passo)
   let retomada = s.respostas.idade && s.respostas.idade !== 'menos12' && s.passo && s.passo !== 'posicao' ? s.passo : null;
@@ -28,7 +29,7 @@ export function criaEstado({ dias = 7 } = {}) {
     s.atualizadoEm = Date.now();
     const copia = JSON.parse(JSON.stringify(s));
     if (copia.enviado) CONTATO.forEach(k => delete copia.respostas[k]);
-    guarda.gravar(CHAVE, copia);
+    guarda.gravar(chave, copia);
   }
 
   return {
@@ -52,9 +53,9 @@ export function criaEstado({ dias = 7 } = {}) {
     // já existe progresso que vale retomar (a idade já foi respondida) e a tela onde ele parou
     temRetomada() { return !!retomada; },
     get retomada() { return retomada; },
-    zera() { guarda.apagar(CHAVE); s = novo(); retomada = null; Object.keys(memoria).forEach(k => delete memoria[k]); },
+    zera() { guarda.apagar(chave); s = novo(); retomada = null; Object.keys(memoria).forEach(k => delete memoria[k]); },
     // a saída do menor de 12: nada do que foi respondido fica guardado
-    esquece() { guarda.apagar(CHAVE); s = novo(); retomada = null; }
+    esquece() { guarda.apagar(chave); s = novo(); retomada = null; }
   };
 }
 

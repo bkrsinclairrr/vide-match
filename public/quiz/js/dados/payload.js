@@ -39,7 +39,8 @@ function montaPayloadCru({ leadId, estado, d, pont, cfg, rastreio, eventos, cami
     consentimento: {
       aceite: true,
       texto: textoAceite,
-      textoVersao: VERSAO_TEXTO,
+      // a variante de venda tem o próprio texto do aceite (cobre as mensagens sobre o produto), com a própria versão
+      textoVersao: cfg.aceiteVersao || VERSAO_TEXTO,
       politicaVersao: VERSAO_TEXTO,
       em: isoLocal(agora)
     },
@@ -50,7 +51,7 @@ function montaPayloadCru({ leadId, estado, d, pont, cfg, rastreio, eventos, cami
       fbclid: menor ? null : cliques.fbclid, gclid: menor ? null : cliques.gclid,
       referrer: rastreio.referrer || '', plataforma: rastreio.plataforma, inApp: rastreio.inApp
     },
-    tecnico: {
+    tecnico: Object.assign({
       versaoQuiz: cfg.versao,
       viewport: `${Math.round(window.innerWidth)}x${Math.round(window.innerHeight)}`,
       idioma: (navigator.language || 'pt-BR').slice(0, 20),
@@ -58,8 +59,23 @@ function montaPayloadCru({ leadId, estado, d, pont, cfg, rastreio, eventos, cami
       sessaoId: !menor && rastreio.podeIdentificar ? eventos.sessaoId : null,
       suspeito: !!suspeito || duracaoSeg < 45,
       modoEnsaio: !!modoEnsaio
-    }
+    }, cfg.variante ? { variante: cfg.variante } : {})
   };
+}
+
+// A ida ao checkout (variante de venda), pelo mesmo canal do lead: o destino faz upsert pelo leadId e preenche o checkoutEm. Sem contato.
+export function montaCheckout({ leadId, cfg, agora = new Date() }) {
+  return { tipo: 'checkout', v: 1, leadId, em: isoLocal(agora), variante: cfg.variante || null, produto: cfg.checkout?.produto || null };
+}
+
+// A URL do checkout: o link de pagamento com as UTMs que vieram no anúncio. O checkout é de terceiro: nunca nome, telefone, leadId nem
+// pontuação. A compra se cruza com a planilha pelo WhatsApp digitado lá e pelo código do diagnóstico que a página de obrigado manda.
+export function urlCheckout({ cfg, rastreio }) {
+  const base = cfg.checkout?.url || cfg.landingEnsaio || '/';
+  let u;
+  try { u = new URL(base, location.href); } catch { u = new URL('/', location.href); }
+  Object.entries(rastreio.utm).forEach(([k, v]) => { if (v) u.searchParams.set(k, v); });
+  return u.toString();
 }
 
 // A URL da landing: UTMs que vieram, qz=1, o tier e o leadId opaco. Nunca nome, telefone, e-mail nem a pontuação detalhada.

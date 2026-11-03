@@ -37,12 +37,14 @@ O quiz manda um `POST` com o JSON do lead no corpo e `Content-Type: text/plain` 
 5. Se o volume de visitas for grande, ponha `"endpointEventos": false` (ou outro destino pros eventos): uma visita gera uns dez lotes, e a cota diária do Apps Script numa conta gratuita é curta.
 
 ```js
-// Webhook do Quiz Zyron: grava cada lead numa linha (upsert pelo leadId) e os lotes de eventos noutra aba.
+// Webhook do Quiz Zyron: grava cada lead numa linha (upsert pelo leadId), a ida ao checkout da variante de venda na linha do lead
+// e os lotes de eventos noutra aba.
 const ABA_LEADS = 'Leads';
 const ABA_EVENTOS = 'Eventos';
 const COLUNAS = ['leadId', 'recebidoEm', 'enviadoEm', 'tier', 'total', 'nome', 'whatsapp', 'responsavel', 'idadeFaixa', 'posicao',
   'peneiras', 'gasto', 'dispensas', 'jogouBem', 'video', 'sonho', 'audio', 'quer', 'compromisso', 'chance',
-  'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'plataforma', 'inApp', 'suspeito', 'modoEnsaio', 'payload'];
+  'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'plataforma', 'inApp', 'suspeito', 'modoEnsaio', 'variante', 'checkoutEm', 'payload'];
+const COL_CHECKOUT = COLUNAS.indexOf('checkoutEm');
 
 function doPost(e) {
   const trava = LockService.getScriptLock();
@@ -50,6 +52,7 @@ function doPost(e) {
   try {
     const corpo = JSON.parse(e.postData.contents);
     if (corpo.tipo === 'evento') gravaEventos(corpo);
+    else if (corpo.tipo === 'checkout') gravaCheckout(corpo);
     else if (corpo.leadId) gravaLead(corpo);
     return ContentService.createTextOutput('ok');
   } catch (erro) {
@@ -76,12 +79,27 @@ function gravaLead(p) {
     texto(q.idadeFaixa), f.posicao, texto(q.peneirasFaixa), q.gastoFaixa || '', texto(q.dispensas), q.jogouBem || '', q.video, f.sonho,
     (q.audio || {}).estado, q.quer, q.compromisso, q.chance,
     r.utm_source || '', r.utm_medium || '', r.utm_campaign || '', r.utm_content || '', r.plataforma, r.inApp || '',
-    t.suspeito, t.modoEnsaio, JSON.stringify(p)];
+    t.suspeito, t.modoEnsaio, t.variante || '', '', JSON.stringify(p)];
+  const i = linhaDo(a, p.leadId);
+  // o reenvio do lead não apaga a ida ao checkout que já chegou
+  if (i >= 0) { linha[COL_CHECKOUT] = a.getRange(i + 2, COL_CHECKOUT + 1).getValue(); a.getRange(i + 2, 1, 1, linha.length).setValues([linha]); }
+  else a.appendRow(linha);
+}
+
+// a ida ao checkout (variante de venda): preenche o checkoutEm na linha do lead; se o lead ainda não chegou, a linha nasce com o leadId
+function gravaCheckout(k) {
+  const a = aba(ABA_LEADS, COLUNAS);
+  const i = linhaDo(a, k.leadId);
+  if (i >= 0) { a.getRange(i + 2, COL_CHECKOUT + 1).setValue(k.em); return; }
+  const linha = COLUNAS.map(() => '');
+  linha[0] = k.leadId; linha[1] = new Date(); linha[COLUNAS.indexOf('variante')] = k.variante || ''; linha[COL_CHECKOUT] = k.em;
+  a.appendRow(linha);
+}
+
+function linhaDo(a, leadId) {
   const total = a.getLastRow();
   const ids = total > 1 ? a.getRange(2, 1, total - 1, 1).getValues().map(l => l[0]) : [];
-  const i = ids.indexOf(p.leadId);
-  if (i >= 0) a.getRange(i + 2, 1, 1, linha.length).setValues([linha]);
-  else a.appendRow(linha);
+  return ids.indexOf(leadId);
 }
 
 function gravaEventos(lote) {
@@ -115,6 +133,22 @@ Com `whatsappFinal` preenchido (o padrão desde 26/10/2026), o botão da T14 ("C
 
 Com `whatsappFinal` vazio, o botão da T14 abre, na mesma aba, a `landingUrl` com: as UTMs que vieram no anúncio, `qz=1` (veio do quiz), `t=A`, `B` ou `C` (o tier) e `lid=<leadId>` (o id opaco do lead, pra cruzar a visita e a compra com a linha da planilha). Nunca nome, telefone nem a pontuação detalhada.
 
+## A variante de venda: do diagnóstico direto pro checkout do Scouting PRO
+
+`aizyron.com/quiz/?v=pro` (atalho: `aizyron.com/quiz/pro`, que redireciona) é o mesmo quiz, com `config/variantes/scouting-pro/` por cima da base: no fim, em vez do WhatsApp, o resultado leva à oferta (T16) e a oferta leva ao checkout. O quiz de sempre (`/quiz/`) não muda. Plano, decisões do dono e pendências em `quiz/docs/variante-scouting-pro.md`.
+
+| Campo (no `geral.json` da variante) | Hoje | O que faz |
+| --- | --- | --- |
+| `checkout.url` | `https://pay.sinnu.com.br/H8ups0dI` | O link de pagamento. O botão da oferta abre com as UTMs do anúncio e nada mais (nem nome, nem telefone, nem `leadId`). |
+| `checkout.produto` | `scouting-pro` | Vai no evento `checkout_click` e na ida ao checkout. |
+| `aceiteVersao` | `2026-11-03-scouting-pro` | A versão do texto do aceite da variante (troque junto com o texto). |
+| `roteamento.tierC` | `oferta` | O tier C vê a tela do B e a oferta (o evento leva o tier real). |
+| `whatsappEquipe` | vazio | Sem link de WhatsApp na oferta (pedido do dono). |
+
+Na Sinnu, no produto do link: preço R$ 67,90 e **URL de redirecionamento depois da compra = `https://aizyron.com/quiz/obrigado/`** (com a barra final; sem ela, o site redireciona). A página de obrigado monta a mensagem do WhatsApp da equipe (`whatsappFinal` do `geral.json` da base) com o código do diagnóstico, se o aparelho fez a variante.
+
+Nos anúncios, use `https://aizyron.com/quiz/?v=pro&utm_source=...`: as UTMs vão direto, sem depender do redirecionamento.
+
 ## Publicar
 
 O quiz é servido pelo projeto da Vercel do site (`vide-match`, domínio `aizyron.com`), a partir de `public/quiz/`. O `vercel.json` do site traz as 3 regras do quiz: `/quiz` redireciona pra `/quiz/` (os caminhos do quiz são relativos, então a barra final é obrigatória), noindex em `/quiz/` e cache dos assets.
@@ -128,6 +162,6 @@ O caminho que funciona, igual ao do resto do site:
 
 `vercel deploy` pela CLI neste projeto sai **Blocked** ("the commit author doesn't have permission to create deployments"): não use. `vercel curl` e `vercel inspect` funcionam (o teste de publicação usa o `curl`).
 
-Ao ligar o `endpoint` (ou o `endpointEventos`) em `public/quiz/config/geral.json`, inclua o domínio dele no `connect-src` do Content-Security-Policy do `vercel.json` do site (pro webhook do Google Apps Script: `https://script.google.com` e `https://script.googleusercontent.com`); sem isso, o navegador bloqueia o envio e o lead cai só na fila do aparelho.
+Ao ligar o `endpoint` (ou o `endpointEventos`) em `public/quiz/config/geral.json`, o domínio dele precisa estar no `connect-src` do Content-Security-Policy do `vercel.json` do site; sem isso, o navegador bloqueia o envio e o lead cai só na fila do aparelho. Os do Google Apps Script (`https://script.google.com` e `https://script.googleusercontent.com`) já estão lá desde 03/11/2026; outro destino (Make, n8n, Zapier) precisa entrar.
 
 Histórico: o quiz nasceu publicado como prévia num projeto separado (`quiz-zyron`), por isso as decisões 34 e 35 falam dele. Esse projeto só serviu pra desenvolver.
