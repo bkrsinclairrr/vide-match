@@ -128,8 +128,8 @@ const uncaptioned = (file: string, w: number, h: number, alt: string) => pic(fil
 export const ATHLETE_GALLERY: Photo[] = [
   { ...KAIO, title: "", note: undefined,
     alt: "Arte do Internacional anunciando um atleta nas oitavas de final da Copa do Brasil Sub-17" },
-  uncaptioned("corinthians.webp", 924, 1400,
-    "Dois atletas com uniforme do Corinthians ao lado de um integrante da equipe, sob o monumento do escudo do clube"),
+  uncaptioned("corinthians.webp", 1210, 1600,
+    "Dois atletas ao lado de um integrante da equipe, sob o monumento do escudo do Corinthians"),
   uncaptioned("nautico.webp", 848, 1231, "Atleta com o uniforme completo do Náutico, no gramado"),
   uncaptioned("mauricio-palmeiras.webp", 484, 651, "Atleta segurando uma camisa autografada do Palmeiras"),
   uncaptioned("fluminense-ct.webp", 1009, 1400, "Atleta sob o portal do CT Vale das Laranjeiras, do Fluminense"),
