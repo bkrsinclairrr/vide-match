@@ -36,8 +36,14 @@ function pelaCli(caminho, { range } = {}) {
   const corpoArq = path.join(tmp, 'corpo'), cabArq = path.join(tmp, 'cab');
   [corpoArq, cabArq].forEach(f => fs.rmSync(f, { force: true }));
   const extra = ['--silent', '--output', corpoArq, '--dump-header', cabArq].concat(range ? ['--range', range.replace(/^bytes=/, '')] : []);
-  execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['--yes', 'vercel', 'curl', caminho || '/', '--deployment', site, '--', ...extra],
-    { cwd: REPO, stdio: 'ignore', shell: process.platform === 'win32', timeout: 120000, env: Object.assign({}, process.env, { MSYS_NO_PATHCONV: '1' }) });
+  // a CLI falha de vez em quando numa sequência longa (uma chamada em quase cem), e a mesma chamada passa em seguida: até 3 tentativas
+  for (let tentativa = 1; ; tentativa++) {
+    try {
+      execFileSync(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['--yes', 'vercel', 'curl', caminho || '/', '--deployment', site, '--', ...extra],
+        { cwd: REPO, stdio: 'ignore', shell: process.platform === 'win32', timeout: 120000, env: Object.assign({}, process.env, { MSYS_NO_PATHCONV: '1' }) });
+      break;
+    } catch (e) { if (tentativa >= 3) throw e; }
+  }
   const linhas = fs.existsSync(cabArq) ? fs.readFileSync(cabArq, 'utf8').split(/\r?\n/) : [];
   const ultimoStatus = linhas.map((l, i) => [l, i]).filter(([l]) => /^HTTP\//.test(l)).pop();
   const cab = {};
@@ -66,8 +72,8 @@ try {
   ok(mp3.status === 206 && /^audio\/mpeg/.test(mp3.cab['content-type'] || '') && /bytes/.test(mp3.cab['accept-ranges'] || ''), `MP3: ${mp3.status}, ${mp3.cab['content-type']}, Accept-Ranges ${mp3.cab['accept-ranges']}`);
 
   // cada arquivo de public/quiz publicado igual ao local
-  // em toda PRÉVIA a Vercel injeta no fim do index.html o script da barra de comentários dela (vercel.live); em produção não existe.
-  // Só essa linha sai antes de comparar, e o teste avisa que ela estava lá
+  // em toda PRÉVIA a Vercel injeta no fim de cada página HTML (o index.html e a página de obrigado) o script da barra de comentários
+  // dela (vercel.live); em produção não existe. Só essa linha sai antes de comparar, e o teste avisa que ela estava lá
   const injetada = /<script[^>]*src="https:\/\/vercel\.live\/[^"]*"[^>]*><\/script>/;
   const locais = arquivos(RAIZ).map(f => path.relative(RAIZ, f).split(path.sep).join('/'));
   const diferentes = [];
@@ -75,7 +81,7 @@ try {
   for (const rel of locais) {
     const resp = await pede(QUIZ + '/' + (rel === 'index.html' ? '' : rel));
     let corpo = resp.corpo;
-    if (rel === 'index.html' && injetada.test(corpo.toString('utf8'))) { barraDaVercel = true; corpo = Buffer.from(corpo.toString('utf8').replace(injetada, '')); }
+    if (/\.html$/.test(rel) && injetada.test(corpo.toString('utf8'))) { barraDaVercel = true; corpo = Buffer.from(corpo.toString('utf8').replace(injetada, '')); }
     if (resp.status !== 200 || sha(corpo, rel) !== sha(fs.readFileSync(path.join(RAIZ, rel)), rel)) diferentes.push(`${rel} (${resp.status})`);
   }
   if (barraDaVercel) console.log('AVISO a prévia traz o script da barra de comentários da Vercel (vercel.live), que ela injeta só em prévia');
